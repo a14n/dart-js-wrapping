@@ -17,6 +17,11 @@ library js_wrap;
 import 'package:meta/meta.dart';
 import 'package:js/js.dart' as js;
 
+part 'src/core/date.dart';
+
+typedef dynamic Transformater(dynamic o);
+dynamic transformIfNotNull(dynamic o, Transformater t) => o != null ? t(o) : null;
+
 // TODO replace with ... see http://dartbug.com/6111
 /// metadata to make editor warn on undefined methods (in a real world, not yet implemented)
 const warnOnUndefinedMethod = const _WarnOnUndefinedMethod();

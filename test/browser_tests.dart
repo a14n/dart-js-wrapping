@@ -41,4 +41,14 @@ main() {
       expect(john.sayHello(), equals("Hello, I'm John Doe"));
     });
   });
+
+  test('JsDate', () {
+    js.scoped(() {
+      final date = new Date.now();
+      final jsDate = new jsw.JsDate(date);
+      expect(jsDate.millisecondsSinceEpoch, equals(date.millisecondsSinceEpoch));
+      jsDate.$proxy.setFullYear(2000);
+      expect(jsDate.year, equals(2000));
+    });
+  });
 }
