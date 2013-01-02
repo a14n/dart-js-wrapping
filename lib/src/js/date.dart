@@ -1,6 +1,7 @@
 part of js_wrap;
 
 class JsDate extends TypedProxy implements Date {
+  static JsDate cast(js.Proxy jsProxy) => transformIfNotNull(jsProxy, (jsProxy) => new JsDate.fromJsProxy(jsProxy));
   static JsDate toJs(Date date) => transformIfNotNull(date, (date) => date is JsDate ? date : new JsDate(date));
 
   JsDate(Date date) : super(js.context.Date, [date.millisecondsSinceEpoch]);

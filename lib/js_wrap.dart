@@ -17,10 +17,11 @@ library js_wrap;
 import 'package:meta/meta.dart';
 import 'package:js/js.dart' as js;
 
-part 'src/core/date.dart';
+part 'src/js/date.dart';
+part 'src/js/array.dart';
 
-typedef dynamic Transformater(dynamic o);
-dynamic transformIfNotNull(dynamic o, Transformater t) => o != null ? t(o) : null;
+typedef dynamic Transformer(dynamic o);
+dynamic transformIfNotNull(dynamic o, Transformer t) => o != null ? t(o) : null;
 
 // TODO replace with ... see http://dartbug.com/6111
 /// metadata to make editor warn on undefined methods (in a real world, not yet implemented)
@@ -59,6 +60,9 @@ class Proxy {
   Proxy([function, List args]) : this.fromJsProxy(new js.Proxy.withArgList(function != null ? function : js.context.Object, args != null ? args.map(_transform) : []));
   Proxy.fromJsProxy(this.$jsProxy);
 
+  operator[](arg) => noSuchMethod(new ProxyInvocationMirror.getter(arg.toString()));
+  operator[]=(key, value) => noSuchMethod(new ProxyInvocationMirror.setter(key.toString(), value));
+
   @override noSuchMethod(InvocationMirror invocation) {
     final proxyInvocation = new ProxyInvocationMirror.fromInvocationMirror(invocation);
     final jsResult = $jsProxy.noSuchMethod(proxyInvocation);
@@ -73,6 +77,9 @@ class TypedProxy {
   TypedProxy([function, List args]) : this.fromProxy(new Proxy(function, args));
   TypedProxy.fromProxy(this.$proxy);
   TypedProxy.fromJsProxy(js.Proxy jsProxy) : this.fromProxy(new Proxy.fromJsProxy(jsProxy));
+
+  operator[](arg) => noSuchMethod(new ProxyInvocationMirror.getter(arg));
+  operator[]=(key, value) => noSuchMethod(new ProxyInvocationMirror.setter(key, value));
 
   @warnOnUndefinedMethod @override noSuchMethod(InvocationMirror invocation) => $proxy.noSuchMethod(invocation);
 }
