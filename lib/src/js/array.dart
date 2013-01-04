@@ -19,7 +19,6 @@ class JsArray<E> extends TypedProxy implements List<E> {
   JsArray(List list, [E instantiator(e)]) : this.fromJsProxy(js.array(list), instantiator);
   JsArray.fromJsProxy(js.Proxy jsProxy, [E instantiator(e)]) : super.fromJsProxy(jsProxy) {
     _instantiator = instantiator != null ? instantiator : (e) => e;
-
   }
 
   // Object

@@ -54,7 +54,7 @@ main() {
     });
   });
 
-  group('jsList', () {
+  group('jsArray', () {
     test('operations', () {
       js.scoped(() {
         js.context.myArray = js.array([]);
@@ -141,18 +141,5 @@ main() {
         expect(myArray[0].firstname, 'John');
       });
     });
-
-//    test('from dart list', () {
-//      js.scoped(() {
-//        final list = [new Date.now(), new Date.now(), new Date.now()];
-//        final myArray = new jsw.JsArray<Date>(list);
-//        js.context.console.log(myArray.$proxy.$jsProxy[0]);
-//        print(myArray.$proxy.$jsProxy[0]);
-//        expect(myArray.length, 3);
-//        for (int i = 0; i < list.length; i++) {
-//          expect(myArray[i], list[i]);
-//        }
-//      });
-//    });
   });
 }
