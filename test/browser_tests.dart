@@ -10,8 +10,7 @@ import 'package:js_wrap/js_wrap.dart' as jsw;
 
 
 abstract class _Person {
-  String get firstname;
-  set firstname(String firstname);
+  String firstname;
 
   String sayHello();
 }
