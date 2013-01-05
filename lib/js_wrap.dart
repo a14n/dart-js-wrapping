@@ -50,8 +50,8 @@ class ProxyInvocationMirror extends InvocationMirror {
 }
 
 Object _transform(data) =>
-    (data is TypedProxy) ? data.$safe._proxy :
-    (data is Proxy) ? data._proxy :
+    (data is TypedProxy) ? data.$proxy.$jsProxy :
+    (data is Proxy) ? data.$jsProxy :
     data;
 
 class Proxy {
