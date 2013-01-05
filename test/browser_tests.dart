@@ -141,4 +141,13 @@ main() {
       });
     });
   });
+
+  test('callback', () {
+    js.scoped(() {
+      final context = new jsw.Proxy.fromJsProxy(js.context);
+      context.myCallback = new jsw.Callback.once((String firstname, String lastname) => new Person(firstname, lastname));
+
+      expect(new Person.fromJsProxy(context.myCallback('John', 'Doe')).firstname, 'John');
+    });
+  });
 }

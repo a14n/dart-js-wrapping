@@ -83,3 +83,25 @@ class TypedProxy {
 
   @warnOnUndefinedMethod @override noSuchMethod(InvocationMirror invocation) => $proxy.noSuchMethod(invocation);
 }
+
+class Callback extends js.Callback {
+  Callback.once(Function f) : super.once(_serializeResult(f));
+  Callback.many(Function f) : super.many(_serializeResult(f));
+  static _serializeResult(f) => ([arg1, arg2, arg3, arg4]) {
+    // TODO use simulated varargs with emulated functions
+    // TODO check number of parameter to avoid:"Closure argument mismatch"
+    // for exemple Events.addDomListener(mapDiv, 'click', () { window.alert('DIV clicked'); });
+    // callback has no interest for event param
+    if (!?arg1) {
+      return _transform(f());
+    } else if (!?arg2) {
+      return _transform(f(arg1));
+    } else if (!?arg3) {
+      return _transform(f(arg1, arg2));
+    } else if (!?arg4) {
+      return _transform(f(arg1, arg2, arg3));
+    } else {
+      return _transform(f(arg1, arg2, arg3, arg4));
+    }
+  };
+}
