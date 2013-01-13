@@ -60,8 +60,8 @@ class Proxy {
   Proxy([function, List args]) : this.fromJsProxy(new js.Proxy.withArgList(function != null ? function : js.context.Object, args != null ? args.map(_transform) : []));
   Proxy.fromJsProxy(this.$jsProxy);
 
-  operator[](arg) => noSuchMethod(new ProxyInvocationMirror.getter(arg.toString()));
-  operator[]=(key, value) => noSuchMethod(new ProxyInvocationMirror.setter(key.toString(), value));
+  operator[](arg) => $jsProxy.noSuchMethod(new ProxyInvocationMirror.getter(arg.toString()));
+  operator[]=(key, value) => $jsProxy.noSuchMethod(new ProxyInvocationMirror.setter(key.toString(), value));
 
   @override noSuchMethod(InvocationMirror invocation) {
     final proxyInvocation = new ProxyInvocationMirror.fromInvocationMirror(invocation);
@@ -78,8 +78,8 @@ class TypedProxy {
   TypedProxy.fromProxy(this.$proxy);
   TypedProxy.fromJsProxy(js.Proxy jsProxy) : this.fromProxy(new Proxy.fromJsProxy(jsProxy));
 
-  operator[](arg) => noSuchMethod(new ProxyInvocationMirror.getter(arg));
-  operator[]=(key, value) => noSuchMethod(new ProxyInvocationMirror.setter(key, value));
+  operator[](arg) => $proxy[arg];
+  operator[]=(key, value) => $proxy[key] = value;
 
   @warnOnUndefinedMethod @override noSuchMethod(InvocationMirror invocation) => $proxy.noSuchMethod(invocation);
 }
