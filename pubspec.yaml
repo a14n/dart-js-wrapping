@@ -4,7 +4,8 @@ homepage: https://github.com/a14n/dart-js-wrap
 version: 0.0.0-dev
 description: With that package you will be able to easilly wrap JS library in Dart
 dependencies:
-  js: '>=0.0.13 <1.0.0'
+  js:
+    git: git://github.com/dart-lang/js-interop.git
   unittest: any
   meta: any
 
