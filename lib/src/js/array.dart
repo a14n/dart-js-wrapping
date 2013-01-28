@@ -19,6 +19,7 @@ class _JsIterator<E> implements Iterator<E> {
 }
 
 class JsArray<E> extends TypedProxy implements List<E> {
+  static JsArray cast(js.Proxy jsProxy, [Transformer instantiator]) => transformIfNotNull(jsProxy, (jsProxy) => new JsArray.fromJsProxy(jsProxy, instantiator));
   static JsArray toJs(List list, [Transformer instantiator]) => transformIfNotNull(list, (list) => list is JsArray && list._instantiator == instantiator ? list : new JsArray(list, instantiator));
 
   Transformer _instantiator;
@@ -35,6 +36,11 @@ class JsArray<E> extends TypedProxy implements List<E> {
   @override Iterator<E> get iterator => new _JsIterator<E>(this);
   @override int get length => $proxy.length;
 
+  // Collection
+  @override void add(E value) { $proxy.push(value); }
+  @override void clear() { $proxy.splice(0, length); }
+  @override void remove(Object element) { removeAt(indexOf(element)); }
+
   // List
   @override E operator [](int index) => transformIfNotNull($proxy[index], _instantiator);
   @override void operator []=(int index, E value) { $proxy[index] = value; }
@@ -48,9 +54,8 @@ class JsArray<E> extends TypedProxy implements List<E> {
       throw new UnsupportedError("New length has to be greater than actual length");
     }
   }
-  @override void add(E value) { $proxy.push(value); }
   @override void addLast(E value) { $proxy.push(value); }
-  @override void addAll(Iterable<E> iterable) { setRange(length, iterable.length, iterable); }
+  @override List<E> get reversed => _asList().reversed;
   @override void sort([int compare(E a, E b)]) {
     final sortedList = _asList()..sort(compare);
     clear();
@@ -58,7 +63,6 @@ class JsArray<E> extends TypedProxy implements List<E> {
   }
   @override int indexOf(E element, [int start = 0]) => _asList().indexOf(element, start);
   @override int lastIndexOf(E element, [int start]) => _asList().lastIndexOf(element, start);
-  @override void clear() { $proxy.splice(0, length); }
   @override E removeAt(int index) => (transformIfNotNull($proxy.splice(index, 1), (proxy) => new JsArray<E>.fromJsProxy(proxy, _instantiator)) as JsArray<E>)[0];
   @override E removeLast() => transformIfNotNull($proxy.pop(), _instantiator);
   @override List<E> getRange(int start, int length) => _asList().getRange(start, length);
@@ -414,5 +418,56 @@ class JsArray<E> extends TypedProxy implements List<E> {
       remaining--;
     }
     throw new RangeError.value(index);
+  }
+
+  // Collection
+  /**
+   * Adds all of [elements] to this collection.
+   *
+   * Equivalent to adding each element in [elements] using [add],
+   * but some collections may be able to optimize it.
+   */
+  void addAll(Iterable<E> elements) {
+    for (E element in elements) {
+      add(element);
+    }
+  }
+
+  /**
+   * Removes all of [elements] from this collection.
+   *
+   * Equivalent to calling [remove] once for each element in
+   * [elements], but may be faster for some collections.
+   */
+  void removeAll(Iterable elements) {
+    IterableMixinWorkaround.removeAll(this, elements);
+  }
+
+  /**
+   * Removes all elements of this collection that are not
+   * in [elements].
+   *
+   * For [Set]s, this is the intersection of the two original sets.
+   */
+  void retainAll(Iterable elements) {
+    IterableMixinWorkaround.retainAll(this, elements);
+  }
+
+  /**
+   * Removes all elements of this collection that satisfy [test].
+   *
+   * An elements [:e:] satisfies [test] if [:test(e):] is true.
+   */
+  void removeMatching(bool test(E element)) {
+    IterableMixinWorkaround.removeMatching(this, test);
+  }
+
+  /**
+   * Removes all elements of this collection that fail to satisfy [test].
+   *
+   * An elements [:e:] satisfies [test] if [:test(e):] is true.
+   */
+  void retainMatching(bool test(E element)) {
+    IterableMixinWorkaround.retainMatching(this, test);
   }
 }
