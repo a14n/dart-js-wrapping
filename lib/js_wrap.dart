@@ -17,7 +17,6 @@ library js_wrap;
 import 'package:meta/meta.dart';
 import 'package:js/js.dart' as js;
 import "dart:collection";
-import "dart:collection-dev";
 
 part 'src/js/date.dart';
 part 'src/js/array.dart';
