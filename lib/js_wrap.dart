@@ -58,7 +58,7 @@ Object _transform(data) =>
 class Proxy {
   final js.Proxy $jsProxy;
 
-  Proxy([function, List args]) : this.fromJsProxy(new js.Proxy.withArgList(function != null ? function : js.context.Object, args != null ? args.mappedBy(_transform).toList() : []));
+  Proxy([js.FunctionProxy function, List args]) : this.fromJsProxy(new js.Proxy.withArgList(function != null ? function : js.context.Object, args != null ? args.mappedBy(_transform).toList() : []));
   Proxy.fromJsProxy(this.$jsProxy);
 
   operator[](arg) => $jsProxy.noSuchMethod(new ProxyInvocationMirror.getter(arg.toString()));
@@ -75,7 +75,7 @@ class Proxy {
 class TypedProxy {
   final Proxy $proxy;
 
-  TypedProxy([function, List args]) : this.fromProxy(new Proxy(function, args));
+  TypedProxy([js.FunctionProxy function, List args]) : this.fromProxy(new Proxy(function, args));
   TypedProxy.fromProxy(this.$proxy);
   TypedProxy.fromJsProxy(js.Proxy jsProxy) : this.fromProxy(new Proxy.fromJsProxy(jsProxy));
 
