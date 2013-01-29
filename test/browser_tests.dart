@@ -146,6 +146,27 @@ main() {
     });
   });
 
+  test('retain/release', () {
+    Person john;
+    js.scoped(() {
+      john = new Person('John', 'Doe');
+    });
+    js.scoped((){
+      expect(() => john.sayHello(), throws);
+    });
+    js.scoped(() {
+      john = new Person('John', 'Doe');
+      jsw.retain(john);
+    });
+    js.scoped((){
+      expect(() => john.sayHello(), returnsNormally);
+      jsw.release(john);
+    });
+    js.scoped((){
+      expect(() => john.sayHello(), throws);
+    });
+  });
+
   test('callback', () {
     js.scoped(() {
       final context = new jsw.Proxy.fromJsProxy(js.context);

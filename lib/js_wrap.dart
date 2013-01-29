@@ -85,6 +85,31 @@ class TypedProxy {
   @warnOnUndefinedMethod @override noSuchMethod(InvocationMirror invocation) => $proxy.noSuchMethod(invocation);
 }
 
+void release(dynamic object) {
+  if (object is TypedProxy) {
+    js.release(object.$proxy.$jsProxy);
+  } else if (object is Proxy) {
+    js.release(object.$jsProxy);
+  } else if (object is js.Proxy) {
+    js.release(object);
+  } else {
+    throw new UnsupportedError("You can only release TypedProxy, Proxy or js.Proxy");
+  }
+}
+
+dynamic retain(dynamic object) {
+  if (object is TypedProxy) {
+    js.retain(object.$proxy.$jsProxy);
+  } else if (object is Proxy) {
+    js.retain(object.$jsProxy);
+  } else if (object is js.Proxy) {
+    js.retain(object);
+  } else {
+    throw new UnsupportedError("You can only release TypedProxy, Proxy or js.Proxy");
+  }
+  return object;
+}
+
 class Callback extends js.Callback {
   Callback.once(Function f) : super.once(_serializeResult(f));
   Callback.many(Function f) : super.many(_serializeResult(f));
