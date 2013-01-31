@@ -50,12 +50,14 @@ class ProxyInvocationMirror extends InvocationMirror {
   @override invokeOn(Object receiver) { throw new UnsupportedError("Forbidden"); }
 }
 
-Object _transform(data) =>
-    (data is TypedProxy) ? data.$proxy.$jsProxy :
-    (data is Proxy) ? data.$jsProxy :
-    data;
+Object _transform(data) => data is JsWrapper ? (data as JsWrapper).toJs() : data;
 
-class Proxy {
+
+abstract class JsWrapper {
+  dynamic toJs();
+}
+
+class Proxy extends JsWrapper {
   final js.Proxy $jsProxy;
 
   Proxy([js.FunctionProxy function, List args]) : this.fromJsProxy(new js.Proxy.withArgList(function != null ? function : js.context.Object, args != null ? args.mappedBy(_transform).toList() : []));
@@ -64,6 +66,7 @@ class Proxy {
   operator[](arg) => $jsProxy.noSuchMethod(new ProxyInvocationMirror.getter(arg.toString()));
   operator[]=(key, value) => $jsProxy.noSuchMethod(new ProxyInvocationMirror.setter(key.toString(), value));
 
+  @override dynamic toJs() => $jsProxy;
   @override noSuchMethod(InvocationMirror invocation) {
     final proxyInvocation = new ProxyInvocationMirror.fromInvocationMirror(invocation);
     final jsResult = $jsProxy.noSuchMethod(proxyInvocation);
@@ -72,7 +75,7 @@ class Proxy {
   }
 }
 
-class TypedProxy {
+class TypedProxy extends JsWrapper {
   final Proxy $proxy;
 
   TypedProxy([js.FunctionProxy function, List args]) : this.fromProxy(new Proxy(function, args));
@@ -82,6 +85,7 @@ class TypedProxy {
   operator[](arg) => $proxy[arg];
   operator[]=(key, value) => $proxy[key] = value;
 
+  @override dynamic toJs() => $proxy.$jsProxy;
   @warnOnUndefinedMethod @override noSuchMethod(InvocationMirror invocation) => $proxy.noSuchMethod(invocation);
 }
 

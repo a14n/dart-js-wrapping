@@ -20,7 +20,7 @@ class _JsIterator<E> implements Iterator<E> {
 
 class JsArray<E> extends TypedProxy implements List<E> {
   static JsArray cast(js.Proxy jsProxy, [Transformer instantiator]) => transformIfNotNull(jsProxy, (jsProxy) => new JsArray.fromJsProxy(jsProxy, instantiator));
-  static JsArray toJs(List list, [Transformer instantiator]) => transformIfNotNull(list, (list) => list is JsArray && list._instantiator == instantiator ? list : new JsArray(list, instantiator));
+  static JsArray jsify(List list, [Transformer instantiator]) => transformIfNotNull(list, (list) => list is JsArray && list._instantiator == instantiator ? list : new JsArray(list, instantiator));
 
   Transformer _instantiator;
 
