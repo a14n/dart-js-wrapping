@@ -34,16 +34,16 @@ class JsArray<E> extends TypedProxy implements List<E> {
 
   // Iterable
   @override Iterator<E> get iterator => new _JsIterator<E>(this);
-  @override int get length => $proxy.length;
+  @override int get length => $unsafe.length;
 
   // Collection
-  @override void add(E value) { $proxy.push(value); }
-  @override void clear() { $proxy.splice(0, length); }
+  @override void add(E value) { $unsafe.push(value); }
+  @override void clear() { $unsafe.splice(0, length); }
   @override void remove(Object element) { removeAt(indexOf(element)); }
 
   // List
-  @override E operator [](int index) => transformIfNotNull($proxy[index], _instantiator);
-  @override void operator []=(int index, E value) { $proxy[index] = value; }
+  @override E operator [](int index) => transformIfNotNull($unsafe[index], _instantiator);
+  @override void operator []=(int index, E value) { $unsafe[index] = value; }
   @override void set length(int newLength) {
     final length = this.length;
     if (length < newLength) {
@@ -54,7 +54,7 @@ class JsArray<E> extends TypedProxy implements List<E> {
       throw new UnsupportedError("New length has to be greater than actual length");
     }
   }
-  @override void addLast(E value) { $proxy.push(value); }
+  @override void addLast(E value) { $unsafe.push(value); }
   @override List<E> get reversed => _asList().reversed;
   @override void sort([int compare(E a, E b)]) {
     final sortedList = _asList()..sort(compare);
@@ -63,29 +63,29 @@ class JsArray<E> extends TypedProxy implements List<E> {
   }
   @override int indexOf(E element, [int start = 0]) => _asList().indexOf(element, start);
   @override int lastIndexOf(E element, [int start]) => _asList().lastIndexOf(element, start);
-  @override E removeAt(int index) => (transformIfNotNull($proxy.splice(index, 1), (proxy) => new JsArray<E>.fromJsProxy(proxy, _instantiator)) as JsArray<E>)[0];
-  @override E removeLast() => transformIfNotNull($proxy.pop(), _instantiator);
+  @override E removeAt(int index) => (transformIfNotNull($unsafe.splice(index, 1), (proxy) => new JsArray<E>.fromJsProxy(proxy, _instantiator)) as JsArray<E>)[0];
+  @override E removeLast() => transformIfNotNull($unsafe.pop(), _instantiator);
   @override List<E> getRange(int start, int length) => _asList().getRange(start, length);
   @override void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
     final args = [start, 0];
     for(int i = startFrom; i < length; i++) {
       args.add(from[i]);
     }
-    $proxy.noSuchMethod(new ProxyInvocationMirror.method("splice", args));
+    $unsafe.noSuchMethod(new ProxyInvocationMirror.method("splice", args));
   }
-  @override void removeRange(int start, int length) { $proxy.splice(start, length); }
+  @override void removeRange(int start, int length) { $unsafe.splice(start, length); }
   @override void insertRange(int start, int length, [E initialValue]) {
     final args = [start, 0];
     for (int i = 0; i < length; i++) {
       args.add(initialValue);
     }
-    $proxy.noSuchMethod(new ProxyInvocationMirror.method("splice", args));
+    $unsafe.noSuchMethod(new ProxyInvocationMirror.method("splice", args));
   }
 
   List<E> _asList() {
     final list = new List<E>();
     for (int i = 0; i < length; i++) {
-      list.add($proxy[i]);
+      list.add($unsafe[i]);
     }
     return list;
   }

@@ -35,5 +35,5 @@ class JsDate extends TypedProxy implements Date {
   @override Date subtract(Duration duration) => _asDate().subtract(duration);
   @override Duration difference(Date other) => _asDate().difference(other);
 
-  Date _asDate() => new Date.fromMillisecondsSinceEpoch($proxy.getTime());
+  Date _asDate() => new Date.fromMillisecondsSinceEpoch($unsafe.getTime());
 }

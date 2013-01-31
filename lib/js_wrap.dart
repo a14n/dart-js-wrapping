@@ -57,11 +57,11 @@ abstract class JsWrapper {
   dynamic toJs();
 }
 
-class Proxy extends JsWrapper {
+class UnsafeProxy extends JsWrapper {
   final js.Proxy $jsProxy;
 
-  Proxy([js.FunctionProxy function, List args]) : this.fromJsProxy(new js.Proxy.withArgList(function != null ? function : js.context.Object, args != null ? args.mappedBy(_transform).toList() : []));
-  Proxy.fromJsProxy(this.$jsProxy);
+  UnsafeProxy([js.FunctionProxy function, List args]) : this.fromJsProxy(new js.Proxy.withArgList(function != null ? function : js.context.Object, args != null ? args.mappedBy(_transform).toList() : []));
+  UnsafeProxy.fromJsProxy(this.$jsProxy);
 
   operator[](arg) => $jsProxy.noSuchMethod(new ProxyInvocationMirror.getter(arg.toString()));
   operator[]=(key, value) => $jsProxy.noSuchMethod(new ProxyInvocationMirror.setter(key.toString(), value));
@@ -76,23 +76,20 @@ class Proxy extends JsWrapper {
 }
 
 class TypedProxy extends JsWrapper {
-  final Proxy $proxy;
+  final UnsafeProxy $unsafe;
 
-  TypedProxy([js.FunctionProxy function, List args]) : this.fromProxy(new Proxy(function, args));
-  TypedProxy.fromProxy(this.$proxy);
-  TypedProxy.fromJsProxy(js.Proxy jsProxy) : this.fromProxy(new Proxy.fromJsProxy(jsProxy));
+  TypedProxy([js.FunctionProxy function, List args]) : this._fromUnsafe(new UnsafeProxy(function, args));
+  TypedProxy._fromUnsafe(this.$unsafe);
+  TypedProxy.fromJsProxy(js.Proxy jsProxy) : this._fromUnsafe(new UnsafeProxy.fromJsProxy(jsProxy));
 
-  operator[](arg) => $proxy[arg];
-  operator[]=(key, value) => $proxy[key] = value;
-
-  @override dynamic toJs() => $proxy.$jsProxy;
-  @warnOnUndefinedMethod @override noSuchMethod(InvocationMirror invocation) => $proxy.noSuchMethod(invocation);
+  @override dynamic toJs() => $unsafe.$jsProxy;
+  @warnOnUndefinedMethod @override noSuchMethod(InvocationMirror invocation) => invocation.invokeOn($unsafe);
 }
 
 void release(dynamic object) {
   if (object is TypedProxy) {
-    js.release(object.$proxy.$jsProxy);
-  } else if (object is Proxy) {
+    js.release(object.$unsafe.$jsProxy);
+  } else if (object is UnsafeProxy) {
     js.release(object.$jsProxy);
   } else if (object is js.Proxy) {
     js.release(object);
@@ -103,8 +100,8 @@ void release(dynamic object) {
 
 dynamic retain(dynamic object) {
   if (object is TypedProxy) {
-    js.retain(object.$proxy.$jsProxy);
-  } else if (object is Proxy) {
+    js.retain(object.$unsafe.$jsProxy);
+  } else if (object is UnsafeProxy) {
     js.retain(object.$jsProxy);
   } else if (object is js.Proxy) {
     js.retain(object);

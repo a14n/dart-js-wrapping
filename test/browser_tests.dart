@@ -48,7 +48,7 @@ main() {
       final date = new Date.now();
       final jsDate = new jsw.JsDate(date);
       expect(jsDate.millisecondsSinceEpoch, equals(date.millisecondsSinceEpoch));
-      jsDate.$proxy.setFullYear(2000);
+      jsDate.$unsafe.setFullYear(2000);
       expect(jsDate.year, equals(2000));
     });
   });
@@ -138,7 +138,7 @@ main() {
     test('typing', () {
       js.scoped(() {
         js.context.myArray = js.array([]);
-        js.context.myArray.push(new Person('John', 'Doe').$proxy.$jsProxy);
+        js.context.myArray.push(new Person('John', 'Doe').$unsafe.$jsProxy);
 
         final myArray = new jsw.JsArray<Person>.fromJsProxy(js.context.myArray, (e) => jsw.transformIfNotNull(e, (e) => new Person.fromJsProxy(e)));
         expect(myArray[0].firstname, 'John');
@@ -169,7 +169,7 @@ main() {
 
   test('callback', () {
     js.scoped(() {
-      final context = new jsw.Proxy.fromJsProxy(js.context);
+      final context = new jsw.UnsafeProxy.fromJsProxy(js.context);
       context.myCallback = new jsw.Callback.once((String firstname, String lastname) => new Person(firstname, lastname));
 
       expect(new Person.fromJsProxy(context.myCallback('John', 'Doe')).firstname, 'John');
