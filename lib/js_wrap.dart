@@ -31,6 +31,12 @@ class _WarnOnUndefinedMethod {
   const _WarnOnUndefinedMethod();
 }
 
+/// metadata to indicate that an wrapped method has been renamed or customized in a darty way
+const dartified = const _Dartified();
+class _Dartified {
+  const _Dartified();
+}
+
 class ProxyInvocationMirror extends InvocationMirror {
   final String memberName;
   List positionalArguments;
