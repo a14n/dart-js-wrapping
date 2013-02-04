@@ -24,7 +24,9 @@ class JsArray<E> extends TypedProxy implements List<E> {
 
   Transformer _instantiator;
 
-  JsArray(List list, [E instantiator(e)]) : this.fromJsProxy(js.array(list), instantiator);
+  // TODO use js.array once merge into js-interop
+  //JsArray(List list, [E instantiator(e)]) : this.fromJsProxy(js.array(list), instantiator);
+  JsArray(List list, [E instantiator(e)]) : this.fromJsProxy(js.array(list.mappedBy(_transform)), instantiator);
   JsArray.fromJsProxy(js.Proxy jsProxy, [E instantiator(e)]) : super.fromJsProxy(jsProxy) {
     _instantiator = instantiator != null ? instantiator : (e) => e;
   }
