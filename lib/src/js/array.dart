@@ -93,7 +93,8 @@ class JsArray<E> extends TypedProxy implements List<E> {
   }
 
   // -------remove this copy of Iterable when mixin will land
-  @override Iterable mappedBy(f(E element)) => IterableMixinWorkaround.mappedByList(this, f);
+  @override Iterable map(f(E element)) => IterableMixinWorkaround.map(this, f);
+  @override Iterable mappedBy(f(E element)) => IterableMixinWorkaround.map(this, f);
   @override Iterable<E> where(bool f(E element)) => IterableMixinWorkaround.where(this, f);
   @override bool contains(E element) => IterableMixinWorkaround.contains(this, element);
   @override void forEach(void f(E element)) => IterableMixinWorkaround.forEach(this, f);
