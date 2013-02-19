@@ -46,7 +46,7 @@ class ProxyInvocationMirror extends InvocationMirror {
   final bool isSetter;
 
   ProxyInvocationMirror(this.memberName, List positionalArguments, this.namedArguments, this.isMethod, this.isGetter, this.isSetter) {
-    this.positionalArguments = positionalArguments != null ? positionalArguments.mappedBy(_transform).toList() : null;
+    this.positionalArguments = positionalArguments != null ? positionalArguments.map(_transform).toList() : null;
   }
   ProxyInvocationMirror.fromInvocationMirror(InvocationMirror invocation) : this(invocation.memberName, invocation.positionalArguments, invocation.namedArguments, invocation.isMethod, invocation.isGetter, invocation.isSetter);
   ProxyInvocationMirror.method(String memberName, List positionalArguments) : this(memberName, positionalArguments, {}, true, false, false);
@@ -66,7 +66,7 @@ abstract class JsWrapper {
 class UnsafeProxy extends JsWrapper {
   final js.Proxy $jsProxy;
 
-  UnsafeProxy([js.FunctionProxy function, List args]) : this.fromJsProxy(new js.Proxy.withArgList(function != null ? function : js.context.Object, args != null ? args.mappedBy(_transform).toList() : []));
+  UnsafeProxy([js.FunctionProxy function, List args]) : this.fromJsProxy(new js.Proxy.withArgList(function != null ? function : js.context.Object, args != null ? args.map(_transform).toList() : []));
   UnsafeProxy.fromJsProxy(this.$jsProxy);
 
   operator[](arg) => $jsProxy.noSuchMethod(new ProxyInvocationMirror.getter(arg.toString()));
