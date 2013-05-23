@@ -30,9 +30,46 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
       final position = declaration.leftBracket.offset;
       final alreadyExtends = declaration.extendsClause != null;
       result.add(new _Transformation(position, position + 1,
-          (alreadyExtends ? '' : 'extends jsw.TypedProxy') + ''' {
+          (alreadyExtends ? '' : 'extends jsw.TypedProxy ') + '''{
   static $name cast(js.Proxy proxy) => proxy == null ? null : new $name.fromProxy(proxy);
   $name.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);'''));
+
+      // generate member
+      declaration.members.forEach((m){
+        if (m is FieldDeclaration) {
+
+        } else if (m is MethodDeclaration && m.isAbstract()) {
+          bool useBracket = false;
+          var wrap = (String s) => s;
+          if (m.returnType != null) {
+            final returnName = m.returnType.name.name;
+            if (returnName == 'void') {
+              useBracket = true;
+            } else if (returnName == 'int' ||
+                returnName == 'double' ||
+                returnName == 'String' ||
+                returnName == 'bool') {
+            } else if (returnName == 'List') {
+              if (m.returnType.typeArguments == null) {
+                wrap = (String s) => 'jsw.JsArrayToListAdapter.cast($s)';
+              } else {
+                wrap = (String s) => 'jsw.JsArrayToListAdapter.castListOfSerializables($s, ${m.returnType.typeArguments.arguments.first}.cast)';
+              }
+            } else {
+              wrap = (String s) => '${m.returnType}.cast($s)';
+            }
+          }
+          final method = new StringBuffer();
+          if (m.returnType != null) method..write(m.returnType)..write(' ');
+          method..write(m.name)..write(m.parameters);
+          if (useBracket) method.write(' { ');
+          else method.write(' => ');
+          method.write(wrap(r'$unsafe.' + m.name.name + '(' + m.parameters.elements.map((p) => p.name).join(', ') + ')'));
+          method.write(';');
+          if (useBracket) method.write(' }');
+          result.add(new _Transformation(m.offset, m.end, method.toString()));
+        }
+      });
     }
   }
   return result;
