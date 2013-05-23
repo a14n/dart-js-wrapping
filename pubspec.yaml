@@ -1,0 +1,11 @@
+name: js_wrapper_generator
+version: 0.0.1-dev
+authors:
+- Alexandre Ardhuin <alexandre.ardhuin@gmail.com>
+description: Access JavaScript from Dart.
+homepage: https://github.com/a14n/js-wrapper-generator
+dependencies:
+  meta: any
+  analyzer_experimental: any
+dev_dependencies:
+  unittest: any
