@@ -38,35 +38,31 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
       declaration.members.forEach((m){
         if (m is FieldDeclaration) {
 
-        } else if (m is MethodDeclaration && m.isAbstract()) {
-          bool useBracket = false;
-          var wrap = (String s) => s;
+        } else if (m is MethodDeclaration && m.isAbstract() && !m.isStatic() && !m.isOperator()) {
+          var wrap = (String s) => ' => $s;';
           if (m.returnType != null) {
             final returnName = m.returnType.name.name;
             if (returnName == 'void') {
-              useBracket = true;
+              wrap = (String s) => ' { $s; }';
             } else if (returnName == 'int' ||
                 returnName == 'double' ||
                 returnName == 'String' ||
                 returnName == 'bool') {
             } else if (returnName == 'List') {
               if (m.returnType.typeArguments == null) {
-                wrap = (String s) => 'jsw.JsArrayToListAdapter.cast($s)';
+                wrap = (String s) => ' => jsw.JsArrayToListAdapter.cast($s);';
               } else {
-                wrap = (String s) => 'jsw.JsArrayToListAdapter.castListOfSerializables($s, ${m.returnType.typeArguments.arguments.first}.cast)';
+                wrap = (String s) => ' => jsw.JsArrayToListAdapter.castListOfSerializables($s, ${m.returnType.typeArguments.arguments.first}.cast);';
               }
             } else {
-              wrap = (String s) => '${m.returnType}.cast($s)';
+              wrap = (String s) => ' => ${m.returnType}.cast($s);';
             }
           }
           final method = new StringBuffer();
           if (m.returnType != null) method..write(m.returnType)..write(' ');
-          method..write(m.name)..write(m.parameters);
-          if (useBracket) method.write(' { ');
-          else method.write(' => ');
-          method.write(wrap(r'$unsafe.' + m.name.name + '(' + m.parameters.elements.map((p) => p.name).join(', ') + ')'));
-          method.write(';');
-          if (useBracket) method.write(' }');
+          if (m.isSetter()) method.write("set ${m.name}${m.parameters} => \$unsafe['${m.name.name}'] = ${m.parameters.parameters.elements.first.identifier.name};");
+          else if (m.isGetter()) method..write("get ")..write(m.name)..write(wrap("\$unsafe['${m.name.name}']"));
+          else method..write(m.name)..write(m.parameters)..write(wrap('\$unsafe.${m.name.name}(${m.parameters.parameters.elements.map((p) => p.identifier.name).join(', ')})'));
           result.add(new _Transformation(m.offset, m.end, method.toString()));
         }
       });

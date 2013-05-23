@@ -33,6 +33,10 @@ class Person extends jsw.TypedProxy {
   test('methods', () {
     final code = r'''
 @wrapper class Person extends jsw.TypedProxy {
+  set s1(String value);
+  set s2(Person value);
+  String get g1;
+  Person get g2;
   String m1();
   void m2();
   m3();
@@ -44,6 +48,10 @@ class Person extends jsw.TypedProxy {
 class Person extends jsw.TypedProxy {
   static Person cast(js.Proxy proxy) => proxy == null ? null : new Person.fromProxy(proxy);
   Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);
+  set s1(String value) => $unsafe['s1'] = value;
+  set s2(Person value) => $unsafe['s2'] = value;
+  String get g1 => $unsafe['g1'];
+  Person get g2 => Person.cast($unsafe['g2']);
   String m1() => $unsafe.m1();
   void m2() { $unsafe.m2(); }
   m3() => $unsafe.m3();
