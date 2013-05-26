@@ -41,15 +41,12 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
         } else if (m is MethodDeclaration && m.isAbstract() && !m.isStatic() && !m.isOperator()) {
           var wrap = (String s) => ' => $s;';
           if (m.returnType != null) {
-            final returnName = m.returnType.name.name;
-            if (returnName == 'void') {
+            final returnName = m.returnType;
+            if (returnName.name.name == 'void') {
               wrap = (String s) => ' { $s; }';
-            } else if (returnName == 'int' ||
-                returnName == 'double' ||
-                returnName == 'String' ||
-                returnName == 'bool') {
-            } else if (returnName == 'List') {
-              if (m.returnType.typeArguments == null) {
+            } else if (_isTransferableType(returnName)) {
+            } else if (returnName.name.name == 'List') {
+              if (m.returnType.typeArguments == null || _isTransferableType(m.returnType.typeArguments.arguments.first)) {
                 wrap = (String s) => ' => jsw.JsArrayToListAdapter.cast($s);';
               } else {
                 wrap = (String s) => ' => jsw.JsArrayToListAdapter.castListOfSerializables($s, ${m.returnType.typeArguments.arguments.first}.cast);';
@@ -69,6 +66,18 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
     }
   }
   return result;
+}
+
+bool _isTransferableType(TypeName typeName){
+  switch (typeName.name.name) {
+    case 'bool':
+    case 'String':
+    case 'num':
+    case 'int':
+    case 'double':
+      return true;
+  }
+  return false;
 }
 
 /// True if the node has the `@wrapper` annotation.
