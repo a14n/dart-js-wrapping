@@ -6,13 +6,18 @@ import 'package:analyzer_experimental/src/generated/parser.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
 
 final wrapper = const _Wrapper();
-class _Wrapper{
+class _Wrapper {
   const _Wrapper();
 }
 
 final keepAbstract = const _KeepAbstract();
-class _KeepAbstract{
+class _KeepAbstract {
   const _KeepAbstract();
+}
+
+final customCast = const _CustomCast();
+class _CustomCast {
+  const _CustomCast();
 }
 
 String transform(String code) {
@@ -26,33 +31,36 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
   for (var declaration in unit.declarations) {
     if (declaration is ClassDeclaration && hasAnnotation(declaration, 'wrapper')) {
       // remove @wrapper
-      declaration.metadata.where((m) => m.name.name == 'wrapper' && m.constructorName == null && m.arguments == null).forEach((m){
-        result.add(new _Transformation(m.offset, m.endToken.next.offset, ''));
-      });
+      _removeMetadata(result, declaration, (m) => m.name.name == 'wrapper');
 
       // remove @keepAbstract or abstract
       if (hasAnnotation(declaration, 'keepAbstract')){
-        declaration.metadata.where((m) => m.name.name == 'keepAbstract' && m.constructorName == null && m.arguments == null).forEach((m){
-          result.add(new _Transformation(m.offset, m.endToken.next.offset, ''));
-        });
+        _removeMetadata(result, declaration, (m) => m.name.name == 'keepAbstract');
       } else if (declaration.abstractKeyword != null) {
         final abstractKeyword = declaration.abstractKeyword;
-        result.add(new _Transformation(abstractKeyword.offset, abstractKeyword.next.offset, ''));
+        _removeToken(result, abstractKeyword);
       }
+
+      // custom cast
+      final customCast = declaration.members.any((m) => m is MethodDeclaration && hasAnnotation(m, 'customCast') && m.name.name == 'cast');
 
       // add cast and constructor
       final name = declaration.name;
       final position = declaration.leftBracket.offset;
       final alreadyExtends = declaration.extendsClause != null;
       result.add(new _Transformation(position, position + 1,
-          (alreadyExtends ? '' : 'extends jsw.TypedProxy ') + '''{
-  static $name cast(js.Proxy proxy) => proxy == null ? null : new $name.fromProxy(proxy);
-  $name.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);'''));
+          (alreadyExtends ? '' : 'extends jsw.TypedProxy ') + '{' +
+          (customCast ? '' : '\n  static $name cast(js.Proxy proxy) => proxy == null ? null : new $name.fromProxy(proxy);' +
+          '\n  $name.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);')));
 
       // generate member
       declaration.members.forEach((m){
         if (m is FieldDeclaration) {
 
+        } else if (customCast && m is MethodDeclaration) {
+          _removeMetadata(result, m, (m) => m.name.name == 'customCast');
+        } else if (!customCast && m is MethodDeclaration && m.name.name == 'cast') {
+          _removeNode(result, m);
         } else if (m is MethodDeclaration && m.isAbstract() && !m.isStatic() && !m.isOperator()) {
           var wrap = (String s) => ' => $s;';
           if (m.returnType != null) {
@@ -95,10 +103,19 @@ bool _isTransferableType(TypeName typeName){
   return false;
 }
 
-bool hasAnnotation(AnnotatedNode node, String name) {
-  return node.metadata.any((m) => m.name.name == name &&
-      m.constructorName == null && m.arguments == null);
+void _removeMetadata(List<_Transformation> transformations, AnnotatedNode n, bool testMetadata(Annotation a)) {
+  n.metadata.where(testMetadata).forEach((a){
+    _removeNode(transformations, a);
+  });
 }
+void _removeNode(List<_Transformation> transformations, ASTNode n) {
+  transformations.add(new _Transformation(n.offset, n.endToken.next.offset, ''));
+}
+void _removeToken(List<_Transformation> transformations, Token t) {
+  transformations.add(new _Transformation(t.offset, t.next.offset, ''));
+}
+
+bool hasAnnotation(AnnotatedNode node, String name) => node.metadata.any((m) => m.name.name == name && m.constructorName == null && m.arguments == null);
 
 String _applyTransformations(String code, List<_Transformation> transformations) {
   int padding = 0;

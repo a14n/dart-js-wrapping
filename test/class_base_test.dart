@@ -54,6 +54,33 @@ class Person extends jsw.TypedProxy {
 }
 ''');
     });
+
+    test('with class with already undefined cast', () {
+      final code = r'''
+@wrapper abstract class Person extends jsw.TypedProxy {
+  static Person cast(js.Proxy proxy) => null;
+}
+''';
+      expect(transform(code), r'''
+class Person extends jsw.TypedProxy {
+  static Person cast(js.Proxy proxy) => proxy == null ? null : new Person.fromProxy(proxy);
+  Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);
+  }
+''');
+    });
+
+    test('with class with already custom cast', () {
+      final code = r'''
+@wrapper abstract class Person extends jsw.TypedProxy {
+  @customCast static Person cast(js.Proxy proxy) => null;
+}
+''';
+      expect(transform(code), r'''
+class Person extends jsw.TypedProxy {
+  static Person cast(js.Proxy proxy) => null;
+}
+''');
+    });
   });
 
   test('methods', () {
