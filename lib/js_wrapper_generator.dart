@@ -10,6 +10,11 @@ class _Wrapper{
   const _Wrapper();
 }
 
+final keepAbstract = const _KeepAbstract();
+class _KeepAbstract{
+  const _KeepAbstract();
+}
+
 String transform(String code) {
   final unit = _parseCompilationUnit(code);
   final transformations = _buildTransformations(unit, code);
@@ -19,11 +24,21 @@ String transform(String code) {
 List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
   final result = new List<_Transformation>();
   for (var declaration in unit.declarations) {
-    if (declaration is ClassDeclaration && hasWrapper(declaration)) {
+    if (declaration is ClassDeclaration && hasAnnotation(declaration, 'wrapper')) {
       // remove @wrapper
       declaration.metadata.where((m) => m.name.name == 'wrapper' && m.constructorName == null && m.arguments == null).forEach((m){
         result.add(new _Transformation(m.offset, m.endToken.next.offset, ''));
       });
+
+      // remove @keepAbstract or abstract
+      if (hasAnnotation(declaration, 'keepAbstract')){
+        declaration.metadata.where((m) => m.name.name == 'keepAbstract' && m.constructorName == null && m.arguments == null).forEach((m){
+          result.add(new _Transformation(m.offset, m.endToken.next.offset, ''));
+        });
+      } else if (declaration.abstractKeyword != null) {
+        final abstractKeyword = declaration.abstractKeyword;
+        result.add(new _Transformation(abstractKeyword.offset, abstractKeyword.next.offset, ''));
+      }
 
       // add cast and constructor
       final name = declaration.name;
@@ -79,9 +94,6 @@ bool _isTransferableType(TypeName typeName){
   }
   return false;
 }
-
-/// True if the node has the `@wrapper` annotation.
-bool hasWrapper(AnnotatedNode node) => hasAnnotation(node, 'wrapper');
 
 bool hasAnnotation(AnnotatedNode node, String name) {
   return node.metadata.any((m) => m.name.name == name &&

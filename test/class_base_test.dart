@@ -16,6 +16,32 @@ class Person extends jsw.TypedProxy {
 ''');
     });
 
+    test('with simple abstract class', () {
+      final code = r'''
+@wrapper abstract class Person {
+}
+''';
+      expect(transform(code), r'''
+class Person extends jsw.TypedProxy {
+  static Person cast(js.Proxy proxy) => proxy == null ? null : new Person.fromProxy(proxy);
+  Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);
+}
+''');
+    });
+
+    test('with simple abstract class with @keepAbstract', () {
+      final code = r'''
+@wrapper @keepAbstract abstract class Person {
+}
+''';
+      expect(transform(code), r'''
+abstract class Person extends jsw.TypedProxy {
+  static Person cast(js.Proxy proxy) => proxy == null ? null : new Person.fromProxy(proxy);
+  Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);
+}
+''');
+    });
+
     test('with class already extending', () {
       final code = r'''
 @wrapper class Person extends jsw.TypedProxy {
