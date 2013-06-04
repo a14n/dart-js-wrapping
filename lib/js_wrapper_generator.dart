@@ -61,7 +61,7 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
           _removeMetadata(result, m, (m) => m.name.name == 'customCast');
         } else if (!customCast && m is MethodDeclaration && m.name.name == 'cast') {
           _removeNode(result, m);
-        } else if (m is MethodDeclaration && m.isAbstract() && !m.isStatic() && !m.isOperator()) {
+        } else if (m is MethodDeclaration && m.isAbstract() && !m.isStatic() && !m.isOperator() && !hasAnnotation(m, 'keepAbstract')) {
           var wrap = (String s) => ' => $s;';
           if (m.returnType != null) {
             final returnName = m.returnType;
