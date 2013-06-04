@@ -20,6 +20,11 @@ class _CustomCast {
   const _CustomCast();
 }
 
+final fieldForMethods = const _FieldForMethods();
+class _FieldForMethods {
+  const _FieldForMethods();
+}
+
 String transform(String code) {
   final unit = _parseCompilationUnit(code);
   final transformations = _buildTransformations(unit, code);
@@ -56,39 +61,67 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
       // generate member
       declaration.members.forEach((m){
         if (m is FieldDeclaration) {
-
+          final mappedOnMethods = hasAnnotation(m, 'fieldForMethods');
+          final content = new StringBuffer();
+          final type = m.fields.type;
+          for (final v in m.fields.variables) {
+            final name = v.name.name;
+            if (mappedOnMethods) {
+              final nameCapitalized = _capitalize(name);
+              content..write("set ${name}(${type} ${name})")..write(_handleReturn("\$unsafe.set${nameCapitalized}(${_handleParameter(name, type)})", null))..write("\n");
+              content..write("${type} get ${name}")..write(_handleReturn("\$unsafe.get${nameCapitalized}()", type))..write("\n");
+            } else {
+              content..write("set ${name}(${type} ${name})")..write(_handleReturn("\$unsafe['${name}'] = ${_handleParameter(name, type)}", null))..write("\n");
+              content..write("${type} get ${name}")..write(_handleReturn("\$unsafe['${name}']", type))..write("\n");
+            }
+          }
+          result.add(new _Transformation(m.offset, m.endToken.next.offset, content.toString()));
         } else if (customCast && m is MethodDeclaration) {
           _removeMetadata(result, m, (m) => m.name.name == 'customCast');
         } else if (!customCast && m is MethodDeclaration && m.name.name == 'cast') {
           _removeNode(result, m);
         } else if (m is MethodDeclaration && m.isAbstract() && !m.isStatic() && !m.isOperator() && !hasAnnotation(m, 'keepAbstract')) {
-          var wrap = (String s) => ' => $s;';
-          if (m.returnType != null) {
-            final returnName = m.returnType;
-            if (returnName.name.name == 'void') {
-              wrap = (String s) => ' { $s; }';
-            } else if (_isTransferableType(returnName)) {
-            } else if (returnName.name.name == 'List') {
-              if (m.returnType.typeArguments == null || _isTransferableType(m.returnType.typeArguments.arguments.first)) {
-                wrap = (String s) => ' => jsw.JsArrayToListAdapter.cast($s);';
-              } else {
-                wrap = (String s) => ' => jsw.JsArrayToListAdapter.castListOfSerializables($s, ${m.returnType.typeArguments.arguments.first}.cast);';
-              }
-            } else {
-              wrap = (String s) => ' => ${m.returnType}.cast($s);';
-            }
-          }
           final method = new StringBuffer();
           if (m.returnType != null) method..write(m.returnType)..write(' ');
-          if (m.isSetter()) method.write("set ${m.name}${m.parameters} => \$unsafe['${m.name.name}'] = ${m.parameters.parameters.elements.first.identifier.name};");
-          else if (m.isGetter()) method..write("get ")..write(m.name)..write(wrap("\$unsafe['${m.name.name}']"));
-          else method..write(m.name)..write(m.parameters)..write(wrap('\$unsafe.${m.name.name}(${m.parameters.parameters.elements.map((p) => p.identifier.name).join(', ')})'));
+          if (m.isSetter()) method..write("set ${m.name}${m.parameters}")..write(_handleReturn("\$unsafe['${m.name.name}'] = ${_handleFormalParameter(m.parameters.parameters.first)}", m.returnType));
+          else if (m.isGetter()) method..write("get ${m.name}")..write(_handleReturn("\$unsafe['${m.name.name}']", m.returnType));
+          else method..write(m.name)..write(m.parameters)..write(_handleReturn('\$unsafe.${m.name.name}(${m.parameters.parameters.map(_handleFormalParameter).join(', ')})', m.returnType));
           result.add(new _Transformation(m.offset, m.end, method.toString()));
         }
       });
     }
   }
   return result;
+}
+
+String _handleFormalParameter(FormalParameter fp) => _handleParameter(fp.identifier.name, fp is SimpleFormalParameter ? fp.type : null);
+
+String _handleParameter(String name, TypeName type) {
+  if (type != null) {
+    if (type.name.name == 'List') {
+      return "${name} is js.Serializable<js.Proxy> ? ${name} : js.array(${name})";
+    }
+  }
+  return name;
+}
+
+String _handleReturn(String content, TypeName returnType) {
+  var wrap = (String s) => ' => $s;';
+  if (returnType != null) {
+    if (returnType.name.name == 'void') {
+      wrap = (String s) => ' { $s; }';
+    } else if (_isTransferableType(returnType)) {
+    } else if (returnType.name.name == 'List') {
+      if (returnType.typeArguments == null || _isTransferableType(returnType.typeArguments.arguments.first)) {
+        wrap = (String s) => ' => jsw.JsArrayToListAdapter.cast($s);';
+      } else {
+        wrap = (String s) => ' => jsw.JsArrayToListAdapter.castListOfSerializables($s, ${returnType.typeArguments.arguments.first}.cast);';
+      }
+    } else {
+      wrap = (String s) => ' => ${returnType}.cast($s);';
+    }
+  }
+  return wrap(content);
 }
 
 bool _isTransferableType(TypeName typeName){
@@ -125,6 +158,8 @@ String _applyTransformations(String code, List<_Transformation> transformations)
   }
   return code;
 }
+
+String _capitalize(String s) => s.length == 0 ? '' : (s.substring(0, 1).toUpperCase() + s.substring(1));
 
 CompilationUnit _parseCompilationUnit(String code) {
   var errorListener = new _ErrorCollector();
