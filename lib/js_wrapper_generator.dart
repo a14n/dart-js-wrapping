@@ -20,9 +20,9 @@ class _CustomCast {
   const _CustomCast();
 }
 
-final fieldForMethods = const _FieldForMethods();
-class _FieldForMethods {
-  const _FieldForMethods();
+final forMethods = const _ForMethods();
+class _ForMethods {
+  const _ForMethods();
 }
 
 String transform(String code) {
@@ -34,12 +34,16 @@ String transform(String code) {
 List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
   final result = new List<_Transformation>();
   for (var declaration in unit.declarations) {
-    if (declaration is ClassDeclaration && hasAnnotation(declaration, 'wrapper')) {
+    if (declaration is ClassDeclaration && _hasAnnotation(declaration, 'wrapper')) {
       // remove @wrapper
       _removeMetadata(result, declaration, (m) => m.name.name == 'wrapper');
 
+      // @forMethods on class
+      final forMethodsOnClass = _hasAnnotation(declaration, 'forMethods');
+      _removeMetadata(result, declaration, (m) => m.name.name == 'forMethods');
+
       // remove @keepAbstract or abstract
-      if (hasAnnotation(declaration, 'keepAbstract')){
+      if (_hasAnnotation(declaration, 'keepAbstract')){
         _removeMetadata(result, declaration, (m) => m.name.name == 'keepAbstract');
       } else if (declaration.abstractKeyword != null) {
         final abstractKeyword = declaration.abstractKeyword;
@@ -47,7 +51,7 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
       }
 
       // custom cast
-      final customCast = declaration.members.any((m) => m is MethodDeclaration && hasAnnotation(m, 'customCast') && m.name.name == 'cast');
+      final customCast = declaration.members.any((m) => m is MethodDeclaration && _hasAnnotation(m, 'customCast') && m.name.name == 'cast');
 
       // add cast and constructor
       final name = declaration.name;
@@ -60,38 +64,60 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
 
       // generate member
       declaration.members.forEach((m){
+        final forMethods = forMethodsOnClass || _hasAnnotation(m, 'forMethods');
         if (m is FieldDeclaration) {
-          final mappedOnMethods = hasAnnotation(m, 'fieldForMethods');
           final content = new StringBuffer();
           final type = m.fields.type;
           for (final v in m.fields.variables) {
             final name = v.name.name;
-            if (mappedOnMethods) {
-              final nameCapitalized = _capitalize(name);
-              content..write("set ${name}(${type} ${name})")..write(_handleReturn("\$unsafe.set${nameCapitalized}(${_handleParameter(name, type)})", null))..write("\n");
-              content..write("${type} get ${name}")..write(_handleReturn("\$unsafe.get${nameCapitalized}()", type))..write("\n");
-            } else {
-              content..write("set ${name}(${type} ${name})")..write(_handleReturn("\$unsafe['${name}'] = ${_handleParameter(name, type)}", null))..write("\n");
-              content..write("${type} get ${name}")..write(_handleReturn("\$unsafe['${name}']", type))..write("\n");
-            }
+            _writeSetter(content, name, type, forMethods: forMethods);
+            content.write('\n');
+            _writeGetter(content, name, type, forMethods: forMethods);
+            content.write('\n');
           }
           result.add(new _Transformation(m.offset, m.endToken.next.offset, content.toString()));
         } else if (customCast && m is MethodDeclaration) {
           _removeMetadata(result, m, (m) => m.name.name == 'customCast');
         } else if (!customCast && m is MethodDeclaration && m.name.name == 'cast') {
           _removeNode(result, m);
-        } else if (m is MethodDeclaration && m.isAbstract() && !m.isStatic() && !m.isOperator() && !hasAnnotation(m, 'keepAbstract')) {
+        } else if (m is MethodDeclaration && m.isAbstract() && !m.isStatic() && !m.isOperator() && !_hasAnnotation(m, 'keepAbstract')) {
           final method = new StringBuffer();
-          if (m.returnType != null) method..write(m.returnType)..write(' ');
-          if (m.isSetter()) method..write("set ${m.name}${m.parameters}")..write(_handleReturn("\$unsafe['${m.name.name}'] = ${_handleFormalParameter(m.parameters.parameters.first)}", m.returnType));
-          else if (m.isGetter()) method..write("get ${m.name}")..write(_handleReturn("\$unsafe['${m.name.name}']", m.returnType));
-          else method..write(m.name)..write(m.parameters)..write(_handleReturn('\$unsafe.${m.name.name}(${m.parameters.parameters.map(_handleFormalParameter).join(', ')})', m.returnType));
+          if (m.isSetter()){
+            final SimpleFormalParameter param = m.parameters.parameters.first;
+            _writeSetter(method, m.name.name, param.type, forMethods: forMethods, paramName: param.identifier.name);
+          } else if (m.isGetter()) {
+            _writeGetter(method, m.name.name, m.returnType, forMethods: forMethods);
+          } else {
+            if (m.returnType != null) {
+              method..write(m.returnType)..write(' ');
+            }
+            method..write(m.name)..write(m.parameters)..write(_handleReturn('\$unsafe.${m.name.name}(${m.parameters.parameters.map(_handleFormalParameter).join(', ')})', m.returnType));
+          }
           result.add(new _Transformation(m.offset, m.end, method.toString()));
         }
       });
     }
   }
   return result;
+}
+
+void _writeSetter(StringBuffer sb, String name, TypeName type, {forMethods: false, paramName: null}) {
+  paramName = paramName != null ? paramName : name;
+  if (forMethods) {
+    final nameCapitalized = _capitalize(name);
+    sb.write("set ${name}(${type} ${paramName})${_handleReturn("\$unsafe.set${nameCapitalized}(${_handleParameter(paramName, type)})", null)}");
+  } else {
+    sb.write("set ${name}(${type} ${paramName})${_handleReturn("\$unsafe['${name}'] = ${_handleParameter(paramName, type)}", null)}");
+  }
+}
+
+void _writeGetter(StringBuffer content, String name, TypeName type, {forMethods: false}) {
+  if (forMethods) {
+    final nameCapitalized = _capitalize(name);
+    content..write("${type} get ${name}${_handleReturn("\$unsafe.get${nameCapitalized}()", type)}");
+  } else {
+    content..write("${type} get ${name}${_handleReturn("\$unsafe['${name}']", type)}");
+  }
 }
 
 String _handleFormalParameter(FormalParameter fp) => _handleParameter(fp.identifier.name, fp is SimpleFormalParameter ? fp.type : null);
@@ -148,7 +174,7 @@ void _removeToken(List<_Transformation> transformations, Token t) {
   transformations.add(new _Transformation(t.offset, t.next.offset, ''));
 }
 
-bool hasAnnotation(AnnotatedNode node, String name) => node.metadata.any((m) => m.name.name == name && m.constructorName == null && m.arguments == null);
+bool _hasAnnotation(AnnotatedNode node, String name) => node.metadata.any((m) => m.name.name == name && m.constructorName == null && m.arguments == null);
 
 String _applyTransformations(String code, List<_Transformation> transformations) {
   int padding = 0;
