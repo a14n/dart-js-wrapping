@@ -8,7 +8,7 @@ main() {
 @wrapper class Person {
 }
 ''';
-      expect(transform(code), r'''
+      expect(transformString(code), r'''
 class Person extends jsw.TypedProxy {
   static Person cast(js.Proxy proxy) => proxy == null ? null : new Person.fromProxy(proxy);
   Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);
@@ -21,7 +21,7 @@ class Person extends jsw.TypedProxy {
 @wrapper abstract class Person {
 }
 ''';
-      expect(transform(code), r'''
+      expect(transformString(code), r'''
 class Person extends jsw.TypedProxy {
   static Person cast(js.Proxy proxy) => proxy == null ? null : new Person.fromProxy(proxy);
   Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);
@@ -34,7 +34,7 @@ class Person extends jsw.TypedProxy {
 @wrapper @keepAbstract abstract class Person {
 }
 ''';
-      expect(transform(code), r'''
+      expect(transformString(code), r'''
 abstract class Person extends jsw.TypedProxy {
   static Person cast(js.Proxy proxy) => proxy == null ? null : new Person.fromProxy(proxy);
   Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);
@@ -47,7 +47,7 @@ abstract class Person extends jsw.TypedProxy {
 @wrapper class Person extends jsw.TypedProxy {
 }
 ''';
-      expect(transform(code), r'''
+      expect(transformString(code), r'''
 class Person extends jsw.TypedProxy {
   static Person cast(js.Proxy proxy) => proxy == null ? null : new Person.fromProxy(proxy);
   Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);
@@ -61,7 +61,7 @@ class Person extends jsw.TypedProxy {
   static Person cast(js.Proxy proxy) => null;
 }
 ''';
-      expect(transform(code), r'''
+      expect(transformString(code), r'''
 class Person extends jsw.TypedProxy {
   static Person cast(js.Proxy proxy) => proxy == null ? null : new Person.fromProxy(proxy);
   Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);
@@ -71,13 +71,32 @@ class Person extends jsw.TypedProxy {
 
     test('with class with already custom cast', () {
       final code = r'''
-@wrapper abstract class Person extends jsw.TypedProxy {
-  @customCast static Person cast(js.Proxy proxy) => null;
+@wrapper @skipCast abstract class Person extends jsw.TypedProxy {
+  static Person cast(js.Proxy proxy) => null;
 }
 ''';
-      expect(transform(code), r'''
+      expect(transformString(code), r'''
 class Person extends jsw.TypedProxy {
+  Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);
   static Person cast(js.Proxy proxy) => null;
+}
+''');
+    });
+
+    test('with class with already custom cast', () {
+      final code = r'''
+@wrapper @skipConstructor abstract class Person extends jsw.TypedProxy {
+  Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy) {
+    print('init done');
+  }
+}
+''';
+      expect(transformString(code), r'''
+class Person extends jsw.TypedProxy {
+  static Person cast(js.Proxy proxy) => proxy == null ? null : new Person.fromProxy(proxy);
+  Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy) {
+    print('init done');
+  }
 }
 ''');
     });
@@ -101,7 +120,7 @@ class Person extends jsw.TypedProxy {
   void m6(List l);
 }
 ''';
-      expect(transform(code), r'''
+      expect(transformString(code), r'''
 class Person extends jsw.TypedProxy {
   static Person cast(js.Proxy proxy) => proxy == null ? null : new Person.fromProxy(proxy);
   Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);
@@ -134,7 +153,7 @@ class Person extends jsw.TypedProxy {
   List f8;
 }
 ''';
-      expect(transform(code), r'''
+      expect(transformString(code), r'''
 class Person extends jsw.TypedProxy {
   static Person cast(js.Proxy proxy) => proxy == null ? null : new Person.fromProxy(proxy);
   Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);
@@ -166,7 +185,7 @@ List get f8 => jsw.JsArrayToListAdapter.cast($unsafe['f8']);
   Person get g1;
 }
 ''';
-      expect(transform(code), r'''
+      expect(transformString(code), r'''
 class Person extends jsw.TypedProxy {
   static Person cast(js.Proxy proxy) => proxy == null ? null : new Person.fromProxy(proxy);
   Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);

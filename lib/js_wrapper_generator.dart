@@ -1,5 +1,6 @@
 library js_wrapper_generator;
 
+import 'dart:io';
 import 'package:analyzer_experimental/src/generated/ast.dart';
 import 'package:analyzer_experimental/src/generated/error.dart';
 import 'package:analyzer_experimental/src/generated/parser.dart';
@@ -15,9 +16,14 @@ class _KeepAbstract {
   const _KeepAbstract();
 }
 
-final customCast = const _CustomCast();
-class _CustomCast {
-  const _CustomCast();
+final skipCast = const _SkipCast();
+class _SkipCast {
+  const _SkipCast();
+}
+
+final skipConstructor = const _SkipConstructor();
+class _SkipConstructor {
+  const _SkipConstructor();
 }
 
 final forMethods = const _ForMethods();
@@ -25,7 +31,32 @@ class _ForMethods {
   const _ForMethods();
 }
 
-String transform(String code) {
+void transformDirectory(Directory from, Directory to) {
+  from.list().forEach((FileSystemEntity fse){
+    final name = new Path(fse.path).filename;
+    final destination = new Path(to.path).append(name);
+    if (fse is File) {
+      transformFile(fse, new File.fromPath(destination));
+    } else if (fse is Directory) {
+      final d = new Directory.fromPath(destination);
+      if (d.existsSync()) d..deleteSync(recursive: true);
+      d.createSync();
+      transformDirectory(fse, d);
+    }
+  });
+}
+
+void transformFile(File from, File to) {
+  final name = new Path(from.path).filename;
+  final destination = new Path(to.path);
+  from.readAsString().then((String code){
+    final f = new File.fromPath(destination);
+    if (f.existsSync()) f..deleteSync();
+    f.createSync();
+    f.writeAsString(transformString(code));
+  });
+}
+String transformString(String code) {
   final unit = _parseCompilationUnit(code);
   final transformations = _buildTransformations(unit, code);
   return _applyTransformations(code, transformations);
@@ -42,6 +73,14 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
       final forMethodsOnClass = _hasAnnotation(declaration, 'forMethods');
       _removeMetadata(result, declaration, (m) => m.name.name == 'forMethods');
 
+      // @skipCast on class
+      final skipCast = _hasAnnotation(declaration, 'skipCast');
+      _removeMetadata(result, declaration, (m) => m.name.name == 'skipCast');
+
+      // @skipConstructor on class
+      final skipConstructor = _hasAnnotation(declaration, 'skipConstructor');
+      _removeMetadata(result, declaration, (m) => m.name.name == 'skipConstructor');
+
       // remove @keepAbstract or abstract
       if (_hasAnnotation(declaration, 'keepAbstract')){
         _removeMetadata(result, declaration, (m) => m.name.name == 'keepAbstract');
@@ -50,17 +89,15 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
         _removeToken(result, abstractKeyword);
       }
 
-      // custom cast
-      final customCast = declaration.members.any((m) => m is MethodDeclaration && _hasAnnotation(m, 'customCast') && m.name.name == 'cast');
-
       // add cast and constructor
       final name = declaration.name;
       final position = declaration.leftBracket.offset;
       final alreadyExtends = declaration.extendsClause != null;
       result.add(new _Transformation(position, position + 1,
           (alreadyExtends ? '' : 'extends jsw.TypedProxy ') + '{' +
-          (customCast ? '' : '\n  static $name cast(js.Proxy proxy) => proxy == null ? null : new $name.fromProxy(proxy);' +
-          '\n  $name.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);')));
+          (skipCast ? '' : '\n  static $name cast(js.Proxy proxy) => proxy == null ? null : new $name.fromProxy(proxy);') +
+          (skipConstructor ? '' : '\n  $name.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);')
+          ));
 
       // generate member
       declaration.members.forEach((m){
@@ -76,9 +113,9 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
             content.write('\n');
           }
           result.add(new _Transformation(m.offset, m.endToken.next.offset, content.toString()));
-        } else if (customCast && m is MethodDeclaration) {
+        } else if (skipCast && m is MethodDeclaration) {
           _removeMetadata(result, m, (m) => m.name.name == 'customCast');
-        } else if (!customCast && m is MethodDeclaration && m.name.name == 'cast') {
+        } else if (!skipCast && m is MethodDeclaration && m.name.name == 'cast') {
           _removeNode(result, m);
         } else if (m is MethodDeclaration && m.isAbstract() && !m.isStatic() && !m.isOperator() && !_hasAnnotation(m, 'keepAbstract')) {
           final method = new StringBuffer();
@@ -157,6 +194,7 @@ bool _isTransferableType(TypeName typeName){
     case 'num':
     case 'int':
     case 'double':
+    case 'dynamic':
       return true;
   }
   return false;
