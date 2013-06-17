@@ -1,9 +1,7 @@
 library js_wrapper_generator;
 
 import 'dart:io';
-import 'package:analyzer_experimental/src/generated/ast.dart';
-import 'package:analyzer_experimental/src/generated/error.dart';
-import 'package:analyzer_experimental/src/generated/parser.dart';
+import 'package:analyzer_experimental/analyzer.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
 
 final wrapper = const _Wrapper();
@@ -54,22 +52,23 @@ void transformDirectory(Directory from, Directory to) {
 void transformFile(File from, File to) {
   final name = new Path(from.path).filename;
   final destination = new Path(to.path);
-  from.readAsString().then((String code){
-    final f = new File.fromPath(destination);
-    if (f.existsSync()) f..deleteSync();
-    f.createSync();
-    f.writeAsString(transformString(code));
-  });
-}
-String transformString(String code) {
-  final unit = _parseCompilationUnit(code);
+
+  // reset destination
+  final f = new File.fromPath(destination);
+  if (f.existsSync()) f..deleteSync();
+  f.createSync();
+
+  // transform
+  final unit = parseDartFile(from.path);
+  final code = from.readAsStringSync();
   final transformations = _buildTransformations(unit, code);
-  return _applyTransformations(code, transformations);
+  final result = _applyTransformations(code, transformations);
+  f.writeAsStringSync(result);
 }
 
 List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
   final result = new List<_Transformation>();
-  for (var declaration in unit.declarations) {
+  for (final declaration in unit.declarations) {
     if (declaration is ClassDeclaration && _hasAnnotation(declaration, 'wrapper')) {
       // remove @wrapper
       _removeMetadata(result, declaration, (m) => m.name.name == 'wrapper');
@@ -87,7 +86,8 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
       _removeMetadata(result, declaration, (m) => m.name.name == 'skipConstructor');
 
       // remove @keepAbstract or abstract
-      if (_hasAnnotation(declaration, 'keepAbstract')){
+      final keepAbstract = _hasAnnotation(declaration, 'keepAbstract');
+      if (keepAbstract) {
         _removeMetadata(result, declaration, (m) => m.name.name == 'keepAbstract');
       } else if (declaration.abstractKeyword != null) {
         final abstractKeyword = declaration.abstractKeyword;
@@ -100,7 +100,7 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
       final alreadyExtends = declaration.extendsClause != null;
       result.add(new _Transformation(position, position + 1,
           (alreadyExtends ? '' : 'extends jsw.TypedProxy ') + '{' +
-          (skipCast ? '' : '\n  static $name cast(js.Proxy proxy) => proxy == null ? null : new $name.fromProxy(proxy);') +
+          (skipCast || keepAbstract ? '' : '\n  static $name cast(js.Proxy proxy) => proxy == null ? null : new $name.fromProxy(proxy);') +
           (skipConstructor ? '' : '\n  $name.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);')
           ));
 
@@ -125,9 +125,7 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
           }
           result.add(new _Transformation(m.offset, m.endToken.next.offset, content.toString()));
         } else if (m is MethodDeclaration && m.name.name == 'cast') {
-          if (skipCast) {
-            _removeMetadata(result, m, (m) => m.name.name == 'customCast');
-          } else {
+          if (!skipCast) {
             _removeNode(result, m);
           }
         } else if (m is MethodDeclaration && (m.isAbstract() || generate) && !m.isStatic() && !m.isOperator() && !_hasAnnotation(m, 'keepAbstract')) {
@@ -237,20 +235,6 @@ String _applyTransformations(String code, List<_Transformation> transformations)
 }
 
 String _capitalize(String s) => s.length == 0 ? '' : (s.substring(0, 1).toUpperCase() + s.substring(1));
-
-CompilationUnit _parseCompilationUnit(String code) {
-  var errorListener = new _ErrorCollector();
-  var scanner = new StringScanner(null, code, errorListener);
-  var token = scanner.tokenize();
-  var parser = new Parser(null, errorListener);
-  var unit = parser.parseCompilationUnit(token);
-  return unit;
-}
-
-class _ErrorCollector extends AnalysisErrorListener {
-  final errors = new List<AnalysisError>();
-  onError(error) => errors.add(error);
-}
 
 class _Transformation {
   final int begin;
