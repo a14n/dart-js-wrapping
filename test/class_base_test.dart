@@ -197,4 +197,16 @@ set s1(String value) => $unsafe.setS1(value);
 ''');
   });
 
+  test('@generate', () {
+    final code = r'''
+@wrapper @skipCast @skipConstructor class Person extends jsw.TypedProxy {
+  @generate set s1(String value) => null;
+}
+''';
+      expect(transformString(code), r'''
+class Person extends jsw.TypedProxy {
+  set s1(String value) => $unsafe['s1'] = value;
+}
+''');
+  });
 }

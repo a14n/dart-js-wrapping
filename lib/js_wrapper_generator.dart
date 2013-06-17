@@ -31,6 +31,11 @@ class _ForMethods {
   const _ForMethods();
 }
 
+final generate = const _Generate();
+class _Generate {
+  const _Generate();
+}
+
 void transformDirectory(Directory from, Directory to) {
   from.list().forEach((FileSystemEntity fse){
     final name = new Path(fse.path).filename;
@@ -100,24 +105,32 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
           ));
 
       // generate member
-      declaration.members.forEach((m){
+      declaration.members.forEach((ClassMember m){
         final forMethods = forMethodsOnClass || _hasAnnotation(m, 'forMethods');
+        final generate = _hasAnnotation(m, 'generate');
+        _removeMetadata(result, declaration, (m) => m.name.name == 'generate');
         if (m is FieldDeclaration) {
           final content = new StringBuffer();
           final type = m.fields.type;
           for (final v in m.fields.variables) {
             final name = v.name.name;
-            _writeSetter(content, name, type, forMethods: forMethods);
-            content.write('\n');
-            _writeGetter(content, name, type, forMethods: forMethods);
-            content.write('\n');
+            if (name.startsWith('_')) {
+              return; // skip fieldDeclaration
+            } else {
+              _writeSetter(content, name, type, forMethods: forMethods);
+              content.write('\n');
+              _writeGetter(content, name, type, forMethods: forMethods);
+              content.write('\n');
+            }
           }
           result.add(new _Transformation(m.offset, m.endToken.next.offset, content.toString()));
-        } else if (skipCast && m is MethodDeclaration) {
-          _removeMetadata(result, m, (m) => m.name.name == 'customCast');
-        } else if (!skipCast && m is MethodDeclaration && m.name.name == 'cast') {
-          _removeNode(result, m);
-        } else if (m is MethodDeclaration && m.isAbstract() && !m.isStatic() && !m.isOperator() && !_hasAnnotation(m, 'keepAbstract')) {
+        } else if (m is MethodDeclaration && m.name.name == 'cast') {
+          if (skipCast) {
+            _removeMetadata(result, m, (m) => m.name.name == 'customCast');
+          } else {
+            _removeNode(result, m);
+          }
+        } else if (m is MethodDeclaration && (m.isAbstract() || generate) && !m.isStatic() && !m.isOperator() && !_hasAnnotation(m, 'keepAbstract')) {
           final method = new StringBuffer();
           if (m.isSetter()){
             final SimpleFormalParameter param = m.parameters.parameters.first;
