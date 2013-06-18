@@ -1,4 +1,4 @@
-library js_wrapper_generator;
+library generator;
 
 import 'dart:io';
 import 'package:analyzer_experimental/analyzer.dart';
