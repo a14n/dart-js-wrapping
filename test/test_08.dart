@@ -3,7 +3,7 @@ import 'package:js/js.dart' as js;
 import 'package:js/js_wrapping.dart' as jsw;
 @wrapper abstract class Person extends jsw.TypedProxy {
   set s1(String value);
-  set s2(Person value);
+  void set s2(Person value);
   String get g1;
   Person get g2;
   List<Person> get g3;
@@ -15,4 +15,5 @@ import 'package:js/js_wrapping.dart' as jsw;
   Person m4();
   List<Person> m5();
   void m6(List l);
+  void m7([List l]);
 }

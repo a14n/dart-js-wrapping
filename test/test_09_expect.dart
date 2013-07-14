@@ -14,10 +14,10 @@ set f4(String f4) => $unsafe['f4'] = f4;
 String get f4 => $unsafe['f4'];
 set f5(Person f5) => $unsafe['f5'] = f5;
 Person get f5 => Person.cast($unsafe['f5']);
-set f6(List<Person> f6) => $unsafe['f6'] = f6 is js.Serializable<js.Proxy> ? f6 : js.array(f6);
+set f6(List<Person> f6) => $unsafe['f6'] = f6 == null ? null : f6 is js.Serializable<js.Proxy> ? f6 : js.array(f6);
 List<Person> get f6 => jsw.JsArrayToListAdapter.castListOfSerializables($unsafe['f6'], Person.cast);
-set f7(List<String> f7) => $unsafe['f7'] = f7 is js.Serializable<js.Proxy> ? f7 : js.array(f7);
+set f7(List<String> f7) => $unsafe['f7'] = f7 == null ? null : f7 is js.Serializable<js.Proxy> ? f7 : js.array(f7);
 List<String> get f7 => jsw.JsArrayToListAdapter.cast($unsafe['f7']);
-set f8(List f8) => $unsafe['f8'] = f8 is js.Serializable<js.Proxy> ? f8 : js.array(f8);
+set f8(List f8) => $unsafe['f8'] = f8 == null ? null : f8 is js.Serializable<js.Proxy> ? f8 : js.array(f8);
 List get f8 => jsw.JsArrayToListAdapter.cast($unsafe['f8']);
 }

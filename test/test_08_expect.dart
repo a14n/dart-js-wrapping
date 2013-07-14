@@ -5,7 +5,7 @@ class Person extends jsw.TypedProxy {
   static Person cast(js.Proxy proxy) => proxy == null ? null : new Person.fromProxy(proxy);
   Person.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);
   set s1(String value) => $unsafe['s1'] = value;
-  set s2(Person value) => $unsafe['s2'] = value;
+  void set s2(Person value) { $unsafe['s2'] = value; }
   String get g1 => $unsafe['g1'];
   Person get g2 => Person.cast($unsafe['g2']);
   List<Person> get g3 => jsw.JsArrayToListAdapter.castListOfSerializables($unsafe['g3'], Person.cast);
@@ -16,5 +16,6 @@ class Person extends jsw.TypedProxy {
   m3() => $unsafe.m3();
   Person m4() => Person.cast($unsafe.m4());
   List<Person> m5() => jsw.JsArrayToListAdapter.castListOfSerializables($unsafe.m5(), Person.cast);
-  void m6(List l) { $unsafe.m6(l is js.Serializable<js.Proxy> ? l : js.array(l)); }
+  void m6(List l) { $unsafe.m6(l == null ? null : l is js.Serializable<js.Proxy> ? l : js.array(l)); }
+  void m7([List l]) { $unsafe.m7(l == null ? null : l is js.Serializable<js.Proxy> ? l : js.array(l)); }
 }

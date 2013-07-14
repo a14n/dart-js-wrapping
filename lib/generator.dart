@@ -4,38 +4,38 @@ import 'dart:io';
 import 'package:analyzer_experimental/analyzer.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
 
-final wrapper = const _Wrapper();
+const wrapper = const _Wrapper();
 class _Wrapper {
   const _Wrapper();
 }
 
-final keepAbstract = const _KeepAbstract();
+const keepAbstract = const _KeepAbstract();
 class _KeepAbstract {
   const _KeepAbstract();
 }
 
-final skipCast = const _SkipCast();
+const skipCast = const _SkipCast();
 class _SkipCast {
   const _SkipCast();
 }
 
-final skipConstructor = const _SkipConstructor();
+const skipConstructor = const _SkipConstructor();
 class _SkipConstructor {
   const _SkipConstructor();
 }
 
-final forMethods = const _ForMethods();
+const forMethods = const _ForMethods();
 class _ForMethods {
   const _ForMethods();
 }
 
-final generate = const _Generate();
+const generate = const _Generate();
 class _Generate {
   const _Generate();
 }
 
 void transformDirectory(Directory from, Directory to) {
-  from.list().forEach((FileSystemEntity fse){
+  from.listSync().forEach((FileSystemEntity fse){
     final name = new Path(fse.path).filename;
     final destination = new Path(to.path).append(name);
     if (fse is File) {
@@ -117,7 +117,7 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
             if (name.startsWith('_')) {
               return; // skip fieldDeclaration
             } else {
-              _writeSetter(content, name, type, forMethods: forMethods);
+              _writeSetter(content, name, null, type, forMethods: forMethods);
               content.write('\n');
               _writeGetter(content, name, type, forMethods: forMethods);
               content.write('\n');
@@ -128,12 +128,12 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
           if (!skipCast) {
             _removeNode(result, m);
           }
-        } else if (m is MethodDeclaration && (m.isAbstract() || generate) && !m.isStatic() && !m.isOperator() && !_hasAnnotation(m, 'keepAbstract')) {
+        } else if (m is MethodDeclaration && (m.isAbstract || generate) && !m.isStatic && !m.isOperator && !_hasAnnotation(m, 'keepAbstract')) {
           final method = new StringBuffer();
-          if (m.isSetter()){
+          if (m.isSetter){
             final SimpleFormalParameter param = m.parameters.parameters.first;
-            _writeSetter(method, m.name.name, param.type, forMethods: forMethods, paramName: param.identifier.name);
-          } else if (m.isGetter()) {
+            _writeSetter(method, m.name.name, m.returnType, param.type, forMethods: forMethods, paramName: param.identifier.name);
+          } else if (m.isGetter) {
             _writeGetter(method, m.name.name, m.returnType, forMethods: forMethods);
           } else {
             if (m.returnType != null) {
@@ -149,51 +149,53 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
   return result;
 }
 
-void _writeSetter(StringBuffer sb, String name, TypeName type, {forMethods: false, paramName: null}) {
+void _writeSetter(StringBuffer sb, String name, TypeName returnType, TypeName paramType, {forMethods: false, paramName: null}) {
   paramName = paramName != null ? paramName : name;
+  if (returnType != null) sb.write("${returnType} ");
   if (forMethods) {
     final nameCapitalized = _capitalize(name);
-    sb.write("set ${name}(${type} ${paramName})${_handleReturn("\$unsafe.set${nameCapitalized}(${_handleParameter(paramName, type)})", null)}");
+    sb.write("set ${name}(${paramType} ${paramName})${_handleReturn("\$unsafe.set${nameCapitalized}(${_handleParameter(paramName, paramType)})", returnType)}");
   } else {
-    sb.write("set ${name}(${type} ${paramName})${_handleReturn("\$unsafe['${name}'] = ${_handleParameter(paramName, type)}", null)}");
+    sb.write("set ${name}(${paramType} ${paramName})${_handleReturn("\$unsafe['${name}'] = ${_handleParameter(paramName, paramType)}", returnType)}");
   }
 }
 
-void _writeGetter(StringBuffer content, String name, TypeName type, {forMethods: false}) {
+void _writeGetter(StringBuffer content, String name, TypeName returnType, {forMethods: false}) {
   if (forMethods) {
     final nameCapitalized = _capitalize(name);
-    content..write("${type} get ${name}${_handleReturn("\$unsafe.get${nameCapitalized}()", type)}");
+    content..write("${returnType} get ${name}${_handleReturn("\$unsafe.get${nameCapitalized}()", returnType)}");
   } else {
-    content..write("${type} get ${name}${_handleReturn("\$unsafe['${name}']", type)}");
+    content..write("${returnType} get ${name}${_handleReturn("\$unsafe['${name}']", returnType)}");
   }
 }
 
-String _handleFormalParameter(FormalParameter fp) => _handleParameter(fp.identifier.name, fp is SimpleFormalParameter ? fp.type : null);
+String _handleFormalParameter(FormalParameter fp) => _handleParameter(fp.identifier.name, fp is SimpleFormalParameter ? fp.type : fp is DefaultFormalParameter && fp.parameter is SimpleFormalParameter ? (fp.parameter as SimpleFormalParameter).type : null);
 
 String _handleParameter(String name, TypeName type) {
   if (type != null) {
     if (type.name.name == 'List') {
-      return "${name} is js.Serializable<js.Proxy> ? ${name} : js.array(${name})";
+      return "${name} == null ? null : ${name} is js.Serializable<js.Proxy> ? ${name} : js.array(${name})";
+    } else if (type.name.name == 'Map') {
+      return "${name} == null ? null : ${name} is js.Serializable<js.Proxy> ? ${name} : js.map(${name})";
     }
   }
   return name;
 }
 
 String _handleReturn(String content, TypeName returnType) {
-  var wrap = (String s) => ' => $s;';
-  if (returnType != null) {
-    if (returnType.name.name == 'void') {
-      wrap = (String s) => ' { $s; }';
-    } else if (_isTransferableType(returnType)) {
-    } else if (returnType.name.name == 'List') {
-      if (returnType.typeArguments == null || _isTransferableType(returnType.typeArguments.arguments.first)) {
-        wrap = (String s) => ' => jsw.JsArrayToListAdapter.cast($s);';
-      } else {
-        wrap = (String s) => ' => jsw.JsArrayToListAdapter.castListOfSerializables($s, ${returnType.typeArguments.arguments.first}.cast);';
-      }
+  var wrap;
+  if (returnType == null || _isTransferableType(returnType)) {
+    wrap = (String s) => ' => $s;';
+  } else if (returnType.name.name == 'void') {
+    wrap = (String s) => ' { $s; }';
+  } else if (returnType.name.name == 'List') {
+    if (returnType.typeArguments == null || _isTransferableType(returnType.typeArguments.arguments.first)) {
+      wrap = (String s) => ' => jsw.JsArrayToListAdapter.cast($s);';
     } else {
-      wrap = (String s) => ' => ${returnType}.cast($s);';
+      wrap = (String s) => ' => jsw.JsArrayToListAdapter.castListOfSerializables($s, ${returnType.typeArguments.arguments.first}.cast);';
     }
+  } else {
+    wrap = (String s) => ' => ${returnType}.cast($s);';
   }
   return wrap(content);
 }
