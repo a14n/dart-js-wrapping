@@ -15,8 +15,11 @@
 library generator;
 
 import 'dart:io';
+
 import 'package:analyzer_experimental/analyzer.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
+
+import 'package:path/path.dart' as p;
 
 const wrapper = const _Wrapper();
 class _Wrapper {
@@ -50,12 +53,12 @@ class _Generate {
 
 void transformDirectory(Directory from, Directory to) {
   from.listSync().forEach((FileSystemEntity fse){
-    final name = new Path(fse.path).filename;
-    final destination = new Path(to.path).append(name);
+    final name = p.basename(fse.path);
+    final destination = p.join(to.path, name);
     if (fse is File) {
-      transformFile(fse, new File.fromPath(destination));
+      transformFile(fse, new File(destination));
     } else if (fse is Directory) {
-      final d = new Directory.fromPath(destination);
+      final d = new Directory(destination);
       if (d.existsSync()) d..deleteSync(recursive: true);
       d.createSync();
       transformDirectory(fse, d);
@@ -64,20 +67,18 @@ void transformDirectory(Directory from, Directory to) {
 }
 
 void transformFile(File from, File to) {
-  final name = new Path(from.path).filename;
-  final destination = new Path(to.path);
+  final name = p.basename(from.path);
 
   // reset destination
-  final f = new File.fromPath(destination);
-  if (f.existsSync()) f..deleteSync();
-  f.createSync();
+  if (to.existsSync()) to..deleteSync();
+  to.createSync();
 
   // transform
   final unit = parseDartFile(from.path);
   final code = from.readAsStringSync();
   final transformations = _buildTransformations(unit, code);
   final result = _applyTransformations(code, transformations);
-  f.writeAsStringSync(result);
+  to.writeAsStringSync(result);
 }
 
 List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
