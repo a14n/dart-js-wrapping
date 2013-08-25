@@ -122,7 +122,7 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
           ));
 
       // generate member
-      declaration.members.forEach((ClassMember m){
+      declaration.members.forEach((m){
         final forMethods = forMethodsOnClass || _hasAnnotation(m, 'forMethods');
         final generate = _hasAnnotation(m, 'generate');
         _removeMetadata(result, declaration, (m) => m.name.name == 'generate');
@@ -186,7 +186,7 @@ void _writeGetter(StringBuffer content, String name, TypeName returnType, {forMe
   }
 }
 
-String _handleFormalParameter(FormalParameter fp) => _handleParameter(fp.identifier.name, fp is SimpleFormalParameter ? fp.type : fp is DefaultFormalParameter && fp.parameter is SimpleFormalParameter ? (fp.parameter as SimpleFormalParameter).type : null);
+String _handleFormalParameter(FormalParameter fp) => _handleParameter(fp.identifier.name, fp is SimpleFormalParameter ? (fp as SimpleFormalParameter).type : fp is DefaultFormalParameter && (fp as DefaultFormalParameter).parameter is SimpleFormalParameter ? ((fp as DefaultFormalParameter).parameter as SimpleFormalParameter).type : null);
 
 String _handleParameter(String name, TypeName type) {
   if (type != null) {
