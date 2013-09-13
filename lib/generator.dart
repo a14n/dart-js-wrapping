@@ -116,9 +116,9 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
       final position = declaration.leftBracket.offset;
       final alreadyExtends = declaration.extendsClause != null;
       result.add(new _Transformation(position, position + 1,
-          (alreadyExtends ? '' : 'extends jsw.TypedProxy ') + '{' +
-          (skipCast || keepAbstract ? '' : '\n  static $name cast(js.Proxy proxy) => proxy == null ? null : new $name.fromProxy(proxy);') +
-          (skipConstructor ? '' : '\n  $name.fromProxy(js.Proxy proxy) : super.fromProxy(proxy);')
+          (alreadyExtends ? '' : 'extends jsw.TypedJsObject ') + '{' +
+          (skipCast || keepAbstract ? '' : '\n  static $name cast(js.JsObject jsObject) => jsObject == null ? null : new $name.fromJsObject(jsObject);') +
+          (skipConstructor ? '' : '\n  $name.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);')
           ));
 
       // generate member
@@ -156,7 +156,8 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
             if (m.returnType != null) {
               method..write(m.returnType)..write(' ');
             }
-            method..write(m.name)..write(m.parameters)..write(_handleReturn('\$unsafe.${m.name.name}(${m.parameters.parameters.map(_handleFormalParameter).join(', ')})', m.returnType));
+            method..write(m.name)..write(m.parameters)..write(_handleReturn("\$unsafe.callMethod('${m.name.name}'" +
+                (m.parameters.parameters.isEmpty ? ")" : ", [${m.parameters.parameters.map(_handleFormalParameter).join(', ')}])"), m.returnType));
           }
           result.add(new _Transformation(m.offset, m.end, method.toString()));
         }
@@ -171,7 +172,7 @@ void _writeSetter(StringBuffer sb, String name, TypeName returnType, TypeName pa
   if (returnType != null) sb.write("${returnType} ");
   if (forMethods) {
     final nameCapitalized = _capitalize(name);
-    sb.write("set ${name}(${paramType} ${paramName})${_handleReturn("\$unsafe.set${nameCapitalized}(${_handleParameter(paramName, paramType)})", returnType)}");
+    sb.write("set ${name}(${paramType} ${paramName})${_handleReturn("\$unsafe.callMethod('set${nameCapitalized}', [${_handleParameter(paramName, paramType)}])", returnType)}");
   } else {
     sb.write("set ${name}(${paramType} ${paramName})${_handleReturn("\$unsafe['${name}'] = ${_handleParameter(paramName, paramType)}", returnType)}");
   }
@@ -180,7 +181,7 @@ void _writeSetter(StringBuffer sb, String name, TypeName returnType, TypeName pa
 void _writeGetter(StringBuffer content, String name, TypeName returnType, {forMethods: false}) {
   if (forMethods) {
     final nameCapitalized = _capitalize(name);
-    content..write("${returnType} get ${name}${_handleReturn("\$unsafe.get${nameCapitalized}()", returnType)}");
+    content..write("${returnType} get ${name}${_handleReturn("\$unsafe.callMethod('get${nameCapitalized}')", returnType)}");
   } else {
     content..write("${returnType} get ${name}${_handleReturn("\$unsafe['${name}']", returnType)}");
   }
@@ -191,9 +192,9 @@ String _handleFormalParameter(FormalParameter fp) => _handleParameter(fp.identif
 String _handleParameter(String name, TypeName type) {
   if (type != null) {
     if (type.name.name == 'List') {
-      return "${name} == null ? null : ${name} is js.Serializable<js.Proxy> ? ${name} : js.array(${name})";
+      return "${name} == null ? null : ${name} is js.Serializable<js.JsObject> ? ${name} : js.jsify(${name})";
     } else if (type.name.name == 'Map') {
-      return "${name} == null ? null : ${name} is js.Serializable<js.Proxy> ? ${name} : js.map(${name})";
+      return "${name} == null ? null : ${name} is js.Serializable<js.JsObject> ? ${name} : js.jsify(${name})";
     }
   }
   return name;
@@ -207,9 +208,9 @@ String _handleReturn(String content, TypeName returnType) {
     wrap = (String s) => ' { $s; }';
   } else if (returnType.name.name == 'List') {
     if (returnType.typeArguments == null || _isTransferableType(returnType.typeArguments.arguments.first)) {
-      wrap = (String s) => ' => jsw.JsArrayToListAdapter.cast($s);';
+      wrap = (String s) => ' => jsw.TypedJsArray.cast($s);';
     } else {
-      wrap = (String s) => ' => jsw.JsArrayToListAdapter.castListOfSerializables($s, ${returnType.typeArguments.arguments.first}.cast);';
+      wrap = (String s) => ' => jsw.TypedJsArray.castListOfSerializables($s, ${returnType.typeArguments.arguments.first}.cast);';
     }
   } else {
     wrap = (String s) => ' => ${returnType}.cast($s);';

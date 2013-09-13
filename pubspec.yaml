@@ -5,7 +5,6 @@ description: With that package you will be able to easilly wrap JS library in Da
 homepage: https://github.com/a14n/dart-js-wrapping
 dependencies:
   analyzer_experimental: any
-  js: any
   meta: any
   path: any
 dev_dependencies:

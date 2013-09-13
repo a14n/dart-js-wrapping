@@ -1,6 +1,8 @@
+import 'dart:js' as js;
+
 import 'package:js_wrapping/generator.dart';
-import 'package:js/js.dart' as js;
-import 'package:js/js_wrapping.dart' as jsw;
-@wrapper @skipCast @skipConstructor class Person extends jsw.TypedProxy {
+import 'package:js_wrapping/wrapping.dart' as jsw;
+
+@wrapper @skipCast @skipConstructor class Person extends jsw.TypedJsObject {
   @generate set s1(String value) => null;
 }
