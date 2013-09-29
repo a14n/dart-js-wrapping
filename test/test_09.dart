@@ -11,4 +11,5 @@ import 'package:js_wrapping/wrapping.dart' as jsw;
   List<Person> f6;
   List<String> f7;
   List f8;
+  @namesWithUnderscores String f9Rox;
 }

@@ -22,6 +22,12 @@ import 'package:analyzer_experimental/src/generated/scanner.dart';
 
 import 'package:path/path.dart' as p;
 
+// TODO add @withInstanceOf
+// TODO add @remove to avoid super.method() - see MVCArray
+// TODO handle IsEnum.find
+// TODO handle JsDateToDateTimeAdapter
+// TODO don't use cast for type != TypedJsObject
+
 const wrapper = const _Wrapper();
 class _Wrapper {
   const _Wrapper();
@@ -42,9 +48,11 @@ class _SkipConstructor {
   const _SkipConstructor();
 }
 
-const forMethods = const _ForMethods();
-class _ForMethods {
-  const _ForMethods();
+const forMethods = const _PropertyMapping('method');
+const namesWithUnderscores = const _PropertyMapping('property_underscore');
+class _PropertyMapping {
+  final String type;
+  const _PropertyMapping(this.type);
 }
 
 const generate = const _Generate();
@@ -94,6 +102,10 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
       final forMethodsOnClass = _hasAnnotation(declaration, 'forMethods');
       _removeMetadata(result, declaration, (m) => m.name.name == 'forMethods');
 
+      // @namesWithUnderscores on class
+      final namesWithUnderscoresOnClass = _hasAnnotation(declaration, 'namesWithUnderscores');
+      _removeMetadata(result, declaration, (m) => m.name.name == 'namesWithUnderscores');
+
       // @skipCast on class
       final skipCast = _hasAnnotation(declaration, 'skipCast');
       _removeMetadata(result, declaration, (m) => m.name.name == 'skipCast');
@@ -123,7 +135,8 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
 
       // generate member
       declaration.members.forEach((m){
-        final forMethods = forMethodsOnClass || _hasAnnotation(m, 'forMethods');
+        final access = forMethodsOnClass || _hasAnnotation(m, 'forMethods') ? forMethods :
+          namesWithUnderscoresOnClass || _hasAnnotation(m, 'namesWithUnderscores') ? namesWithUnderscores : null;
         final generate = _hasAnnotation(m, 'generate');
         _removeMetadata(result, declaration, (m) => m.name.name == 'generate');
         if (m is FieldDeclaration) {
@@ -134,9 +147,9 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
             if (name.startsWith('_')) {
               return; // skip fieldDeclaration
             } else {
-              _writeSetter(content, name, null, type, forMethods: forMethods);
+              _writeSetter(content, name, null, type, access: access);
               content.write('\n');
-              _writeGetter(content, name, type, forMethods: forMethods);
+              _writeGetter(content, name, type, access: access);
               content.write('\n');
             }
           }
@@ -149,9 +162,9 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
           final method = new StringBuffer();
           if (m.isSetter){
             final SimpleFormalParameter param = m.parameters.parameters.first;
-            _writeSetter(method, m.name.name, m.returnType, param.type, forMethods: forMethods, paramName: param.identifier.name);
+            _writeSetter(method, m.name.name, m.returnType, param.type, access: access, paramName: param.identifier.name);
           } else if (m.isGetter) {
-            _writeGetter(method, m.name.name, m.returnType, forMethods: forMethods);
+            _writeGetter(method, m.name.name, m.returnType, access: access);
           } else {
             if (m.returnType != null) {
               method..write(m.returnType)..write(' ');
@@ -167,21 +180,27 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
   return result;
 }
 
-void _writeSetter(StringBuffer sb, String name, TypeName returnType, TypeName paramType, {forMethods: false, paramName: null}) {
+void _writeSetter(StringBuffer sb, String name, TypeName returnType, TypeName paramType, {_PropertyMapping access, paramName: null}) {
   paramName = paramName != null ? paramName : name;
   if (returnType != null) sb.write("${returnType} ");
-  if (forMethods) {
+  if (access == forMethods) {
     final nameCapitalized = _capitalize(name);
     sb.write("set ${name}(${paramType} ${paramName})${_handleReturn("\$unsafe.callMethod('set${nameCapitalized}', [${_handleParameter(paramName, paramType)}])", returnType)}");
+  } else if (access == namesWithUnderscores) {
+    final nameWithUnderscores = _withUnderscores(name);
+    sb.write("set ${name}(${paramType} ${paramName})${_handleReturn("\$unsafe['${nameWithUnderscores}'] = ${_handleParameter(paramName, paramType)}", returnType)}");
   } else {
     sb.write("set ${name}(${paramType} ${paramName})${_handleReturn("\$unsafe['${name}'] = ${_handleParameter(paramName, paramType)}", returnType)}");
   }
 }
 
-void _writeGetter(StringBuffer content, String name, TypeName returnType, {forMethods: false}) {
-  if (forMethods) {
+void _writeGetter(StringBuffer content, String name, TypeName returnType, {_PropertyMapping access}) {
+  if (access == forMethods) {
     final nameCapitalized = _capitalize(name);
     content..write("${returnType} get ${name}${_handleReturn("\$unsafe.callMethod('get${nameCapitalized}')", returnType)}");
+  } else if (access == namesWithUnderscores) {
+    final nameWithUnderscores = _withUnderscores(name);
+    content..write("${returnType} get ${name}${_handleReturn("\$unsafe['${nameWithUnderscores}']", returnType)}");
   } else {
     content..write("${returnType} get ${name}${_handleReturn("\$unsafe['${name}']", returnType)}");
   }
@@ -220,12 +239,14 @@ String _handleReturn(String content, TypeName returnType) {
 
 bool _isTransferableType(TypeName typeName){
   switch (typeName.name.name) {
+    case 'Object':
     case 'bool':
     case 'String':
     case 'num':
     case 'int':
     case 'double':
     case 'dynamic':
+    case 'js.JsObject':
       return true;
   }
   return false;
@@ -255,6 +276,8 @@ String _applyTransformations(String code, List<_Transformation> transformations)
 }
 
 String _capitalize(String s) => s.length == 0 ? '' : (s.substring(0, 1).toUpperCase() + s.substring(1));
+
+String _withUnderscores(String s) => s.replaceAllMapped(new RegExp('([A-Z])'), (Match match) => '_' + match[1].toLowerCase());
 
 class _Transformation {
   final int begin;

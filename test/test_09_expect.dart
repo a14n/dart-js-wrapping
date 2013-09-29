@@ -22,4 +22,6 @@ set f7(List<String> f7) => $unsafe['f7'] = f7 == null ? null : f7 is js.Serializ
 List<String> get f7 => jsw.TypedJsArray.cast($unsafe['f7']);
 set f8(List f8) => $unsafe['f8'] = f8 == null ? null : f8 is js.Serializable<js.JsObject> ? f8 : js.jsify(f8);
 List get f8 => jsw.TypedJsArray.cast($unsafe['f8']);
+set f9Rox(String f9Rox) => $unsafe['f9_rox'] = f9Rox;
+String get f9Rox => $unsafe['f9_rox'];
 }
