@@ -211,9 +211,9 @@ String _handleFormalParameter(FormalParameter fp) => _handleParameter(fp.identif
 String _handleParameter(String name, TypeName type) {
   if (type != null) {
     if (type.name.name == 'List') {
-      return "${name} == null ? null : ${name} is js.Serializable<js.JsObject> ? ${name} : js.jsify(${name})";
+      return "${name} == null ? null : ${name} is js.Serializable ? ${name} : js.jsify(${name})";
     } else if (type.name.name == 'Map') {
-      return "${name} == null ? null : ${name} is js.Serializable<js.JsObject> ? ${name} : js.jsify(${name})";
+      return "${name} == null ? null : ${name} is js.Serializable ? ${name} : js.jsify(${name})";
     }
   }
   return name;

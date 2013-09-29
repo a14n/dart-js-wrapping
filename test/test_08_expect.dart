@@ -18,6 +18,6 @@ class Person extends jsw.TypedJsObject {
   m3() => $unsafe.callMethod('m3');
   Person m4() => Person.cast($unsafe.callMethod('m4'));
   List<Person> m5() => jsw.TypedJsArray.castListOfSerializables($unsafe.callMethod('m5'), Person.cast);
-  void m6(List l) { $unsafe.callMethod('m6', [l == null ? null : l is js.Serializable<js.JsObject> ? l : js.jsify(l)]); }
-  void m7([List l]) { $unsafe.callMethod('m7', [l == null ? null : l is js.Serializable<js.JsObject> ? l : js.jsify(l)]); }
+  void m6(List l) { $unsafe.callMethod('m6', [l == null ? null : l is js.Serializable ? l : js.jsify(l)]); }
+  void m7([List l]) { $unsafe.callMethod('m7', [l == null ? null : l is js.Serializable ? l : js.jsify(l)]); }
 }
