@@ -25,7 +25,6 @@ import 'package:path/path.dart' as p;
 // TODO add @withInstanceOf
 // TODO add @remove to avoid super.method() - see MVCArray
 // TODO handle IsEnum.find
-// TODO handle JsDateToDateTimeAdapter
 // TODO don't use cast for type != TypedJsObject
 
 const wrapper = const _Wrapper();
@@ -214,6 +213,8 @@ String _handleParameter(String name, TypeName type) {
       return "${name} == null ? null : ${name} is js.Serializable ? ${name} : js.jsify(${name})";
     } else if (type.name.name == 'Map') {
       return "${name} == null ? null : ${name} is js.Serializable ? ${name} : js.jsify(${name})";
+    } else if (type.name.name == 'DateTime') {
+      return "${name} == null ? null : ${name} is js.Serializable ? ${name} : new jsw.JsDateToDateTimeAdapter(${name})";
     }
   }
   return name;
@@ -231,6 +232,8 @@ String _handleReturn(String content, TypeName returnType) {
     } else {
       wrap = (String s) => ' => jsw.TypedJsArray.castListOfSerializables($s, ${returnType.typeArguments.arguments.first}.cast);';
     }
+  } else if (returnType.name.name == 'DateTime') {
+    wrap = (String s) => ' => jsw.JsDateToDateTimeAdapter.cast($s);';
   } else {
     wrap = (String s) => ' => ${returnType}.cast($s);';
   }
