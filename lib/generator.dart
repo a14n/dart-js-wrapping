@@ -17,7 +17,11 @@ library generator;
 import 'dart:io';
 
 import 'package:analyzer_experimental/analyzer.dart';
+import 'package:analyzer_experimental/src/generated/engine.dart';
+import 'package:analyzer_experimental/src/generated/java_io.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
+import 'package:analyzer_experimental/src/generated/sdk_io.dart';
+import 'package:analyzer_experimental/src/generated/source_io.dart';
 import 'package:analyzer_experimental/src/services/formatter_impl.dart';
 
 import 'package:path/path.dart' as p;
@@ -59,38 +63,64 @@ class _Generate {
   const _Generate();
 }
 
-void transformDirectory(Directory from, Directory to) {
-  from.listSync().forEach((FileSystemEntity fse){
-    final name = p.basename(fse.path);
-    final destination = p.join(to.path, name);
-    if (fse is File) {
-      transformFile(fse, new File(destination));
-    } else if (fse is Directory) {
-      final d = new Directory(destination);
-      if (d.existsSync()) d..deleteSync(recursive: true);
-      d.createSync();
-      transformDirectory(fse, d);
-    }
-  });
-}
+class Generator {
+  String _libraryFile;
+  final _context = AnalysisEngine.instance.createAnalysisContext();
 
-void transformFile(File from, File to) {
-  final name = p.basename(from.path);
-
-  // reset destination
-  if (to.existsSync()) to..deleteSync();
-  to.createSync();
-
-  // transform
-  final unit = parseDartFile(from.path);
-  final code = from.readAsStringSync();
-  final transformations = _buildTransformations(unit, code);
-  final source = _applyTransformations(code, transformations);
-  try {
-    to.writeAsStringSync(new CodeFormatter().format(CodeKind.COMPILATION_UNIT, source).source);
-  } on FormatterException {
-    to.writeAsStringSync(source);
+  Generator(String packagesDir, this._libraryFile) {
+    _context
+      ..analysisOptions.hint = false
+      ..analysisOptions.strictMode = false
+      ..sourceFactory = new SourceFactory.con2([
+          new DartUriResolver(DirectoryBasedDartSdk.defaultSdk),
+          new FileUriResolver(),
+          new PackageUriResolver(new Directory(packagesDir).listSync().map((e) => new JavaFile(e.path)).toList())]
+      );
   }
+
+  void transformDirectory(Directory from, Directory to) {
+    from.listSync().forEach((FileSystemEntity fse){
+      final name = p.basename(fse.path);
+      final destination = p.join(to.path, name);
+      if (fse is File) {
+        transformFile(fse, new File(destination));
+      } else if (fse is Directory) {
+        final d = new Directory(destination);
+        if (d.existsSync()) d..deleteSync(recursive: true);
+        d.createSync();
+        transformDirectory(fse, d);
+      }
+    });
+  }
+
+  void transformFile(File from, File to) {
+    final name = p.basename(from.path);
+
+    // reset destination
+    if (to.existsSync()) to..deleteSync();
+    to.createSync();
+
+    // transform
+    final unit = parseDartFile(from.path);
+    final code = from.readAsStringSync();
+    final transformations = _buildTransformations(unit, code);
+    final source = _applyTransformations(code, transformations);
+    try {
+      to.writeAsStringSync(new CodeFormatter().format(CodeKind.COMPILATION_UNIT, source).source);
+    } on FormatterException {
+      to.writeAsStringSync(source);
+    }
+  }
+
+  /// Parses a Dart file into an AST.
+  CompilationUnit parseDartFile(String path) {
+    final absolutePath = p.absolute(path);
+    final librarySource = new FileBasedSource.con1(_context.sourceFactory.contentCache, new JavaFile(absolutePath));
+    final fileSource = new FileBasedSource.con1(_context.sourceFactory.contentCache, new JavaFile(absolutePath));
+    final library = _context.computeLibraryElement(librarySource);
+    return _context.resolveCompilationUnit(fileSource, library);
+  }
+
 }
 
 List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {

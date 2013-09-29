@@ -25,7 +25,8 @@ _runTest(String name) {
   try {
     if (result.existsSync()) result.deleteSync();
     result.createSync();
-    transformFile(new File("test_${name}.dart"), result);
+    final fileName = "test_${name}.dart";
+    new Generator('.', fileName).transformFile(new File(fileName), result);
     expect(result.readAsStringSync(), new File("test_${name}_expect.dart").readAsStringSync());
   } finally {
     if (result.existsSync()) result.deleteSync();
