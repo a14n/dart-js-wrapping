@@ -18,7 +18,7 @@ import 'dart:io';
 
 import 'package:analyzer_experimental/analyzer.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
-//import 'package:analyzer_experimental/src/services/formatter_impl.dart';
+import 'package:analyzer_experimental/src/services/formatter_impl.dart';
 
 import 'package:path/path.dart' as p;
 
@@ -86,8 +86,11 @@ void transformFile(File from, File to) {
   final code = from.readAsStringSync();
   final transformations = _buildTransformations(unit, code);
   final source = _applyTransformations(code, transformations);
-//  to.writeAsStringSync(new CodeFormatter().format(CodeKind.COMPILATION_UNIT, source));
-  to.writeAsStringSync(source);
+  try {
+    to.writeAsStringSync(new CodeFormatter().format(CodeKind.COMPILATION_UNIT, source).source);
+  } on FormatterException {
+    to.writeAsStringSync(source);
+  }
 }
 
 List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
