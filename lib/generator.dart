@@ -24,8 +24,8 @@ import 'package:path/path.dart' as p;
 
 // TODO add @withInstanceOf
 // TODO add @remove to avoid super.method() - see MVCArray
-// TODO handle IsEnum.find
-// TODO don't use cast for type != TypedJsObject
+// TODO handle IsEnum.find with @isEnum
+// TODO don't use cast for type != TypedJsObject @notTypedJsObject
 
 const wrapper = const _Wrapper();
 class _Wrapper {
