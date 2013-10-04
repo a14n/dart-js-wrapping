@@ -2,6 +2,17 @@ import 'dart:js' as js;
 
 import 'package:js_wrapping/generator.dart';
 import 'package:js_wrapping/wrapping.dart' as jsw;
+import 'package:js_wrapping/utils.dart';
+
+class Enum extends IsEnum<int> {
+  static final E1 = new Enum._(1);
+
+  static final _FINDER = new EnumFinder<int, Enum>([E1]);
+
+  static Enum find(Object o) => _FINDER.find(o);
+
+  Enum._(int value) : super(value);
+}
 
 class Person extends jsw.TypedJsObject {
   static Person cast(js.JsObject jsObject) => jsObject == null ? null : new Person.fromJsObject(jsObject);
@@ -24,4 +35,6 @@ class Person extends jsw.TypedJsObject {
   List get f8 => jsw.TypedJsArray.cast($unsafe['f8']);
   set f9Rox(String f9Rox) => $unsafe['f9_rox'] = f9Rox;
   String get f9Rox => $unsafe['f9_rox'];
+  set f10(Enum f10) => $unsafe['f10'] = f10;
+  Enum get f10 => Enum.find($unsafe['f10']);
 }

@@ -24,7 +24,6 @@ import 'package:path/path.dart' as p;
 
 // TODO add @withInstanceOf
 // TODO add @remove to avoid super.method() - see MVCArray
-// TODO handle IsEnum.find with @isEnum
 // TODO don't use cast for type != TypedJsObject @notTypedJsObject
 
 const wrapper = const _Wrapper();
@@ -57,6 +56,11 @@ class _PropertyMapping {
 const generate = const _Generate();
 class _Generate {
   const _Generate();
+}
+
+const isEnum = const _IsEnum();
+class _IsEnum {
+  const _IsEnum();
 }
 
 void transformDirectory(Directory from, Directory to) {
@@ -141,6 +145,7 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
           namesWithUnderscoresOnClass || _hasAnnotation(m, 'namesWithUnderscores') ? namesWithUnderscores : null;
         final generate = _hasAnnotation(m, 'generate');
         _removeMetadata(result, declaration, (m) => m.name.name == 'generate');
+        final isEnum = _hasAnnotation(m, 'isEnum');
         if (m is FieldDeclaration) {
           final content = new StringBuffer();
           final type = m.fields.type;
@@ -151,7 +156,7 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
             } else {
               _writeSetter(content, name, null, type, access: access);
               content.write('\n');
-              _writeGetter(content, name, type, access: access);
+              _writeGetter(content, name, type, isEnum, access: access);
               content.write('\n');
             }
           }
@@ -166,13 +171,13 @@ List<_Transformation> _buildTransformations(CompilationUnit unit, String code) {
             final SimpleFormalParameter param = m.parameters.parameters.first;
             _writeSetter(method, m.name.name, m.returnType, param.type, access: access, paramName: param.identifier.name);
           } else if (m.isGetter) {
-            _writeGetter(method, m.name.name, m.returnType, access: access);
+            _writeGetter(method, m.name.name, m.returnType, isEnum, access: access);
           } else {
             if (m.returnType != null) {
               method..write(m.returnType)..write(' ');
             }
             method..write(m.name)..write(m.parameters)..write(_handleReturn("\$unsafe.callMethod('${m.name.name}'" +
-                (m.parameters.parameters.isEmpty ? ")" : ", [${m.parameters.parameters.map(_handleFormalParameter).join(', ')}])"), m.returnType));
+                (m.parameters.parameters.isEmpty ? ")" : ", [${m.parameters.parameters.map(_handleFormalParameter).join(', ')}])"), m.returnType, isEnum));
           }
           result.add(new _Transformation(m.offset, m.end, method.toString()));
         }
@@ -187,24 +192,24 @@ void _writeSetter(StringBuffer sb, String name, TypeName returnType, TypeName pa
   if (returnType != null) sb.write("${returnType} ");
   if (access == forMethods) {
     final nameCapitalized = _capitalize(name);
-    sb.write("set ${name}(${paramType} ${paramName})${_handleReturn("\$unsafe.callMethod('set${nameCapitalized}', [${_handleParameter(paramName, paramType)}])", returnType)}");
+    sb.write("set ${name}(${paramType} ${paramName})${_handleReturn("\$unsafe.callMethod('set${nameCapitalized}', [${_handleParameter(paramName, paramType)}])", returnType, false)}");
   } else if (access == namesWithUnderscores) {
     final nameWithUnderscores = _withUnderscores(name);
-    sb.write("set ${name}(${paramType} ${paramName})${_handleReturn("\$unsafe['${nameWithUnderscores}'] = ${_handleParameter(paramName, paramType)}", returnType)}");
+    sb.write("set ${name}(${paramType} ${paramName})${_handleReturn("\$unsafe['${nameWithUnderscores}'] = ${_handleParameter(paramName, paramType)}", returnType, false)}");
   } else {
-    sb.write("set ${name}(${paramType} ${paramName})${_handleReturn("\$unsafe['${name}'] = ${_handleParameter(paramName, paramType)}", returnType)}");
+    sb.write("set ${name}(${paramType} ${paramName})${_handleReturn("\$unsafe['${name}'] = ${_handleParameter(paramName, paramType)}", returnType, false)}");
   }
 }
 
-void _writeGetter(StringBuffer content, String name, TypeName returnType, {_PropertyMapping access}) {
+void _writeGetter(StringBuffer content, String name, TypeName returnType, bool isEnum, {_PropertyMapping access}) {
   if (access == forMethods) {
     final nameCapitalized = _capitalize(name);
-    content..write("${returnType} get ${name}${_handleReturn("\$unsafe.callMethod('get${nameCapitalized}')", returnType)}");
+    content..write("${returnType} get ${name}${_handleReturn("\$unsafe.callMethod('get${nameCapitalized}')", returnType, isEnum)}");
   } else if (access == namesWithUnderscores) {
     final nameWithUnderscores = _withUnderscores(name);
-    content..write("${returnType} get ${name}${_handleReturn("\$unsafe['${nameWithUnderscores}']", returnType)}");
+    content..write("${returnType} get ${name}${_handleReturn("\$unsafe['${nameWithUnderscores}']", returnType, isEnum)}");
   } else {
-    content..write("${returnType} get ${name}${_handleReturn("\$unsafe['${name}']", returnType)}");
+    content..write("${returnType} get ${name}${_handleReturn("\$unsafe['${name}']", returnType, isEnum)}");
   }
 }
 
@@ -223,9 +228,11 @@ String _handleParameter(String name, TypeName type) {
   return name;
 }
 
-String _handleReturn(String content, TypeName returnType) {
+String _handleReturn(String content, TypeName returnType, bool isEnum) {
   var wrap;
-  if (returnType == null || _isTransferableType(returnType)) {
+  if (isEnum) {
+    wrap = (String s) => ' => ${returnType.name.name}.find(${s});';
+  } else if (returnType == null || _isTransferableType(returnType)) {
     wrap = (String s) => ' => $s;';
   } else if (returnType.name.name == 'void') {
     wrap = (String s) => ' { $s; }';

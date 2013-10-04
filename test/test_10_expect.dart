@@ -2,6 +2,17 @@ import 'dart:js' as js;
 
 import 'package:js_wrapping/generator.dart';
 import 'package:js_wrapping/wrapping.dart' as jsw;
+import 'package:js_wrapping/utils.dart';
+
+class Enum extends IsEnum<int> {
+  static final E1 = new Enum._(1);
+
+  static final _FINDER = new EnumFinder<int, Enum>([E1]);
+
+  static Enum find(Object o) => _FINDER.find(o);
+
+  Enum._(int value) : super(value);
+}
 
 class Person extends jsw.TypedJsObject {
   static Person cast(js.JsObject jsObject) => jsObject == null ? null : new Person.fromJsObject(jsObject);
@@ -10,4 +21,5 @@ class Person extends jsw.TypedJsObject {
   String get f1 => $unsafe.callMethod('getF1');
   set s1(String value) => $unsafe.callMethod('setS1', [value]);
   Person get g1 => Person.cast($unsafe.callMethod('getG1'));
+  Enum get g2 => Enum.find($unsafe.callMethod('getG2'));
 }
