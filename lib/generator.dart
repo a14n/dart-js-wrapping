@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-library generator;
+library js_wrapping.generator;
 
 import 'dart:io';
 
 import 'package:analyzer_experimental/analyzer.dart';
+import 'package:analyzer_experimental/src/generated/element.dart';
 import 'package:analyzer_experimental/src/generated/engine.dart';
 import 'package:analyzer_experimental/src/generated/java_io.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
@@ -300,7 +301,10 @@ void _removeToken(List<_Transformation> transformations, Token t) {
   transformations.add(new _Transformation(t.offset, t.next.offset, ''));
 }
 
-bool _hasAnnotation(AnnotatedNode node, String name) => node.metadata.any((m) => m.name.name == name && m.constructorName == null && m.arguments == null);
+bool _hasAnnotation(Declaration declaration, String name) =>
+    declaration.element.metadata.any((m) =>
+        m.element.library.name == 'js_wrapping.generator' &&
+        m.element.name == name);
 
 String _applyTransformations(String code, List<_Transformation> transformations) {
   int padding = 0;
