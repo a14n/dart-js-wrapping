@@ -12,13 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-library utils;
-
-import 'dart:async';
-import 'dart:html' show Element, document, query;
-import 'dart:js';
-
-import 'package:meta/meta.dart';
+part of js_wrapping;
 
 class EnumFinder<T, E extends IsEnum<T>> {
   final List<E> elements;
@@ -35,7 +29,6 @@ class IsEnum<E> implements Serializable<E> {
 
   @override E toJs() => value;
 }
-
 
 typedef _EventSinkCallback<T>(EventSink<T> eventSink);
 /// Utility class to create streams from event retrieve with subscribe/unsubscribe

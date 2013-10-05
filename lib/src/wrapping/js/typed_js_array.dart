@@ -1,4 +1,4 @@
-part of wrapping;
+part of js_wrapping;
 
 // TODO use JsArray instead
 class TypedJsArray<E> extends TypedJsObject with ListMixin

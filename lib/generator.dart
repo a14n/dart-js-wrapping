@@ -22,6 +22,7 @@ import 'package:analyzer_experimental/src/services/formatter_impl.dart';
 
 import 'package:path/path.dart' as p;
 
+// TODO handle Node and Element
 // TODO add @withInstanceOf
 // TODO add @remove to avoid super.method() - see MVCArray
 // TODO don't use cast for type != TypedJsObject @notTypedJsObject

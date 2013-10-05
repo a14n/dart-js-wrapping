@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of wrapping;
+part of js_wrapping;
 
 /// Adapter to handle a js date as a dart [DateTime].
 class JsDateToDateTimeAdapter extends TypedJsObject implements DateTime {

@@ -1,8 +1,8 @@
 import 'dart:js' as js;
 
 import 'package:js_wrapping/generator.dart';
-import 'package:js_wrapping/wrapping.dart' as jsw;
-import 'package:js_wrapping/utils.dart';
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+import '../lib/src/wrapping/utils.dart';
 
 class Enum extends IsEnum<int> {
   static final E1 = new Enum._(1);
