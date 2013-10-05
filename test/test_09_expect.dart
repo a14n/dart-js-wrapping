@@ -2,12 +2,11 @@ import 'dart:js' as js;
 
 import 'package:js_wrapping/generator.dart';
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
-import '../lib/src/wrapping/utils.dart';
 
-class Enum extends IsEnum<int> {
+class Enum extends jsw.IsEnum<int> {
   static final E1 = new Enum._(1);
 
-  static final _FINDER = new EnumFinder<int, Enum>([E1]);
+  static final _FINDER = new jsw.EnumFinder<int, Enum>([E1]);
 
   static Enum find(Object o) => _FINDER.find(o);
 
