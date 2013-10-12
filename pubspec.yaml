@@ -6,4 +6,5 @@ homepage: https://github.com/a14n/dart-js-wrapping
 dependencies:
   meta: any
 dev_dependencies:
+  browser: any
   unittest: any

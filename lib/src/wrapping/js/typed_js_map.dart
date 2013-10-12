@@ -30,12 +30,13 @@ class TypedJsMap<V> extends TypedJsObject implements Map<String,V> {
     return value;
   }
   @override Iterable<String> get keys =>
-      TypedJsArray.cast(context['Object'].keys($unsafe));
+      TypedJsArray.cast(context['Object'].callMethod('keys', [$unsafe]));
 
   // use Maps to implement functions
   @override bool containsValue(V value) => Maps.containsValue(this, value);
   @override bool containsKey(String key) =>
-      context['Object'].keys($unsafe).indexOf(key) != -1;
+      context['Object'].callMethod('keys', [$unsafe])
+        .callMethod('indexOf',[key]) != -1;
   @override V putIfAbsent(String key, V ifAbsent()) =>
       Maps.putIfAbsent(this, key, ifAbsent);
   @override void addAll(Map<String, V> other) {
