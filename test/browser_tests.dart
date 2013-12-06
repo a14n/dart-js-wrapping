@@ -6,9 +6,7 @@ import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 
 class Person extends jsw.TypedJsObject {
-  static jsw.TypedJsObjectCodec<Person> $codec =
-      new jsw.TypedJsObjectCodec<Person>((js.JsObject jsObject) =>
-          new Person.fromJsObject(jsObject));
+  static final $codec = new jsw.TypedJsObjectCodec<Person>((js.JsObject jsObject) => new Person.fromJsObject(jsObject));
 
   Person(String firstname,  String lastname) : super(js.context['Person'], [firstname, lastname]);
   Person.fromJsObject(js.JsObject proxy) : super.fromJsObject(proxy);
@@ -24,8 +22,14 @@ class Person extends jsw.TypedJsObject {
 }
 
 class Color extends jsw.IsEnum<String> {
+  static final $codec = new jsw.SerializableCodec<Color, String>(Color.find);
+
   static final RED = new Color._("red");
   static final BLUE = new Color._("blue");
+
+  static final _FINDER = new jsw.EnumFinder<String, Color>([RED, BLUE]);
+
+  static Color find(String o) => _FINDER.find(o);
 
   Color._(String value) : super(value);
 }

@@ -3,9 +3,8 @@ part of js_wrapping;
 // TODO use JsArray instead
 class TypedJsArray<E> extends TypedJsObject with ListMixin
     implements Serializable<JsObject> {
-  static TypedJsObjectCodec<TypedJsArray> $codec =
-      new TypedJsObjectCodec<TypedJsArray>((JsObject jsObject) =>
-          new TypedJsArray.fromJsObject(jsObject));
+  static final $codec = new TypedJsObjectCodec<TypedJsArray>(
+      (JsObject jsObject) => new TypedJsArray.fromJsObject(jsObject));
 
   static TypedJsObjectCodec<TypedJsArray> $getCodec(Codec innerCodec) =>
       new TypedJsObjectCodec<TypedJsArray>((JsObject jsObject) =>

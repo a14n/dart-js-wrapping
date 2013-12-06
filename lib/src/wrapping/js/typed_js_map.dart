@@ -6,9 +6,8 @@ part of js_wrapping;
 
 // TODO use jsObject.asDartMap()
 class TypedJsMap<V> extends TypedJsObject implements Map<String,V> {
-  static TypedJsObjectCodec<TypedJsMap> $codec =
-      new TypedJsObjectCodec<TypedJsMap>((JsObject jsObject) =>
-          new TypedJsMap.fromJsObject(jsObject));
+  static final $codec = new TypedJsObjectCodec<TypedJsMap>(
+      (JsObject jsObject) => new TypedJsMap.fromJsObject(jsObject));
 
   static TypedJsObjectCodec<TypedJsMap> $getCodec(Codec innerCodec) =>
       new TypedJsObjectCodec<TypedJsMap>((JsObject jsObject) =>
