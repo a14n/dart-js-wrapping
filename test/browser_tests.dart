@@ -5,56 +5,43 @@ import 'package:js_wrapping/js_wrapping.dart' as jsw;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 
-abstract class _Person {
-  String firstname;
+class Person extends jsw.TypedJsObject {
+  static jsw.TypedJsObjectCodec<Person> $codec =
+      new jsw.TypedJsObjectCodec<Person>((js.JsObject jsObject) =>
+          new Person.fromJsObject(jsObject));
 
-  String sayHello();
-}
-
-class PersonTP extends jsw.TypedJsObject {
-  static PersonTP cast(js.JsObject proxy) => proxy == null ? null :
-      new PersonTP.fromJsObject(proxy);
-
-  PersonTP(String firstname,  String lastname) :
-      super(js.context['Person'], [firstname, lastname]);
-  PersonTP.fromJsObject(js.JsObject proxy) : super.fromJsObject(proxy);
+  Person(String firstname,  String lastname) : super(js.context['Person'], [firstname, lastname]);
+  Person.fromJsObject(js.JsObject proxy) : super.fromJsObject(proxy);
 
   set firstname(String firstname) => $unsafe['firstname'] = firstname;
   String get firstname => $unsafe['firstname'];
 
-  List<PersonTP> get children =>
-      jsw.TypedJsArray.castListOfSerializables($unsafe['children'],
-          PersonTP.cast);
-  set father(PersonTP father) => $unsafe['father'] = father;
-  PersonTP get father => PersonTP.cast($unsafe['father']);
+  List<Person> get children => jsw.TypedJsArray.$getCodec(Person.$codec).decode($unsafe['children']);
+  set father(Person father) => $unsafe['father'] = Person.$codec.encode(father);
+  Person get father => Person.$codec.decode($unsafe['father']);
 
   String sayHello() => $unsafe.callMethod('sayHello');
 }
 
-class Color implements js.Serializable<String> {
+class Color extends jsw.IsEnum<String> {
   static final RED = new Color._("red");
   static final BLUE = new Color._("blue");
 
-  final String _value;
-
-  Color._(this._value);
-
-  String toJs() => this._value;
-  operator ==(Color other) => this._value == other._value;
+  Color._(String value) : super(value);
 }
 
 main() {
   useHtmlConfiguration();
 
   test('TypedJsObject', () {
-    final john = new PersonTP('John', 'Doe');
+    final john = new Person('John', 'Doe');
     expect(john.firstname, equals('John'));
     john.firstname = 'Joe';
     expect(john.firstname, equals('Joe'));
   });
 
   test('function call', () {
-    final john = new PersonTP('John', 'Doe');
+    final john = new Person('John', 'Doe');
     expect(john.sayHello(), equals("Hello, I'm John Doe"));
   });
 
@@ -70,7 +57,7 @@ main() {
   group('TypedJsArray', () {
     test('iterator', () {
       final m = new jsw.TypedJsArray<String>.fromJsObject(
-          js.jsify(["e0", "e1", "e2"]));
+          new js.JsObject.jsify(["e0", "e1", "e2"]));
 
       final iterator = m.iterator;
       iterator.moveNext();
@@ -82,15 +69,15 @@ main() {
     });
 
     test('get length', () {
-      final m1 = new jsw.TypedJsArray<String>.fromJsObject(js.jsify([]));
+      final m1 = new jsw.TypedJsArray<String>.fromJsObject(new js.JsObject.jsify([]));
       expect(m1.length, equals(0));
       final m2 = new jsw.TypedJsArray<String>.fromJsObject(
-          js.jsify(["a", "b"]));
+          new js.JsObject.jsify(["a", "b"]));
       expect(m2.length, equals(2));
     });
 
     test('add', () {
-      final m = new jsw.TypedJsArray<String>.fromJsObject(js.jsify([]));
+      final m = new jsw.TypedJsArray<String>.fromJsObject(new js.JsObject.jsify([]));
       expect(m.length, equals(0));
       m.add("a");
       expect(m.length, equals(1));
@@ -102,14 +89,14 @@ main() {
     });
 
     test('clear', () {
-      final m = new jsw.TypedJsArray<String>.fromJsObject(js.jsify(["a", "b"]));
+      final m = new jsw.TypedJsArray<String>.fromJsObject(new js.JsObject.jsify(["a", "b"]));
       expect(m.length, equals(2));
       m.clear();
       expect(m.length, equals(0));
     });
 
     test('remove', () {
-      final m = new jsw.TypedJsArray<String>.fromJsObject(js.jsify(["a", "b"]));
+      final m = new jsw.TypedJsArray<String>.fromJsObject(new js.JsObject.jsify(["a", "b"]));
       expect(m.length, equals(2));
       m.remove("a");
       expect(m.length, equals(1));
@@ -117,7 +104,7 @@ main() {
     });
 
     test('operator []', () {
-      final m = new jsw.TypedJsArray<String>.fromJsObject(js.jsify(["a", "b"]));
+      final m = new jsw.TypedJsArray<String>.fromJsObject(new js.JsObject.jsify(["a", "b"]));
       expect(() => m[-1], throwsA(isRangeError));
       expect(() => m[2], throwsA(isRangeError));
       expect(m[0], equals("a"));
@@ -125,7 +112,7 @@ main() {
     });
 
     test('operator []=', () {
-      final m = new jsw.TypedJsArray<String>.fromJsObject(js.jsify(["a", "b"]));
+      final m = new jsw.TypedJsArray<String>.fromJsObject(new js.JsObject.jsify(["a", "b"]));
       expect(() => m[-1] = "c", throwsA(isRangeError));
       expect(() => m[2] = "c", throwsA(isRangeError));
       m[0] = "d";
@@ -135,7 +122,7 @@ main() {
     });
 
     test('set length', () {
-      final m = new jsw.TypedJsArray<String>.fromJsObject(js.jsify(["a", "b"]));
+      final m = new jsw.TypedJsArray<String>.fromJsObject(new js.JsObject.jsify(["a", "b"]));
       m.length = 10;
       expect(m.length, equals(10));
       expect(m[5], equals(null));
@@ -146,7 +133,7 @@ main() {
 
     test('sort', () {
       final m = new jsw.TypedJsArray<String>.fromJsObject(
-          js.jsify(["c", "a", "b"]));
+          new js.JsObject.jsify(["c", "a", "b"]));
       m.sort();
       expect(m.length, equals(3));
       expect(m[0], equals("a"));
@@ -156,7 +143,7 @@ main() {
 
     test('insert', () {
       final m = new jsw.TypedJsArray<String>.fromJsObject(
-          js.jsify(["a", "b", "c"]));
+          new js.JsObject.jsify(["a", "b", "c"]));
       m.insert(1, "d");
       expect(m.length, equals(4));
       expect(m[0], equals("a"));
@@ -167,7 +154,7 @@ main() {
 
     test('removeAt', () {
       final m = new jsw.TypedJsArray<String>.fromJsObject(
-          js.jsify(["a", "b", "c"]));
+          new js.JsObject.jsify(["a", "b", "c"]));
       expect(m.removeAt(1), equals("b"));
       expect(m.length, equals(2));
       expect(m[0], equals("a"));
@@ -177,7 +164,7 @@ main() {
 
     test('removeLast', () {
       final m = new jsw.TypedJsArray<String>.fromJsObject(
-          js.jsify(["a", "b", "c", null]));
+          new js.JsObject.jsify(["a", "b", "c", null]));
       expect(m.removeLast(), isNull);
       expect(m.removeLast(), equals("c"));
       expect(m.removeLast(), equals("b"));
@@ -187,7 +174,7 @@ main() {
 
     test('sublist', () {
       final m = new jsw.TypedJsArray<String>.fromJsObject(
-          js.jsify(["a", "b", "c", null]));
+          new js.JsObject.jsify(["a", "b", "c", null]));
       final sl1 = m.sublist(2);
       expect(sl1.length, equals(2));
       expect(sl1[0], equals("c"));
@@ -200,7 +187,7 @@ main() {
 
     test('setRange', () {
       final m = new jsw.TypedJsArray<String>.fromJsObject(
-          js.jsify(["a", "b", "c", null]));
+          new js.JsObject.jsify(["a", "b", "c", null]));
       m.setRange(1, 2, [null, null]);
       expect(m.length, equals(4));
       expect(m[0], equals("a"));
@@ -216,7 +203,7 @@ main() {
 
     test('removeRange', () {
       final m = new jsw.TypedJsArray<String>.fromJsObject(
-          js.jsify(["a", "b", "c", null]));
+          new js.JsObject.jsify(["a", "b", "c", null]));
       m.removeRange(1, 3);
       expect(m.length, equals(2));
       expect(m[0], equals("a"));
@@ -224,22 +211,21 @@ main() {
     });
 
     test('bidirectionnal serialization of Proxy', () {
-      js.context['myArray'] = js.jsify([]);
-      final myList = new jsw.TypedJsArray<PersonTP>.fromJsObject(
-          js.context['myArray'], new jsw.TranslatorForSerializable<PersonTP>(
-              (p) => new PersonTP.fromJsObject(p)));
+      js.context['myArray'] = new js.JsObject.jsify([]);
+      final myList = new jsw.TypedJsArray<Person>.fromJsObject(
+          js.context['myArray'], Person.$codec);
 
-      myList.add(new PersonTP('John', 'Doe'));
+      myList.add(new Person('John', 'Doe'));
       myList.add(null);
       expect(myList[0].firstname, 'John');
       expect(myList[1], isNull);
     });
 
     test('family', () {
-      final father = new PersonTP("John", "Doe");
-      final child1 = new PersonTP("Lewis", "Doe")
+      final father = new Person("John", "Doe");
+      final child1 = new Person("Lewis", "Doe")
         ..father = father;
-      final child2 = new PersonTP("Andy", "Doe")
+      final child2 = new Person("Andy", "Doe")
         ..father = father;
       father.children.addAll([child1, child2]);
       expect(father.children.length, 2);
@@ -248,13 +234,10 @@ main() {
     });
 
     test('bidirectionnal serialization of Serializable', () {
-      js.context['myArray'] = js.jsify([]);
+      js.context['myArray'] = new js.JsObject.jsify([]);
       final myList = new jsw.TypedJsArray<Color>.fromJsObject(
           js.context['myArray'],
-          new jsw.Translator<Color>(
-              (e) => e != null ? new Color._(e) : null,
-              (e) => e != null ? e.toJs() : null
-          )
+          new jsw.SerializableCodec<Color, String>((e) => new Color._(e))
       );
       myList.add(Color.BLUE);
       myList.add(null);
@@ -266,7 +249,7 @@ main() {
   group('JsObjectToMapAdapter', () {
     test('get keys', () {
       final m = new jsw.TypedJsMap<int>.fromJsObject(
-          js.jsify({"a": 1, "b": 2}));
+          new js.JsObject.jsify({"a": 1, "b": 2}));
       final keys = m.keys;
       expect(keys.length, equals(2));
       expect(keys, contains("a"));
@@ -274,19 +257,19 @@ main() {
     });
 
     test('containsKey', () {
-      final m = new jsw.TypedJsMap.fromJsObject(js.jsify({"a": 1, "b": "c"}));
+      final m = new jsw.TypedJsMap.fromJsObject(new js.JsObject.jsify({"a": 1, "b": "c"}));
       expect(m.containsKey("a"), equals(true));
       expect(m.containsKey("d"), equals(false));
     });
 
     test('operator []', () {
-      final m = new jsw.TypedJsMap.fromJsObject(js.jsify({"a": 1, "b": "c"}));
+      final m = new jsw.TypedJsMap.fromJsObject(new js.JsObject.jsify({"a": 1, "b": "c"}));
       expect(m["a"], equals(1));
       expect(m["b"], equals("c"));
     });
 
     test('operator []=', () {
-      final m = new jsw.TypedJsMap.fromJsObject(js.jsify({}));
+      final m = new jsw.TypedJsMap.fromJsObject(new js.JsObject.jsify({}));
       m["a"] = 1;
       expect(m["a"], equals(1));
       expect(m.length, equals(1));
@@ -297,17 +280,16 @@ main() {
 
     test('remove', () {
       final m = new jsw.TypedJsMap.fromJsObject(
-          js.jsify({"a": 1, "b": "c"}));
+          new js.JsObject.jsify({"a": 1, "b": "c"}));
       expect(m.remove("a"), equals(1));
       expect(m["b"], equals("c"));
       expect(m.length, equals(1));
     });
 
     test('bidirectionnal serialization of Proxy', () {
-      final myMap = new jsw.TypedJsMap<PersonTP>.fromJsObject(
-          js.jsify({}), new jsw.TranslatorForSerializable<PersonTP>((p) =>
-              new PersonTP.fromJsObject(p)));
-      myMap["a"] = new PersonTP('John', 'Doe');
+      final myMap = new jsw.TypedJsMap<Person>.fromJsObject(
+          new js.JsObject.jsify({}), Person.$codec);
+      myMap["a"] = new Person('John', 'Doe');
       expect(myMap["a"].firstname, 'John');
     });
   });

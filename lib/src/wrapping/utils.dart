@@ -19,15 +19,16 @@ class EnumFinder<T, E extends IsEnum<T>> {
   EnumFinder(this.elements);
   E find(o) => o is E ? _findByEquals(o) : o is T ? _findByValue(o) : null;
   E _findByEquals(E o) => elements.firstWhere((E e) => e == o, orElse: () => null);
-  E _findByValue(T o) => elements.firstWhere((E e) => e.value == o, orElse: () => null);
+  E _findByValue(T o) => elements.firstWhere((E e) => e.$unsafe == o, orElse: () => null);
 }
 
 class IsEnum<E> implements Serializable<E> {
-  E value;
+  E $unsafe;
 
-  IsEnum(this.value);
+  IsEnum(this.$unsafe);
 
-  @override E toJs() => value;
+  bool operator ==(other) => other is IsEnum && $unsafe == other.$unsafe;
+  int get hashCode => $unsafe.hashCode;
 }
 
 typedef _EventSinkCallback<T>(EventSink<T> eventSink);
@@ -61,72 +62,6 @@ class SubscribeStreamProvider<T> implements EventSink<T> {
   }
 
   void add(T event) => _controllers.toList().forEach((controller) => controller.add(event));
-  void addError(errorEvent) => _controllers.toList().forEach((controller) => controller.addError(errorEvent));
+  void addError(errorEvent, [StackTrace stackTrace]) => _controllers.toList().forEach((controller) => controller.addError(errorEvent, stackTrace));
   void close() => _controllers.toList().forEach((controller) => controller.close());
-}
-
-const _DART_CONVERTED_ELEMENT = 'data-dart_converted_element';
-
-Element convertElementToDart(JsObject jsElement) {
-  final jsDocument = context['document'];
-  if (jsElement['ownerDocument'] == jsDocument) {
-    final retrieveElement = () {
-      final element = query("[$_DART_CONVERTED_ELEMENT]");
-      element.attributes.remove(_DART_CONVERTED_ELEMENT);
-      return element;
-    };
-
-    jsElement.callMethod('setAttribute', [_DART_CONVERTED_ELEMENT, true]);
-    final jsDocumentElement = jsDocument['documentElement'];
-    JsObject jsCurrentElement = jsElement;
-    if (jsCurrentElement == jsDocumentElement) {
-      return retrieveElement();
-    }
-    while (true) {
-      final jsParentElement = jsCurrentElement['parentElement'];
-      if (jsParentElement == null) {
-        jsDocumentElement.callMethod('appendChild', [jsCurrentElement]);
-        Element element = retrieveElement();
-        jsDocumentElement.callMethod('removeChild', [jsCurrentElement]);
-        return element;
-      } else if (jsParentElement == jsDocumentElement) {
-        // jsElement was already attached to dom
-        return retrieveElement();
-      }
-      jsCurrentElement = jsParentElement;
-    }
-  }
-  return null;
-}
-
-JsObject convertElementToJs(Element element) {
-  if (element.document == document) {
-    final retrieveJsElement = () {
-      final jsElement = context['document'].callMethod('querySelector',
-          ["[$_DART_CONVERTED_ELEMENT]"]);
-      jsElement.callMethod('removeAttribute' ,[_DART_CONVERTED_ELEMENT]);
-      return jsElement;
-    };
-
-    element.attributes[_DART_CONVERTED_ELEMENT] = "true";
-    final documentElement = document.documentElement;
-    Element currentElement = element;
-    if (currentElement == documentElement) {
-      return retrieveJsElement();
-    }
-    while (true) {
-      final parentElement = currentElement.parent;
-      if (parentElement == null) {
-        documentElement.children.add(currentElement);
-        final jsElement = retrieveJsElement();
-        documentElement.children.remove(currentElement);
-        return jsElement;
-      } else if (parentElement == documentElement) {
-        // element was already attached to dom
-        return retrieveJsElement();
-      }
-      currentElement = parentElement;
-    }
-  }
-  return null;
 }

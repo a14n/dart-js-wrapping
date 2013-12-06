@@ -6,19 +6,18 @@ part of js_wrapping;
 
 // TODO use jsObject.asDartMap()
 class TypedJsMap<V> extends TypedJsObject implements Map<String,V> {
-  static TypedJsMap cast(JsObject jsObject, [Translator translator]) =>
-      jsObject == null ? null :
-          new TypedJsMap.fromJsObject(jsObject, translator);
-  static TypedJsMap castMapOfSerializables(JsObject jsObject,
-      Mapper<dynamic, Serializable> fromJs, {mapOnlyNotNull: false}) =>
-          jsObject == null ? null : new TypedJsMap.fromJsObject(jsObject,
-              new TranslatorForSerializable(fromJs,
-                  mapOnlyNotNull: mapOnlyNotNull));
+  static TypedJsObjectCodec<TypedJsMap> $codec =
+      new TypedJsObjectCodec<TypedJsMap>((JsObject jsObject) =>
+          new TypedJsMap.fromJsObject(jsObject));
 
-  final Translator<V> _translator;
+  static TypedJsObjectCodec<TypedJsMap> $getCodec(Codec innerCodec) =>
+      new TypedJsObjectCodec<TypedJsMap>((JsObject jsObject) =>
+          new TypedJsMap.fromJsObject(jsObject, innerCodec));
 
-  TypedJsMap.fromJsObject(JsObject jsObject, [Translator<V> translator]) :
-      super.fromJsObject(jsObject), this._translator = translator;
+  final Codec<V, dynamic> _codec;
+
+  TypedJsMap.fromJsObject(JsObject jsObject, [Codec<V, dynamic> codec]) :
+      super.fromJsObject(jsObject), this._codec = codec;
 
   @override V operator [](String key) => _fromJs($unsafe[key]);
   @override void operator []=(String key, V value) {
@@ -30,7 +29,7 @@ class TypedJsMap<V> extends TypedJsObject implements Map<String,V> {
     return value;
   }
   @override Iterable<String> get keys =>
-      TypedJsArray.cast(context['Object'].callMethod('keys', [$unsafe]));
+      TypedJsArray.$codec.decode(context['Object'].callMethod('keys', [$unsafe]));
 
   // use Maps to implement functions
   @override bool containsValue(V value) => Maps.containsValue(this, value);
@@ -51,7 +50,6 @@ class TypedJsMap<V> extends TypedJsObject implements Map<String,V> {
   @override bool get isEmpty => Maps.isEmpty(this);
   @override bool get isNotEmpty => Maps.isNotEmpty(this);
 
-  dynamic _toJs(V e) => _translator == null ? e : _translator.toJs(e);
-  V _fromJs(dynamic value) => _translator == null ? value :
-      _translator.fromJs(value);
+  dynamic _toJs(V e) => _codec == null ? e : _codec.encode(e);
+  V _fromJs(dynamic value) => _codec == null ? value : _codec.decode(value);
 }
