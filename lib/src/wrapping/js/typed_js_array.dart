@@ -3,28 +3,23 @@ part of js_wrapping;
 // TODO use JsArray instead
 class TypedJsArray<E> extends TypedJsObject with ListMixin
     implements Serializable<JsObject> {
+  static final $decode = new TypedJsObjectDecoder<TypedJsArray>(
+      (JsObject jsObject) => new TypedJsArray.fromJsObject(jsObject));
 
-  static TypedJsArray cast(JsObject jsObject, [Translator translator]) =>
-      jsObject == null ? null :
-          new TypedJsArray.fromJsObject(jsObject, translator);
+  static TypedJsObjectDecoder<TypedJsArray> $getDecode(Codec innerCodec) =>
+      new TypedJsObjectDecoder<TypedJsArray>((JsObject jsObject) =>
+          new TypedJsArray.fromJsObject(jsObject, innerCodec));
 
-  static TypedJsArray castListOfSerializables(JsObject jsObject,
-      Mapper<dynamic, Serializable> fromJs, {mapOnlyNotNull: false}) =>
-          jsObject == null ? null : new TypedJsArray.fromJsObject(jsObject,
-              new TranslatorForSerializable(fromJs,
-                  mapOnlyNotNull: mapOnlyNotNull));
+  final Codec<E, dynamic> _codec;
 
-  final Translator<E> _translator;
-
-  TypedJsArray.fromJsObject(JsObject jsObject, [Translator<E> translator])
-      : this._translator = translator,
+  TypedJsArray.fromJsObject(JsObject jsObject, [Codec<E, dynamic> codec])
+      : this._codec = codec,
         super.fromJsObject(jsObject);
 
   // private methods
 
-  dynamic _toJs(E e) => _translator == null ? e : _translator.toJs(e);
-  E _fromJs(dynamic value) => _translator == null ? value :
-      _translator.fromJs(value);
+  dynamic _toJs(E e) => _codec == null ? e : _codec.encode(e);
+  E _fromJs(dynamic value) => _codec == null ? value : _codec.decode(value);
 
   // method to implement for ListMixin
 

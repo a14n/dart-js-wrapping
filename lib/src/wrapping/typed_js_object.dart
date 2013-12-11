@@ -6,13 +6,13 @@ part of js_wrapping;
 
 /// base class to wrap a [JsObject] in a strong typed object.
 class TypedJsObject implements Serializable<JsObject> {
+  static final $encode = new SerializableEncoder();
+
   final JsObject $unsafe;
 
-  TypedJsObject([Serializable<JsFunction> function, List args])
+  TypedJsObject([JsFunction function, List args])
       : this.fromJsObject(new JsObject(
             function != null ? function : context['Object'],
             args != null ? args : []));
   TypedJsObject.fromJsObject(this.$unsafe);
-
-  @override dynamic toJs() => $unsafe;
 }

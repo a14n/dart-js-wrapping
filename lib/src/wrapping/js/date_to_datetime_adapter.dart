@@ -6,8 +6,9 @@ part of js_wrapping;
 
 /// Adapter to handle a js date as a dart [DateTime].
 class JsDateToDateTimeAdapter extends TypedJsObject implements DateTime {
-  static JsDateToDateTimeAdapter cast(JsObject jsObject) => jsObject == null ?
-      null : new JsDateToDateTimeAdapter.fromJsObject(jsObject);
+  static final $decode = new TypedJsObjectDecoder<JsDateToDateTimeAdapter>(
+      (JsObject jsObject) =>
+          new JsDateToDateTimeAdapter.fromJsObject(jsObject));
 
   /// Create a new adapter from a dart [dateTime].
   JsDateToDateTimeAdapter(DateTime dateTime) :
