@@ -7,12 +7,9 @@ library js_wrapping;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:js';
-import 'dart:html' show Element, document, query;
 
-import 'package:meta/meta.dart';
-
-part 'src/wrapping/mapper.dart';
-part 'src/wrapping/translator.dart';
+part 'src/wrapping/enum.dart';
+part 'src/wrapping/serializable.dart';
 part 'src/wrapping/typed_js_object.dart';
 part 'src/wrapping/utils.dart';
 part 'src/wrapping/js/date_to_datetime_adapter.dart';

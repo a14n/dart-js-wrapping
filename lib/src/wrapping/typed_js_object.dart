@@ -8,11 +8,9 @@ part of js_wrapping;
 class TypedJsObject implements Serializable<JsObject> {
   final JsObject $unsafe;
 
-  TypedJsObject([Serializable<JsFunction> function, List args])
+  TypedJsObject([JsFunction function, List args])
       : this.fromJsObject(new JsObject(
             function != null ? function : context['Object'],
             args != null ? args : []));
   TypedJsObject.fromJsObject(this.$unsafe);
-
-  @override dynamic toJs() => $unsafe;
 }

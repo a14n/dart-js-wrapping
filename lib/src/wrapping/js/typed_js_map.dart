@@ -6,23 +6,22 @@ part of js_wrapping;
 
 // TODO use jsObject.asDartMap()
 class TypedJsMap<V> extends TypedJsObject implements Map<String,V> {
-  static TypedJsMap cast(JsObject jsObject, [Translator translator]) =>
-      jsObject == null ? null :
-          new TypedJsMap.fromJsObject(jsObject, translator);
-  static TypedJsMap castMapOfSerializables(JsObject jsObject,
-      Mapper<dynamic, Serializable> fromJs, {mapOnlyNotNull: false}) =>
-          jsObject == null ? null : new TypedJsMap.fromJsObject(jsObject,
-              new TranslatorForSerializable(fromJs,
-                  mapOnlyNotNull: mapOnlyNotNull));
+  static TypedJsMap $wrap(JsObject jsObject, {wrap(js), unwrap(dart)}) => jsObject == null ? null : new TypedJsMap.fromJsObject(jsObject, wrap: wrap, unwrap: unwrap);
 
-  final Translator<V> _translator;
+  static TypedJsMap $wrapSerializables(JsObject jsObject, wrap(js)) => jsObject == null ? null : new TypedJsMap.fromJsObject(jsObject, wrap: wrap);
 
-  TypedJsMap.fromJsObject(JsObject jsObject, [Translator<V> translator]) :
-      super.fromJsObject(jsObject), this._translator = translator;
+  final _Mapper<V, dynamic> _unwrap;
+  final _Mapper<dynamic, V> _wrap;
 
-  @override V operator [](String key) => _fromJs($unsafe[key]);
+  TypedJsMap.fromJsObject(JsObject jsObject, {_Mapper<dynamic, V> wrap, _Mapper<V, dynamic> unwrap})
+      : _wrap = ((e) => wrap == null ? e : wrap(e)),
+        _unwrap = ((e) => unwrap == null ? e : unwrap(e)),
+        super.fromJsObject(jsObject);
+
+
+  @override V operator [](String key) => _wrap($unsafe[key]);
   @override void operator []=(String key, V value) {
-    $unsafe[key] = _toJs(value);
+    $unsafe[key] = _unwrap(value);
   }
   @override V remove(String key) {
     final value = this[key];
@@ -30,7 +29,7 @@ class TypedJsMap<V> extends TypedJsObject implements Map<String,V> {
     return value;
   }
   @override Iterable<String> get keys =>
-      TypedJsArray.cast(context['Object'].callMethod('keys', [$unsafe]));
+      TypedJsArray.$wrap(context['Object'].callMethod('keys', [$unsafe]));
 
   // use Maps to implement functions
   @override bool containsValue(V value) => Maps.containsValue(this, value);
@@ -50,8 +49,4 @@ class TypedJsMap<V> extends TypedJsObject implements Map<String,V> {
   @override int get length => Maps.length(this);
   @override bool get isEmpty => Maps.isEmpty(this);
   @override bool get isNotEmpty => Maps.isNotEmpty(this);
-
-  dynamic _toJs(V e) => _translator == null ? e : _translator.toJs(e);
-  V _fromJs(dynamic value) => _translator == null ? value :
-      _translator.fromJs(value);
 }
