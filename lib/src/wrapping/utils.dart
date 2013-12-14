@@ -14,7 +14,35 @@
 
 part of js_wrapping;
 
-typedef T _Mapper<F, T>(F o);
+typedef T Mapper<F, T>(F o);
+
+/// like `new JsObject.jsify(data)` but with unwrapping of [Serializable]s
+JsObject jsify(data) {
+  final _convertedObjects = new HashMap.identity();
+  _convert(o) {
+    if (_convertedObjects.containsKey(o)) {
+      return _convertedObjects[o];
+    }
+    if (o is Map) {
+      final convertedMap = {};
+      _convertedObjects[o] = convertedMap;
+      for (var key in o.keys) {
+        convertedMap[key] = _convert(o[key]);
+      }
+      return convertedMap;
+    } else if (o is Iterable) {
+      var convertedList = [];
+      _convertedObjects[o] = convertedList;
+      convertedList.addAll(o.map(_convert));
+      return convertedList;
+    } else if (o is Serializable) {
+      return o.$unsafe;
+    } else {
+      return o;
+    }
+  }
+  return new JsObject.jsify(_convert(data));
+}
 
 typedef _EventSinkCallback<T>(EventSink<T> eventSink);
 /// Utility class to create streams from event retrieve with subscribe/unsubscribe

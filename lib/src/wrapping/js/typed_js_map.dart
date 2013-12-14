@@ -10,10 +10,10 @@ class TypedJsMap<V> extends TypedJsObject implements Map<String,V> {
 
   static TypedJsMap $wrapSerializables(JsObject jsObject, wrap(js)) => jsObject == null ? null : new TypedJsMap.fromJsObject(jsObject, wrap: wrap);
 
-  final _Mapper<V, dynamic> _unwrap;
-  final _Mapper<dynamic, V> _wrap;
+  final Mapper<V, dynamic> _unwrap;
+  final Mapper<dynamic, V> _wrap;
 
-  TypedJsMap.fromJsObject(JsObject jsObject, {_Mapper<dynamic, V> wrap, _Mapper<V, dynamic> unwrap})
+  TypedJsMap.fromJsObject(JsObject jsObject, {Mapper<dynamic, V> wrap, Mapper<V, dynamic> unwrap})
       : _wrap = ((e) => wrap == null ? e : wrap(e)),
         _unwrap = ((e) => unwrap == null ? e : unwrap(e)),
         super.fromJsObject(jsObject);

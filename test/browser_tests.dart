@@ -22,12 +22,11 @@ class Person extends jsw.TypedJsObject {
 }
 
 class Color extends jsw.IsEnum<String> {
+  static final _FINDER = new jsw.EnumFinder<String, Color>([RED, BLUE]);
   static Color $wrap(String jsValue) => _FINDER.find(jsValue);
 
   static final RED = new Color._("red");
   static final BLUE = new Color._("blue");
-
-  static final _FINDER = new jsw.EnumFinder<String, Color>([RED, BLUE]);
 
   Color._(String value) : super(value);
 }

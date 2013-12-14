@@ -7,10 +7,10 @@ class TypedJsArray<E> extends TypedJsObject with ListMixin
 
   static TypedJsArray $wrapSerializables(JsObject jsObject, wrap(js)) => jsObject == null ? null : new TypedJsArray.fromJsObject(jsObject, wrap: wrap, unwrap: Serializable.$unwrap);
 
-  final _Mapper<E, dynamic> _unwrap;
-  final _Mapper<dynamic, E> _wrap;
+  final Mapper<E, dynamic> _unwrap;
+  final Mapper<dynamic, E> _wrap;
 
-  TypedJsArray.fromJsObject(JsObject jsObject, {_Mapper<dynamic, E> wrap, _Mapper<E, dynamic> unwrap})
+  TypedJsArray.fromJsObject(JsObject jsObject, {Mapper<dynamic, E> wrap, Mapper<E, dynamic> unwrap})
       : _wrap = ((e) => wrap == null ? e : wrap(e)),
         _unwrap = ((e) => unwrap == null ? e : unwrap(e)),
         super.fromJsObject(jsObject);
