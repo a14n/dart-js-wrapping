@@ -24,14 +24,14 @@ JsObject jsify(data) {
       return _convertedObjects[o];
     }
     if (o is Map) {
-      final convertedMap = {};
+      final convertedMap = new JsObject(context['Object']);
       _convertedObjects[o] = convertedMap;
       for (var key in o.keys) {
         convertedMap[key] = _convert(o[key]);
       }
       return convertedMap;
     } else if (o is Iterable) {
-      var convertedList = [];
+      var convertedList = new JsArray();
       _convertedObjects[o] = convertedList;
       convertedList.addAll(o.map(_convert));
       return convertedList;
@@ -41,8 +41,10 @@ JsObject jsify(data) {
       return o;
     }
   }
-  return new JsObject.jsify(_convert(data));
+  return _convert(data);
 }
+
+mayUnwrap(o) => o is Serializable ? Serializable.$unwrap(o) : o;
 
 typedef _EventSinkCallback<T>(EventSink<T> eventSink);
 /// Utility class to create streams from event retrieve with subscribe/unsubscribe
