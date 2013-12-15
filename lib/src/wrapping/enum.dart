@@ -11,12 +11,14 @@ class IsEnum<E> implements Serializable<E> {
 
   bool operator ==(other) => other is IsEnum && $unsafe == other.$unsafe;
   int get hashCode => $unsafe.hashCode;
+
+  String toString() => '${$unsafe}';
 }
 
 class EnumFinder<T, E extends IsEnum<T>> {
   final List<E> elements;
+
   EnumFinder(this.elements);
-  E find(o) => o is E ? _findByEquals(o) : o is T ? _findByValue(o) : null;
-  E _findByEquals(E o) => elements.firstWhere((E e) => e == o, orElse: () => null);
-  E _findByValue(T o) => elements.firstWhere((E e) => e.$unsafe == o, orElse: () => null);
+
+  E find(T o) => elements.firstWhere((E e) => e.$unsafe == o, orElse: () => null);
 }
