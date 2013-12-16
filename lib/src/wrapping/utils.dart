@@ -23,7 +23,9 @@ JsObject jsify(data) {
     if (_convertedObjects.containsKey(o)) {
       return _convertedObjects[o];
     }
-    if (o is Map) {
+    if (o is Serializable) {
+      return o.$unsafe;
+    } else if (o is Map) {
       final convertedMap = new JsObject(context['Object']);
       _convertedObjects[o] = convertedMap;
       for (var key in o.keys) {
@@ -35,8 +37,6 @@ JsObject jsify(data) {
       _convertedObjects[o] = convertedList;
       convertedList.addAll(o.map(_convert));
       return convertedList;
-    } else if (o is Serializable) {
-      return o.$unsafe;
     } else {
       return o;
     }
