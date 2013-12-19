@@ -1,6 +1,7 @@
 library tests;
 
 import 'dart:js' as js;
+
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
@@ -44,6 +45,18 @@ main() {
   test('function call', () {
     final john = new Person('John', 'Doe');
     expect(john.sayHello(), equals("Hello, I'm John Doe"));
+  });
+
+  test('jsify', () {
+    final john = new Person('John', 'Doe')
+      ..children.add(new Person('Jack', 'Doe'));
+    js.context['a'] = jsw.jsify({'b' : john, 'c': [john, {'d': Color.RED}]});
+    expect(js.context['a']['b']['firstname'], equals('John'));
+    expect(js.context['a']['b']['lastname'], equals('Doe'));
+    expect(js.context['a']['c'][0]['firstname'], equals('John'));
+    expect(js.context['a']['c'][0]['lastname'], equals('Doe'));
+    expect(js.context['a']['c'][0]['children'][0]['firstname'], equals('Jack'));
+    expect(js.context['a']['c'][1]['d'], equals('red'));
   });
 
   test('JsDateToDateTimeAdapter', () {
