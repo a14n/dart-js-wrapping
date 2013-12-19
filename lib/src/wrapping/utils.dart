@@ -44,9 +44,11 @@ JsObject jsify(data) {
   return _convert(data);
 }
 
+/// Calls [Serializable.$unwrap] if [o] is a [Serializable].
 mayUnwrap(o) => o is Serializable ? Serializable.$unwrap(o) : o;
 
 typedef _EventSinkCallback<T>(EventSink<T> eventSink);
+
 /// Utility class to create streams from event retrieve with subscribe/unsubscribe
 class SubscribeStreamProvider<T> implements EventSink<T> {
   final _EventSinkCallback<T> subscribe;
