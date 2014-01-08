@@ -29,13 +29,11 @@ class TypedJsMap<V> extends TypedJsObject implements Map<String,V> {
     return value;
   }
   @override Iterable<String> get keys =>
-      TypedJsArray.$wrap(context['Object'].callMethod('keys', [$unsafe]));
+      context['Object'].callMethod('keys', [$unsafe]);
 
   // use Maps to implement functions
   @override bool containsValue(V value) => Maps.containsValue(this, value);
-  @override bool containsKey(String key) =>
-      context['Object'].callMethod('keys', [$unsafe])
-        .callMethod('indexOf',[key]) != -1;
+  @override bool containsKey(String key) => keys.contains(key);
   @override V putIfAbsent(String key, V ifAbsent()) =>
       Maps.putIfAbsent(this, key, ifAbsent);
   @override void addAll(Map<String, V> other) {
