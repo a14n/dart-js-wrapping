@@ -16,8 +16,20 @@ part of js_wrapping;
 
 typedef T Mapper<F, T>(F o);
 
-/// like `new JsObject.jsify(data)` but with unwrapping of [Serializable]s
-JsObject jsify(data) {
+/// convert dart object to the js side. It's a little like `new JsObject.jsify(data)` but with unwrapping of [Serializable]s and it support all types.
+dynamic jsify(data) {
+  // shortcut for simple case to avoid instantiation of _convertedObjects
+  if (data is Serializable) {
+    return data.$unsafe;
+  } else if (isTransferable(data)) {
+    return data;
+  } else if (data is JsObject) {
+    return data;
+  } else if (data is! List && data is! Map) {
+    return data;
+  }
+
+  // handle json-like structures
   final _convertedObjects = new HashMap.identity();
   _convert(o) {
     if (_convertedObjects.containsKey(o)) {
@@ -25,6 +37,10 @@ JsObject jsify(data) {
     }
     if (o is Serializable) {
       return o.$unsafe;
+    } else if (isTransferable(o)) {
+      return o;
+    } else if (o is JsObject) {
+      return o;
     } else if (o is Map) {
       final convertedMap = new JsObject(context['Object']);
       _convertedObjects[o] = convertedMap;
@@ -43,6 +59,12 @@ JsObject jsify(data) {
   }
   return _convert(data);
 }
+
+bool isTransferable(data) => data == null ||
+    data is num || data is bool || data is String || data is DateTime ||
+    data is Blob || data is Event || data is ImageData || data is Node || data is Window ||
+    data is KeyRange ||
+    data is TypedData;
 
 /// Calls [Serializable.$unwrap] if [o] is a [Serializable].
 mayUnwrap(o) => o is Serializable ? Serializable.$unwrap(o) : o;

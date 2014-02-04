@@ -6,7 +6,10 @@ library js_wrapping;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:html' show Blob, Event, ImageData, Node, Window;
 import 'dart:js';
+import 'dart:indexed_db' show KeyRange;
+import 'dart:typed_data' show TypedData;
 
 part 'src/wrapping/enum.dart';
 part 'src/wrapping/serializable.dart';
