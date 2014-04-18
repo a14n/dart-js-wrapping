@@ -47,6 +47,7 @@ class JsDateToDateTimeAdapter extends TypedJsObject implements DateTime {
       _asDateTime().subtract(duration);
   @override Duration difference(DateTime other) =>
       _asDateTime().difference(other);
+  @override String toIso8601String() => _asDateTime().toIso8601String();
 
   DateTime _asDateTime() =>
       new DateTime.fromMillisecondsSinceEpoch($unsafe.callMethod('getTime'));
