@@ -1,11 +1,10 @@
-Dart Js Wrapping
-================
+# Dart Js Wrapping
 
 This project provides some base classes to simplify the creation of Dart libraries that wraps JS libraries.
 
 Wrappers are based on _dart:js_. The main class is `TypedJsObject`.
 
-## Example ##
+## Example
 
 Given a JS _class_ like :
 
@@ -34,6 +33,11 @@ class Person extends TypedJsObject {
   int get age => $unsafe.callMethod('getAge');
 }
 ```
+
+## Generating wrappers
+
+The [Dart Js Wrapping Generator](http://pub.dartlang.org/packages/js_wrapping_generator) can be used
+to help generating the wrapper classes.
 
 ## License ##
 Apache 2.0
