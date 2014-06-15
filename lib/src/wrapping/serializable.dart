@@ -8,7 +8,7 @@ part of js_wrapping;
 /// [Serializable] the `$unsafe` method will be called and the result will be used
 /// as value.
 abstract class Serializable<T> {
-  static $unwrap(Serializable v) => v == null ? v : v.$unsafe;
+  static $unwrap(Serializable v) => v == null ? null : v.$unsafe;
 
   T get $unsafe;
 }
