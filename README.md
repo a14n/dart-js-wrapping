@@ -26,7 +26,7 @@ You can create a wrapper like :
 ```dart
 import 'dart:js' as js;
 class Person extends TypedJsObject {
-  Person(String name) : super(js.context['Person', [name]]);
+  Person(String name) : super(js.context['Person'], [name]);
 
   set name(String name) => $unsafe['name'] = name;
   String get name => $unsafe['name'];
