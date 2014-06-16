@@ -16,14 +16,15 @@ part of js_wrapping;
 
 typedef T Mapper<F, T>(F o);
 
-/// convert dart object to the js side. It's a little like `new JsObject.jsify(data)` but with unwrapping of [Serializable]s and it support all types.
-dynamic jsify(data) {
+/// Convert a dart object to a format suitable for JS.
+/// It augments the `new JsObject.jsify(data)` construct by:
+/// * automatically unwrapping [Serializable]s types,
+/// * supporting all types.
+jsify(data) {
   // shortcut for simple case to avoid instantiation of _convertedObjects
   if (data is Serializable) {
     return data.$unsafe;
   } else if (isTransferable(data)) {
-    return data;
-  } else if (data is JsObject) {
     return data;
   } else if (data is! List && data is! Map) {
     return data;
@@ -38,8 +39,6 @@ dynamic jsify(data) {
     if (o is Serializable) {
       return o.$unsafe;
     } else if (isTransferable(o)) {
-      return o;
-    } else if (o is JsObject) {
       return o;
     } else if (o is Map) {
       final convertedMap = new JsObject(context['Object']);
@@ -60,10 +59,12 @@ dynamic jsify(data) {
   return _convert(data);
 }
 
-bool isTransferable(data) => data == null ||
-    data is num || data is bool || data is String || data is DateTime ||
-    data is Blob || data is Event || data is ImageData || data is Node || data is Window ||
-    data is KeyRange ||
+/// Returns `true` when `data` can be transferred directly from Dart to JS or `false` when it needs
+/// to be wrapped in a [JsObject].
+bool isTransferable(data) => data is JsObject ||
+    data == null || data is num || data is bool || data is String || data is DateTime ||
+    data is Blob || data is Event || data is ImageData || data is Node ||
+    data is Window || data is KeyRange ||
     data is TypedData;
 
 /// Calls [Serializable.$unwrap] if [o] is a [Serializable].
