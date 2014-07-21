@@ -231,6 +231,33 @@ class A extends jsw.TypedJsObject {
 '''
         );
 
+    testTransformation("method with simple return types should work",
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  int m1();
+  double m2();
+  num m3();
+  bool m4();
+  String m5();
+}
+''',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  int m1() => $unsafe.callMethod('m1');
+  double m2() => $unsafe.callMethod('m2');
+  num m3() => $unsafe.callMethod('m3');
+  bool m4() => $unsafe.callMethod('m4');
+  String m5() => $unsafe.callMethod('m5');
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+}
+'''
+        );
+
   });
 
 

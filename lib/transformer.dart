@@ -203,8 +203,9 @@ Transformation _generateMethod(MethodElement method, int insertionIndex) {
   final body = _generateBody("\$unsafe.callMethod('$name'" + (parameters.isEmpty
       ? ")" : ", [${parameters.map((p) => p.displayName).join(', ')}])"), returnType,
       null);
-  return new Transformation.insertion(insertionIndex,
-      '$returnType $name$parameters $body');
+  final signature = method.node.toSource().substring(0, method.node.toSource(
+      ).length - 1);
+  return new Transformation.insertion(insertionIndex, '$signature $body');
 }
 
 String _handleParameter(String name, DartType type, NodeList<Annotation>
