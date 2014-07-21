@@ -76,11 +76,9 @@ typedef _EventSinkCallback<T>(EventSink<T> eventSink);
 class SubscribeStreamProvider<T> implements EventSink<T> {
   final _EventSinkCallback<T> subscribe;
   final _EventSinkCallback<T> unsubscribe;
-  final _controllers = new List<StreamController<T>>();
+  final _controllers = StreamController<T>[];
 
-  SubscribeStreamProvider({subscribe(EventSink<T> eventSink), unsubscribe(EventSink<T> eventSink)})
-      : subscribe = subscribe,
-        unsubscribe = unsubscribe;
+  SubscribeStreamProvider({this.subscribe, this.unsubscribe});
 
   void _addController(StreamController<T> controller) {
     _controllers.add(controller);
