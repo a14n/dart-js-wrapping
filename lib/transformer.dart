@@ -121,12 +121,195 @@ List<Transformation> modifyUnit(CompilationUnitElement unit) {
     // add default constructor
     if (jsName != null && !isMemberAlreadyDefined(clazz, '')) {
       transformations.add(new Transformation.insertion(index,
-          "  ${clazz.name.name}() : this.fromJsObject(new js.JsObject(js.context[${jsName.join("][")}]));\n"));
+          "  ${clazz.name.name}() : this.fromJsObject(new js.JsObject(js.context[${jsName.join("][")}]));\n"
+          ));
+    }
+
+    final nodesToRemove = new Set<AstNode>();
+
+    // generate accessors
+    for (final accessor in clazz.element.accessors.where((e) => !e.isStatic)) {
+      int insertionIndex;
+
+      if (accessor.variable.isSynthetic) {
+        if (!accessor.isAbstract) {
+          continue;
+        }
+        final node = accessor.node;
+        insertionIndex = node.offset;
+        nodesToRemove.add(node);
+      } else { // field
+        final fieldDeclaration = accessor.variable.node.parent.parent;
+        insertionIndex = fieldDeclaration.offset;
+        nodesToRemove.add(fieldDeclaration);
+      }
+
+      if (accessor.isGetter) {
+        transformations.add(_generateGetter(accessor, insertionIndex));
+      }
+      if (accessor.isSetter) {
+        transformations.add(_generateSetter(accessor, insertionIndex));
+      }
+    }
+
+    // generate methods
+    for (final method in clazz.element.methods.where((e) => e.isAbstract &&
+        !e.isStatic)) {
+      nodesToRemove.add(method.node);
+      transformations.add(_generateMethod(method, method.node.offset));
+    }
+
+    // remove nodes
+    for (final node in nodesToRemove) {
+      transformations.add(createRemoveTransformation(node));
     }
   }
 
   return transformations;
 }
+
+Transformation _generateGetter(PropertyAccessorElement accessor, int
+    insertionIndex) {
+  final name = accessor.displayName;
+  final returnType = accessor.returnType;
+  final body = _generateBody("\$unsafe['$name']", returnType, null);
+  return new Transformation.insertion(insertionIndex, (returnType.isDynamic ? ''
+      : '$returnType ') + 'get $name $body');
+}
+
+Transformation _generateSetter(PropertyAccessorElement accessor, int
+    insertionIndex) {
+  final name = accessor.displayName;
+  final paramType = accessor.parameters.first.type;
+  final paramName = accessor.parameters.first.displayName;
+  return new Transformation.insertion(insertionIndex, 'void set $name(' +
+      (paramType.isDynamic ? '' : '$paramType ') + '$paramName) '
+      "{ \$unsafe['$name'] = ${_handleParameter(paramName, paramType, null)}; }");
+}
+
+Transformation _generateMethod(MethodElement method, int insertionIndex) {
+  final name = method.displayName;
+  final returnType = method.returnType;
+  final parameters = method.parameters;
+  final body = _generateBody("\$unsafe.callMethod('$name'" + (parameters.isEmpty
+      ? ")" : ", [${parameters.map((p) => p.displayName).join(', ')}])"), returnType,
+      null);
+  return new Transformation.insertion(insertionIndex,
+      '$returnType $name$parameters $body');
+}
+
+String _handleParameter(String name, DartType type, NodeList<Annotation>
+    metadatas) => type != null ? _mayTransformParameter(name, type, metadatas) :
+    "jsw.jsify($name)";
+
+String _mayTransformParameter(String name, DartType type, List<Annotation>
+    metadatas, {skipNull: false}) {
+  if (_isTypeSerializable(type)) return skipNull ? "$name.\$unsafe" :
+      "$name == null ? null : $name.\$unsafe";
+  if (_isTypeTransferable(type)) return name;
+  if (_isTypeJsObject(type)) return name;
+  final filterTypesMetadata = (Annotation a) => _isElementTypedWith(a.element is
+      ConstructorElement ? a.element.enclosingElement : a.element, _LIBRARY_NAME,
+      'Types');
+  if (metadatas != null && metadatas.any(filterTypesMetadata)) {
+    final types = metadatas.firstWhere(filterTypesMetadata);
+    final ListLiteral listOfTypes = types.arguments.arguments.first;
+    return listOfTypes.elements.map((Identifier e) {
+      final ClassElement classElement = e.staticElement;
+      final value = _mayTransformParameter(name, classElement.type, [],
+          skipNull: true);
+      return '$name is $e ? ${(value != null ? value : name)} : ';
+    }).join() + ' $name == null ? null : throw "bad type"';
+  }
+  return "jsw.jsify($name)";
+}
+
+/// return [true] if the type is transferable through dart:js (see https://api.dartlang.org/docs/channels/stable/latest/dart_js.html)
+bool _isTypeTransferable(DartType type) {
+  final transferables = <String, List<String>> {
+    'dart.core': ['num', 'bool', 'String', 'DateTime'],
+    'dart.dom.html': ['Blob', 'Event', 'ImageData', 'Node', 'Window'],
+    'dart.dom.indexed_db': ['KeyRange'],
+    'dart.typed_data': ['TypedData'],
+  };
+  for (final libraryName in transferables.keys) {
+    if (transferables[libraryName].any((className) => _isTypeAssignableWith(
+        type, libraryName, className))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool _isTypeJsObject(DartType type) => type != null && _isTypeAssignableWith(
+    type, 'dart.js', 'JsObject');
+
+String _generateBody(String content, DartType returnType, Annotation unionType)
+    {
+  var wrap = (String s) => '=> $s;';
+  if (returnType.isVoid) {
+    wrap = (String s) => '{ $s; }';
+  } else if (returnType.element != null) {
+    if (_isTypeTypedWith(returnType, 'dart.core', 'List')) {
+      // List<?> or List
+      if (returnType is ParameterizedType && _isTypeSerializable(
+          returnType.typeArguments.first)) {
+        // List<T extends Serializable>
+        final genericType = returnType.typeArguments.first;
+        wrap = (String s) =>
+            '=> jsw.TypedJsArray.\$wrapSerializables($s, $genericType.\$wrap);';
+      } else {
+        // List or List<T>
+        wrap = (String s) => '=> jsw.TypedJsArray.\$wrap($s);';
+      }
+    } else if (_isTypeSerializable(returnType)) {
+      wrap = (String s) => '=> ${returnType}.\$wrap($s);';
+    }
+  }
+  if (returnType.element == null || returnType.isDynamic) {
+    if (unionType != null) {
+      String t = '(v0) => v0';
+      int i = 1;
+      final ListLiteral listOfTypes = unionType.arguments.arguments.first;
+      listOfTypes.elements.reversed.forEach((Identifier e) {
+        final ClassElement classElement = e.staticElement;
+        if (_isTypeAssignableWith(classElement.type, 'js_wrapping', 'IsEnum')) {
+          t =
+              '(v${i+1}) => ((v$i) => v$i != null ? v$i : ($t)(v${i+1}))($e.\$wrap(v${i+1}))';
+          i += 2;
+        } else if (_isTypeAssignableWith(classElement.type, 'js_wrapping',
+            'TypedJsObject')) {
+          t = '(v$i) => $e.isInstance(v$i) ? $e.\$wrap(v$i) : ($t)(v$i)';
+          i++;
+        } else {
+          t = '(v$i) => v$i is $e ? v$i : ($t)(v$i)';
+          i++;
+        }
+      });
+      wrap = (String s) => '=> ($t)($s);';
+    }
+  }
+  return wrap(content);
+}
+
+bool _isTypeSerializable(DartType type) => type != null &&
+    _isTypeAssignableWith(type, 'js_wrapping', 'Serializable');
+
+bool _isTypeAssignableWith(DartType type, String libraryName, String className)
+    => type != null && _isElementAssignableWith(type.element, libraryName, className
+    );
+
+bool _isElementAssignableWith(Element element, String libraryName, String
+    className) => _isElementTypedWith(element, libraryName, className) || (element
+    is ClassElement && element.allSupertypes.any((supertype) => _isTypeTypedWith(
+    supertype, libraryName, className)));
+
+bool _isTypeTypedWith(DartType type, String libraryName, String className) =>
+    type != null && _isElementTypedWith(type.element, libraryName, className);
+
+bool _isElementTypedWith(Element element, String libraryName, String className)
+    => element.library != null && element.library.name == libraryName &&
+    element.name == className;
 
 List<String> getJsName(Annotation jsInterface) {
   if (jsInterface == null) return null;

@@ -14,7 +14,9 @@
 
 library js_wrapping.transformer.test;
 
-import '../transformation.dart';
+import 'package:unittest/unittest.dart';
+
+import 'transformation.dart';
 
 main() {
   testTransformation('inherite from TypedJsObject should define '
@@ -83,7 +85,118 @@ class B extends A {
 '''
       );
 
-  testTransformation('use @JsInterface() should make a class instantiable and mapped on an anonymous Js Object',
+
+  group('members generation', () {
+
+    testTransformation("abstract get with simple types should be generated",
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  int get i;
+  double get d;
+  num get n;
+  bool get b;
+  String get s;
+}
+''',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  int get i => $unsafe['i'];
+  double get d => $unsafe['d'];
+  num get n => $unsafe['n'];
+  bool get b => $unsafe['b'];
+  String get s => $unsafe['s'];
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+}
+''');
+
+    testTransformation("unabstract get shouldn't be erased",
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  int get i => null;
+}
+''',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  int get i => null;
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+}
+''');
+
+    testTransformation("abstract set with simple types should be generated",
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  set i(int v);
+  set d(double v);
+  set n(num v);
+  set b(bool v);
+  set s(String v);
+}
+''',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  void set i(int v) { $unsafe['i'] = v; }
+  void set d(double v) { $unsafe['d'] = v; }
+  void set n(num v) { $unsafe['n'] = v; }
+  void set b(bool v) { $unsafe['b'] = v; }
+  void set s(String v) { $unsafe['s'] = v; }
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+}
+''');
+
+    testTransformation("unabstract get shouldn't be erased",
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  set i(int v) { }
+}
+''',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  set i(int v) { }
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+}
+''');
+
+    testTransformation("field with simple types should generate get and set",
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+}
+''',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+}
+''');
+
+  });
+
+
+  testTransformation(
+      'use @JsInterface() should make a class instantiable and mapped on an anonymous Js Object',
       r'''
 import 'dart:js' as js;
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
@@ -105,7 +218,8 @@ class A extends jsw.TypedJsObject {
 '''
       );
 
-  testTransformation("use @JsInterface(jsName: const ['a','b','C']) should make a class instantiable and mapped on a Js Object",
+  testTransformation(
+      "use @JsInterface(jsName: const ['a','b','C']) should make a class instantiable and mapped on a Js Object",
       r'''
 import 'dart:js' as js;
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
