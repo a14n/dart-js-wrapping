@@ -112,7 +112,8 @@ class A extends jsw.TypedJsObject {
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
 }
-''');
+'''
+        );
 
     testTransformation("unabstract get shouldn't be erased",
         r'''
@@ -130,7 +131,8 @@ class A extends jsw.TypedJsObject {
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
 }
-''');
+'''
+        );
 
     testTransformation("abstract set with simple types should be generated",
         r'''
@@ -156,7 +158,8 @@ class A extends jsw.TypedJsObject {
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
 }
-''');
+'''
+        );
 
     testTransformation("unabstract get shouldn't be erased",
         r'''
@@ -174,7 +177,8 @@ class A extends jsw.TypedJsObject {
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
 }
-''');
+'''
+        );
 
     testTransformation("field with simple types should generate get and set",
         r'''
@@ -205,7 +209,8 @@ class A extends jsw.TypedJsObject {
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
 }
-''');
+'''
+        );
 
     testTransformation("initialized field shouldn't be erased",
         r'''
@@ -223,7 +228,8 @@ class A extends jsw.TypedJsObject {
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
 }
-''');
+'''
+        );
 
   });
 
