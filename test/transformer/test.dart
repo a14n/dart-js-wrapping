@@ -181,12 +181,45 @@ class A extends jsw.TypedJsObject {
 import 'dart:js' as js;
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
 class A extends jsw.TypedJsObject {
+  int i;
+  double d;
+  num n;
+  bool b;
+  String s;
 }
 ''',
         r'''
 import 'dart:js' as js;
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
 class A extends jsw.TypedJsObject {
+  int get i => $unsafe['i'];
+  void set i(int _i) { $unsafe['i'] = _i; }
+  double get d => $unsafe['d'];
+  void set d(double _d) { $unsafe['d'] = _d; }
+  num get n => $unsafe['n'];
+  void set n(num _n) { $unsafe['n'] = _n; }
+  bool get b => $unsafe['b'];
+  void set b(bool _b) { $unsafe['b'] = _b; }
+  String get s => $unsafe['s'];
+  void set s(String _s) { $unsafe['s'] = _s; }
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+}
+''');
+
+    testTransformation("initialized field shouldn't be erased",
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  int i = null;
+}
+''',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  int i = null;
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
 }

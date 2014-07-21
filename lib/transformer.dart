@@ -130,8 +130,10 @@ List<Transformation> modifyUnit(CompilationUnitElement unit) {
     // generate accessors
     for (final accessor in clazz.element.accessors.where((e) => !e.isStatic)) {
       int insertionIndex;
+      bool appendLn = false;
 
       if (accessor.variable.isSynthetic) {
+        // if accessor is abstract, skip it
         if (!accessor.isAbstract) {
           continue;
         }
@@ -139,16 +141,22 @@ List<Transformation> modifyUnit(CompilationUnitElement unit) {
         insertionIndex = node.offset;
         nodesToRemove.add(node);
       } else { // field
+        // if field is initialized, skip it
+        if (accessor.variable.initializer != null) {
+          continue;
+        }
         final fieldDeclaration = accessor.variable.node.parent.parent;
         insertionIndex = fieldDeclaration.offset;
-        nodesToRemove.add(fieldDeclaration);
+        appendLn = nodesToRemove.add(fieldDeclaration);
       }
 
       if (accessor.isGetter) {
-        transformations.add(_generateGetter(accessor, insertionIndex));
+        transformations.add(_generateGetter(accessor, insertionIndex, appendLn)
+            );
       }
       if (accessor.isSetter) {
-        transformations.add(_generateSetter(accessor, insertionIndex));
+        transformations.add(_generateSetter(accessor, insertionIndex, appendLn)
+            );
       }
     }
 
@@ -169,22 +177,23 @@ List<Transformation> modifyUnit(CompilationUnitElement unit) {
 }
 
 Transformation _generateGetter(PropertyAccessorElement accessor, int
-    insertionIndex) {
+    insertionIndex, bool appendLn) {
   final name = accessor.displayName;
   final returnType = accessor.returnType;
   final body = _generateBody("\$unsafe['$name']", returnType, null);
   return new Transformation.insertion(insertionIndex, (returnType.isDynamic ? ''
-      : '$returnType ') + 'get $name $body');
+      : '$returnType ') + 'get $name $body' + (appendLn ? '\n  ' : ''));
 }
 
 Transformation _generateSetter(PropertyAccessorElement accessor, int
-    insertionIndex) {
+    insertionIndex, bool appendLn) {
   final name = accessor.displayName;
   final paramType = accessor.parameters.first.type;
   final paramName = accessor.parameters.first.displayName;
   return new Transformation.insertion(insertionIndex, 'void set $name(' +
       (paramType.isDynamic ? '' : '$paramType ') + '$paramName) '
-      "{ \$unsafe['$name'] = ${_handleParameter(paramName, paramType, null)}; }");
+      "{ \$unsafe['$name'] = ${_handleParameter(paramName, paramType, null)}; }" +
+      (appendLn ? '\n  ' : ''));
 }
 
 Transformation _generateMethod(MethodElement method, int insertionIndex) {
