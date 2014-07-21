@@ -241,6 +241,7 @@ class A extends jsw.TypedJsObject {
   num m3();
   bool m4();
   String m5();
+  void m6();
 }
 ''',
         r'''
@@ -252,6 +253,34 @@ class A extends jsw.TypedJsObject {
   num m3() => $unsafe.callMethod('m3');
   bool m4() => $unsafe.callMethod('m4');
   String m5() => $unsafe.callMethod('m5');
+  void m6() { $unsafe.callMethod('m6'); }
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+}
+'''
+        );
+
+    testTransformation("method with simple parameter types should work",
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  void m1(int i);
+  void m2(double d);
+  void m3(num n);
+  void m4(bool b);
+  void m5(String s);
+}
+''',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  void m1(int i) { $unsafe.callMethod('m1', [i]); }
+  void m2(double d) { $unsafe.callMethod('m2', [d]); }
+  void m3(num n) { $unsafe.callMethod('m3', [n]); }
+  void m4(bool b) { $unsafe.callMethod('m4', [b]); }
+  void m5(String s) { $unsafe.callMethod('m5', [s]); }
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
 }
