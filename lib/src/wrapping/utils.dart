@@ -76,18 +76,23 @@ typedef _EventSinkCallback<T>(EventSink<T> eventSink);
 class SubscribeStreamProvider<T> implements EventSink<T> {
   final _EventSinkCallback<T> subscribe;
   final _EventSinkCallback<T> unsubscribe;
-  final _controllers = StreamController<T>[];
+  final _controllers = <StreamController<T>>[];
+  bool _active = false;
 
   SubscribeStreamProvider({this.subscribe, this.unsubscribe});
 
   void _addController(StreamController<T> controller) {
     _controllers.add(controller);
-    if (_controllers.length == 1 && subscribe != null) subscribe(this);
+    if (!_active && subscribe != null) subscribe(this);
+    _active = true;
   }
 
   void _removeController(StreamController<T> controller) {
     _controllers.remove(controller);
-    if (_controllers.isEmpty && unsubscribe != null) unsubscribe(this);
+    if (_controllers.isEmpty && unsubscribe != null && _active) {
+      unsubscribe(this);
+      _active = false;
+    }
   }
 
   Stream<T> get stream {
