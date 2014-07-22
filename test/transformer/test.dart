@@ -308,6 +308,101 @@ class A extends jsw.TypedJsObject {
 
   });
 
+  group('return types', () {
+
+    testTransformation('dynamic',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  m1();
+  dynamic m2();
+}
+''',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  m1() => $unsafe.callMethod('m1');
+  dynamic m2() => $unsafe.callMethod('m2');
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+}
+'''
+        );
+
+    testTransformation('simple types',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  int m1();
+  double m2();
+  num m3();
+  bool m4();
+  String m5();
+  void m6();
+}
+''',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  int m1() => $unsafe.callMethod('m1');
+  double m2() => $unsafe.callMethod('m2');
+  num m3() => $unsafe.callMethod('m3');
+  bool m4() => $unsafe.callMethod('m4');
+  String m5() => $unsafe.callMethod('m5');
+  void m6() { $unsafe.callMethod('m6'); }
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+}
+'''
+        );
+
+    testTransformation('Serializable types',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  A m();
+}
+''',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  A m() => A.$wrap($unsafe.callMethod('m'));
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+}
+'''
+        );
+
+    testTransformation('List types',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  List m1();
+  List<int> m2();
+  List<A> m3();
+}
+''',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  List m1() => jsw.TypedJsArray.$wrap($unsafe.callMethod('m1'));
+  List<int> m2() => jsw.TypedJsArray.$wrap($unsafe.callMethod('m2'));
+  List<A> m3() => jsw.TypedJsArray.$wrapSerializables($unsafe.callMethod('m3'), A.$wrap);
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+}
+'''
+        );
+
+  });
 
   testTransformation(
       'use @JsInterface() should make a class instantiable and mapped on an anonymous Js Object',
