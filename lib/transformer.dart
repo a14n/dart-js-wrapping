@@ -45,7 +45,9 @@ class JsWrappingTransformer extends TransformerGroup {
 }
 
 class _JsWrappingTransformer extends Transformer {
-  Resolvers resolvers = new Resolvers(dartSdkDirectory);
+  static final _sdk = new DirectoryBasedDartSdkProxy(dartSdkDirectory);
+  static final _uriResolver = new DartUriResolverProxy(_sdk);
+  Resolvers resolvers = new Resolvers.fromSdk(_sdk, _uriResolver);
   List<AssetId> unmodified = [];
 
   Map<AssetId, String> contentsPending = {};
