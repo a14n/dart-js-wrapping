@@ -147,9 +147,10 @@ List<Transformation> modifyUnit(CompilationUnitElement unit) {
         if (accessor.variable.initializer != null) {
           continue;
         }
-        final fieldDeclaration = accessor.variable.node.parent.parent;
+        VariableDeclarationList variableDeclarationList = accessor.variable.node.parent;
+        FieldDeclaration fieldDeclaration = variableDeclarationList.parent;
         insertionIndex = fieldDeclaration.offset;
-        appendLn = nodesToRemove.add(fieldDeclaration);
+        appendLn = nodesToRemove.add(fieldDeclaration) && !variableDeclarationList.isFinal;
       }
 
       if (accessor.isGetter) {

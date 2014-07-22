@@ -212,7 +212,7 @@ class A extends jsw.TypedJsObject {
 '''
         );
 
-    testTransformation("initialized field shouldn't be erased",
+    testTransformation("initialized field shouldn't generate get/set",
         r'''
 import 'dart:js' as js;
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
@@ -225,6 +225,25 @@ import 'dart:js' as js;
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
 class A extends jsw.TypedJsObject {
   int i = null;
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+}
+'''
+        );
+
+    testTransformation("final field should generate only get",
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  final int i;
+}
+''',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  int get i => $unsafe['i'];
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
 }
