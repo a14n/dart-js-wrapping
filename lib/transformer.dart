@@ -278,11 +278,11 @@ String _generateBody(String content, DartType returnType, Annotation unionType)
       final ListLiteral listOfTypes = unionType.arguments.arguments.first;
       listOfTypes.elements.reversed.forEach((Identifier e) {
         final ClassElement classElement = e.staticElement;
-        if (_isTypeAssignableWith(classElement.type, 'js_wrapping', 'IsEnum')) {
+        if (_isTypeAssignableWith(classElement.type, _LIBRARY_NAME, 'IsEnum')) {
           t =
               '(v${i+1}) => ((v$i) => v$i != null ? v$i : ($t)(v${i+1}))($e.\$wrap(v${i+1}))';
           i += 2;
-        } else if (_isTypeAssignableWith(classElement.type, 'js_wrapping',
+        } else if (_isTypeAssignableWith(classElement.type, _LIBRARY_NAME,
             'TypedJsObject')) {
           t = '(v$i) => $e.isInstance(v$i) ? $e.\$wrap(v$i) : ($t)(v$i)';
           i++;
@@ -298,7 +298,7 @@ String _generateBody(String content, DartType returnType, Annotation unionType)
 }
 
 bool _isTypeSerializable(DartType type) => type != null &&
-    _isTypeAssignableWith(type, 'js_wrapping', 'Serializable');
+    _isTypeAssignableWith(type, _LIBRARY_NAME, 'Serializable');
 
 bool _isTypeAssignableWith(DartType type, String libraryName, String className)
     => type != null && _isElementAssignableWith(type.element, libraryName, className
@@ -336,7 +336,7 @@ Iterable<ClassDeclaration> findJsClasses(CompilationUnitElement unit) =>
     if (current.element.library.isDartCore && current.displayName == 'Object') {
       return false;
     }
-    if (current.element.library.name == 'js_wrapping' && current.displayName ==
+    if (current.element.library.name == _LIBRARY_NAME && current.displayName ==
         'TypedJsObject') {
       return true;
     }
