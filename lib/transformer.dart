@@ -109,7 +109,8 @@ List<Transformation> modifyUnit(CompilationUnitElement unit) {
     // add default constructor
     if (jsName != null && !isMemberAlreadyDefined(clazz, '')) {
       transformations.add(new Transformation.insertion(index,
-          "  ${clazz.name.name}() : this.fromJsObject(new js.JsObject(js.context[${jsName.join("][")}]));\n"
+          "  static final js.JsFunction _CTOR = js.context[${jsName.join("][")}];\n"
+          "  ${clazz.name.name}() : this.fromJsObject(new js.JsObject(_CTOR));\n"
           ));
     }
 

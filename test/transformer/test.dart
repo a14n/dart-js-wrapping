@@ -441,7 +441,8 @@ import 'package:js_wrapping/js_wrapping.dart' as jsw;
 class A extends jsw.TypedJsObject {
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
-  A() : this.fromJsObject(new js.JsObject(js.context['Object']));
+  static final js.JsFunction _CTOR = js.context['Object'];
+  A() : this.fromJsObject(new js.JsObject(_CTOR));
 }
 '''
       );
@@ -462,7 +463,8 @@ import 'package:js_wrapping/js_wrapping.dart' as jsw;
 class A extends jsw.TypedJsObject {
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
-  A() : this.fromJsObject(new js.JsObject(js.context['a']['b']['C']));
+  static final js.JsFunction _CTOR = js.context['a']['b']['C'];
+  A() : this.fromJsObject(new js.JsObject(_CTOR));
 }
 '''
       );
