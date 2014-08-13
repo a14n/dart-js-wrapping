@@ -22,21 +22,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:barback/barback.dart';
 import 'package:code_transformers/resolver.dart';
 
-const _LIBRARY_NAME = 'js_wrapping.transformer';
-
-/// Mark class as instantiable
-class JsInterface {
-  const JsInterface({List<String> jsName: const <String>['Object']});
-}
-
-class JsMapping {
-  const JsMapping.useMethod();
-  const JsMapping.useName(String name);
-}
-
-class UnionType {
-  const UnionType(List<Type> types);
-}
+const _LIBRARY_NAME = 'js_wrapping';
 
 class JsWrappingTransformer extends TransformerGroup {
   JsWrappingTransformer.asPlugin() : this._(new _JsWrappingTransformer());

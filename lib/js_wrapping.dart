@@ -18,3 +18,18 @@ part 'src/wrapping/utils.dart';
 part 'src/wrapping/js/date_to_datetime_adapter.dart';
 part 'src/wrapping/js/typed_js_array.dart';
 part 'src/wrapping/js/typed_js_map.dart';
+
+
+/// Mark class as instantiable
+class JsInterface {
+  const JsInterface({List<String> jsName: const <String>['Object']});
+}
+
+class JsMapping {
+  const JsMapping.useMethod();
+  const JsMapping.useName(String name);
+}
+
+class UnionType {
+  const UnionType(List<Type> types);
+}
