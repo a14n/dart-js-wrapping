@@ -147,10 +147,12 @@ List<Transformation> modifyUnit(CompilationUnitElement unit) {
         if (accessor.variable.initializer != null) {
           continue;
         }
-        VariableDeclarationList variableDeclarationList = accessor.variable.node.parent;
+        VariableDeclarationList variableDeclarationList =
+            accessor.variable.node.parent;
         FieldDeclaration fieldDeclaration = variableDeclarationList.parent;
         insertionIndex = fieldDeclaration.offset;
-        appendLn = nodesToRemove.add(fieldDeclaration) && !variableDeclarationList.isFinal;
+        appendLn = !variableDeclarationList.isFinal && accessor.isGetter;
+        nodesToRemove.add(fieldDeclaration);
       }
 
       if (accessor.isGetter) {
@@ -183,9 +185,12 @@ Transformation _generateGetter(PropertyAccessorElement accessor, int
     insertionIndex, bool appendLn) {
   final name = accessor.displayName;
   final returnType = accessor.returnType;
-  final body = _generateBody("\$unsafe['$name']", returnType, null);
-  return new Transformation.insertion(insertionIndex, (returnType.isDynamic ? ''
-      : '$returnType ') + 'get $name $body' + (appendLn ? '\n  ' : ''));
+  final unionType = getAnnotation(accessor.node, 'UnionType');
+  final body = _generateBody("\$unsafe['$name']", returnType, unionType);
+  final signature = accessor.node != null ? accessor.node.toSource().substring(
+      0, accessor.node.toSource().length - 1) : '$returnType get $name';
+  return new Transformation.insertion(insertionIndex, '$signature $body' +
+      (appendLn ? '\n  ' : ''));
 }
 
 Transformation _generateSetter(PropertyAccessorElement accessor, int
@@ -203,9 +208,10 @@ Transformation _generateMethod(MethodElement method, int insertionIndex) {
   final name = method.displayName;
   final returnType = method.returnType;
   final parameters = method.parameters;
+  final unionType = getAnnotation(method.node, 'UnionType');
   final body = _generateBody("\$unsafe.callMethod('$name'" + (parameters.isEmpty
       ? ")" : ", [${parameters.map((p) => p.displayName).join(', ')}])"), returnType,
-      null);
+      unionType);
   final signature = method.node.toSource().substring(0, method.node.toSource(
       ).length - 1);
   return new Transformation.insertion(insertionIndex, '$signature $body');
@@ -382,10 +388,10 @@ class Transformation {
 createRemoveTransformation(AstNode node) => new Transformation.deletation(
     node.offset, node.end);
 
-Annotation getAnnotation(Declaration declaration, String name) =>
-    declaration.metadata.firstWhere((m) => m.element.library.name == _LIBRARY_NAME
-    && m.element is ConstructorElement && m.element.enclosingElement.name == name,
-    orElse: () => null);
+Annotation getAnnotation(Declaration declaration, String name) => declaration ==
+    null ? null : declaration.metadata.firstWhere((m) => m.element.library.name ==
+    _LIBRARY_NAME && m.element is ConstructorElement &&
+    m.element.enclosingElement.name == name, orElse: () => null);
 
 bool isMemberAlreadyDefined(ClassDeclaration clazz, String name) =>
     clazz.members.any((m) => (m is MethodDeclaration && m.name.name + (m.isSetter ?

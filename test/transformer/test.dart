@@ -402,6 +402,29 @@ class A extends jsw.TypedJsObject {
 '''
         );
 
+    testTransformation('Union types',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+import 'package:js_wrapping/transformer.dart' as jswt;
+class A extends jsw.TypedJsObject {
+  @jswt.UnionType(const [String, A]) get g;
+  @jswt.UnionType(const [String, A]) m1();
+}
+''',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+import 'package:js_wrapping/transformer.dart' as jswt;
+class A extends jsw.TypedJsObject {
+  @jswt.UnionType(const [String, A]) get g => ((v2) => v2 is String ? v2 : ((v1) => A.isInstance(v1) ? A.$wrap(v1) : ((v0) => v0)(v1))(v2))($unsafe['g']);
+  @jswt.UnionType(const [String, A]) m1() => ((v2) => v2 is String ? v2 : ((v1) => A.isInstance(v1) ? A.$wrap(v1) : ((v0) => v0)(v1))(v2))($unsafe.callMethod('m1'));
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+}
+'''
+        );
+
   });
 
   testTransformation(
