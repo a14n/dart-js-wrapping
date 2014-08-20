@@ -25,20 +25,20 @@ import 'package:code_transformers/resolver.dart';
 const _LIBRARY_NAME = 'js_wrapping';
 
 class JsWrappingTransformer extends TransformerGroup {
-  JsWrappingTransformer.asPlugin() : this._(new _JsWrappingTransformer());
+  JsWrappingTransformer.asPlugin() : this(new Resolvers(dartSdkDirectory));
+  JsWrappingTransformer(Resolvers resolvers) : this._(
+      new _JsWrappingTransformer(resolvers));
   JsWrappingTransformer._(_JsWrappingTransformer mt) : super(
       new Iterable.generate(2, (_) => [mt]));
 }
 
 class _JsWrappingTransformer extends Transformer {
-  static final _sdk = new DirectoryBasedDartSdkProxy(dartSdkDirectory);
-  static final _uriResolver = new DartUriResolverProxy(_sdk);
-  Resolvers resolvers = new Resolvers.fromSdk(_sdk, _uriResolver);
+  final Resolvers resolvers;
   List<AssetId> unmodified = [];
 
   Map<AssetId, String> contentsPending = {};
 
-  _JsWrappingTransformer();
+  _JsWrappingTransformer(this.resolvers);
 
   String get allowedExtensions => ".dart";
 
@@ -88,8 +88,8 @@ List<Transformation> modifyUnit(CompilationUnitElement unit) {
 
   final jsClasses = findJsClasses(unit);
   for (final clazz in jsClasses) {
-    final jsInterfaces = getJsInterface(clazz);
-    final jsName = getJsName(jsInterfaces);
+    final jsConstructor = getJsConstructor(clazz);
+    final jsName = getJsName(jsConstructor);
 
     // add $wrap
     final index = clazz.end - 1;
@@ -109,9 +109,8 @@ List<Transformation> modifyUnit(CompilationUnitElement unit) {
     // add default constructor
     if (jsName != null && !isMemberAlreadyDefined(clazz, '')) {
       transformations.add(new Transformation.insertion(index,
-          "  static final js.JsFunction _CTOR = js.context[${jsName.join("][")}];\n"
-          "  ${clazz.name.name}() : this.fromJsObject(new js.JsObject(_CTOR));\n"
-          ));
+          "  static final js.JsFunction _ctor = js.context[${jsName.join("][")}];\n"
+          "  ${clazz.name.name}() : this.fromJsObject(new js.JsObject(_ctor));\n"));
     }
 
     final nodesToRemove = new Set<AstNode>();
@@ -317,9 +316,9 @@ bool _isElementTypedWith(Element element, String libraryName, String className)
     => element.library != null && element.library.name == libraryName &&
     element.name == className;
 
-List<String> getJsName(Annotation jsInterface) {
-  if (jsInterface == null) return null;
-  final NamedExpression param = jsInterface.arguments.arguments.firstWhere((e)
+List<String> getJsName(Annotation jsConstructor) {
+  if (jsConstructor == null) return null;
+  final NamedExpression param = jsConstructor.arguments.arguments.firstWhere((e)
       => e is NamedExpression && e.name.label.name == 'jsName', orElse: () => null);
   if (param != null) {
     return (param.expression as ListLiteral).elements.map((StringLiteral sl) =>
@@ -346,16 +345,16 @@ Iterable<ClassDeclaration> findJsClasses(CompilationUnitElement unit) =>
   return false;
 });
 
-Annotation getJsInterface(ClassDeclaration clazz) {
+Annotation getJsConstructor(ClassDeclaration clazz) {
   ClassDeclaration current = clazz;
   while (true) {
     if (current.element.library.isDartCore && current.element.displayName ==
         'Object') {
       return null;
     }
-    final jsInterface = getAnnotation(clazz, 'JsInterface');
-    if (jsInterface != null) {
-      return jsInterface;
+    final jsConstructor = getAnnotation(clazz, 'JsConstructor');
+    if (jsConstructor != null) {
+      return jsConstructor;
     }
     current = current.element.supertype.element.node;
   }

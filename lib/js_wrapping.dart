@@ -20,16 +20,25 @@ part 'src/wrapping/js/typed_js_array.dart';
 part 'src/wrapping/js/typed_js_map.dart';
 
 
-/// Mark class as instantiable
-class JsInterface {
-  const JsInterface({List<String> jsName: const <String>['Object']});
+/**
+ * A metadata annotation to specify the JavaScript constructor associated with
+ * a [TypedJsObject].
+ */
+class JsConstructor {
+  const JsConstructor({List<String> jsName: const <String>['Object']});
 }
 
-class JsMapping {
-  const JsMapping.useMethod();
-  const JsMapping.useName(String name);
+class JsName {
+  const JsName(String name);
 }
 
 class UnionType {
   const UnionType(List<Type> types);
+}
+/**
+ * A metadata annotation to mark top-level member to be generate and apply on
+ * the the global JavaScript context.
+ */
+class JsGlobal {
+  const JsGlobal();
 }

@@ -426,45 +426,45 @@ class A extends jsw.TypedJsObject {
   });
 
   testTransformation(
-      'use @JsInterface() should make a class instantiable and mapped on an anonymous Js Object',
+      'use @JsConstructor() should make a class instantiable and mapped on an anonymous Js Object',
       r'''
 import 'dart:js' as js;
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
-@jsw.JsInterface()
+@jsw.JsConstructor()
 class A extends jsw.TypedJsObject {
 }
 ''',
       r'''
 import 'dart:js' as js;
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
-@jsw.JsInterface()
+@jsw.JsConstructor()
 class A extends jsw.TypedJsObject {
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
-  static final js.JsFunction _CTOR = js.context['Object'];
-  A() : this.fromJsObject(new js.JsObject(_CTOR));
+  static final js.JsFunction _ctor = js.context['Object'];
+  A() : this.fromJsObject(new js.JsObject(_ctor));
 }
 '''
       );
 
   testTransformation(
-      "use @JsInterface(jsName: const ['a','b','C']) should make a class instantiable and mapped on a Js Object",
+      "use @JsConstructor(jsName: const ['a','b','C']) should make a class instantiable and mapped on a Js Object",
       r'''
 import 'dart:js' as js;
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
-@jsw.JsInterface(jsName: const ['a','b','C'])
+@jsw.JsConstructor(jsName: const ['a','b','C'])
 class A extends jsw.TypedJsObject {
 }
 ''',
       r'''
 import 'dart:js' as js;
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
-@jsw.JsInterface(jsName: const ['a','b','C'])
+@jsw.JsConstructor(jsName: const ['a','b','C'])
 class A extends jsw.TypedJsObject {
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
-  static final js.JsFunction _CTOR = js.context['a']['b']['C'];
-  A() : this.fromJsObject(new js.JsObject(_CTOR));
+  static final js.JsFunction _ctor = js.context['a']['b']['C'];
+  A() : this.fromJsObject(new js.JsObject(_ctor));
 }
 '''
       );

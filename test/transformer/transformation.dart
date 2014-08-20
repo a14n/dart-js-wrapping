@@ -15,6 +15,7 @@
 import 'dart:async';
 
 import 'package:barback/barback.dart';
+import 'package:code_transformers/resolver.dart';
 import 'package:quiver/async.dart';
 import 'package:unittest/unittest.dart';
 
@@ -36,8 +37,10 @@ Future<String> transformContent(String content) => transformAssets(
   return asset.readAsString();
 });
 
+final resolvers = new Resolvers(dartSdkDirectory);
+
 Future<List<Asset>> transformAssets(List<Asset> assets) {
-  final transformerGroup = new JsWrappingTransformer.asPlugin();
+  final transformerGroup = new JsWrappingTransformer(resolvers);
   final phases = transformerGroup.phases.map((e) => e.toList()).toList();
   List<Asset> outs = assets;
   return forEachAsync(phases, (phase) {
