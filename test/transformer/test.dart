@@ -306,6 +306,25 @@ class A extends jsw.TypedJsObject {
 '''
         );
 
+    testTransformation("method with optional named parameters should work should use them",
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  void m({int i});
+}
+''',
+        r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+class A extends jsw.TypedJsObject {
+  void m({int i}) { $unsafe.callMethod('m'); }
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+}
+'''
+        );
+
   });
 
   group('return types', () {
@@ -409,6 +428,8 @@ import 'package:js_wrapping/js_wrapping.dart' as jsw;
 class A extends jsw.TypedJsObject {
   @jsw.UnionType(const [String, A]) get g;
   @jsw.UnionType(const [String, A]) m1();
+  m2(@jsw.UnionType(const [String, A]) p);
+  m3([@jsw.UnionType(const [String, A]) p]);
 }
 ''',
         r'''
@@ -417,6 +438,8 @@ import 'package:js_wrapping/js_wrapping.dart' as jsw;
 class A extends jsw.TypedJsObject {
   @jsw.UnionType(const [String, A]) get g => ((v2) => v2 is String ? v2 : ((v1) => A.isInstance(v1) ? A.$wrap(v1) : ((v0) => v0)(v1))(v2))($unsafe['g']);
   @jsw.UnionType(const [String, A]) m1() => ((v2) => v2 is String ? v2 : ((v1) => A.isInstance(v1) ? A.$wrap(v1) : ((v0) => v0)(v1))(v2))($unsafe.callMethod('m1'));
+  m2(p) => $unsafe.callMethod('m2', [p is String ? p : p is A ? p.$unsafe :  p == null ? null : throw "bad type"]);
+  m3([p]) => $unsafe.callMethod('m3', [p is String ? p : p is A ? p.$unsafe :  p == null ? null : throw "bad type"]);
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
 }
@@ -426,45 +449,68 @@ class A extends jsw.TypedJsObject {
   });
 
   testTransformation(
-      'use @JsConstructor() should make a class instantiable and mapped on an anonymous Js Object',
+      'add empty constructor without @JsConstructor should make a class instantiable and mapped on an anonymous Js Object',
       r'''
 import 'dart:js' as js;
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
-@jsw.JsConstructor()
 class A extends jsw.TypedJsObject {
+  A();
 }
 ''',
       r'''
 import 'dart:js' as js;
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
-@jsw.JsConstructor()
 class A extends jsw.TypedJsObject {
+  A() : this.fromJsObject(new js.JsObject(_ctor));
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
   static final js.JsFunction _ctor = js.context['Object'];
-  A() : this.fromJsObject(new js.JsObject(_ctor));
 }
 '''
       );
 
   testTransformation(
-      "use @JsConstructor(jsName: const ['a','b','C']) should make a class instantiable and mapped on a Js Object",
+      'use @JsConstructor("a.b.C") should make a class instantiable and mapped on an anonymous Js Object',
       r'''
 import 'dart:js' as js;
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
-@jsw.JsConstructor(jsName: const ['a','b','C'])
+@jsw.JsConstructor("a.b.C")
 class A extends jsw.TypedJsObject {
+  A();
 }
 ''',
       r'''
 import 'dart:js' as js;
 import 'package:js_wrapping/js_wrapping.dart' as jsw;
-@jsw.JsConstructor(jsName: const ['a','b','C'])
+@jsw.JsConstructor("a.b.C")
 class A extends jsw.TypedJsObject {
+  A() : this.fromJsObject(new js.JsObject(_ctor));
   static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
   A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
   static final js.JsFunction _ctor = js.context['a']['b']['C'];
+}
+'''
+      );
+
+  testTransformation(
+      "use @JsConstructor.splitted(const ['a','b','C']) should make a class instantiable and mapped on a Js Object",
+      r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+@jsw.JsConstructor.splitted(const ['a','b','C'])
+class A extends jsw.TypedJsObject {
+  A();
+}
+''',
+      r'''
+import 'dart:js' as js;
+import 'package:js_wrapping/js_wrapping.dart' as jsw;
+@jsw.JsConstructor.splitted(const ['a','b','C'])
+class A extends jsw.TypedJsObject {
   A() : this.fromJsObject(new js.JsObject(_ctor));
+  static A $wrap(js.JsObject jsObject) => jsObject == null ? null : new A.fromJsObject(jsObject);
+  A.fromJsObject(js.JsObject jsObject) : super.fromJsObject(jsObject);
+  static final js.JsFunction _ctor = js.context['a']['b']['C'];
 }
 '''
       );

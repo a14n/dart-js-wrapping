@@ -25,15 +25,20 @@ part 'src/wrapping/js/typed_js_map.dart';
  * a [TypedJsObject].
  */
 class JsConstructor {
-  const JsConstructor({List<String> jsName: const <String>['Object']});
+  final String constructor;
+  final List<String> splittedConstructor;
+  const JsConstructor(this.constructor) : splittedConstructor = null;
+  const JsConstructor.splitted(this.splittedConstructor) : constructor = null;
 }
 
 class JsName {
-  const JsName(String name);
+  final String name;
+  const JsName(this.name);
 }
 
 class UnionType {
-  const UnionType(List<Type> types);
+  final List<Type> types;
+  const UnionType(this.types);
 }
 /**
  * A metadata annotation to mark top-level member to be generate and apply on
