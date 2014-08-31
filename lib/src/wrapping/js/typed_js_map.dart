@@ -47,4 +47,5 @@ class TypedJsMap<V> extends TypedJsObject implements Map<String,V> {
   @override int get length => Maps.length(this);
   @override bool get isEmpty => Maps.isEmpty(this);
   @override bool get isNotEmpty => Maps.isNotEmpty(this);
+  @override String toString() => Maps.mapToString(this);
 }

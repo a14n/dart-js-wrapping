@@ -304,5 +304,12 @@ main() {
       myMap["a"] = new Person('John', 'Doe');
       expect(myMap["a"].firstname, 'John');
     });
+
+    test('toString', () {
+      final m = new jsw.TypedJsMap<int>.fromJsObject(
+          new js.JsObject.jsify({"a": 1, "b": 2}));
+      final string = m.toString();
+      expect(string, equals("{a: 1, b: 2}"));
+    });
   });
 }
