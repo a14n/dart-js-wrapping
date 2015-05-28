@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<script>
+a = {};
+
+a.Class0 = function() {};
+
+function isClass0(o) {
+  return o instanceof a.Class0;
+}
+
+a.b = {};
+
+a.b.Class1 = function() {}
+
+function isClass1(o) {
+  return o instanceof a.b.Class1;
+}
+
+</script>
+<link rel="x-dart-test" href="namespaced_library_test.dart">
+<script src="packages/test/dart.js"></script>

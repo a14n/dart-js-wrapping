@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<script>
+function Class0() {}
+function isClass0(o) {
+  return o instanceof Class0;
+}
+
+function Class1(s) {this.s = s;}
+Class1.prototype.getValue = function(){return this.s;};
+function isClass1(o) {
+  return o instanceof Class1;
+}
+
+var my = {};
+my.package = {};
+my.package.Class2 = function(){};
+function isClass2(o) {
+  return o instanceof my.package.Class2;
+}
+
+function Class3(s, i, j) {
+  this.s = s;
+  this.i = i;
+  this.j = j;
+}
+
+function Class4(s, o) {
+  this.s = s;
+  this.i = o.i;
+  this.j = o.j;
+}
+</script>
+<link rel="x-dart-test" href="proxy_instantiation_test.dart">
+<script src="packages/test/dart.js"></script>

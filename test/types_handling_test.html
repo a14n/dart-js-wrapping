@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<script>
+Color = {
+  RED: 'red',
+  GREEN: 'green',
+  BLUE: 'blue',
+};
+
+A = function() {
+  this.b = new B('init');
+  this.bs = [new B('b1'), new B('b2')];
+  this.li = [3,4,6];
+};
+A.prototype.toColorString = function(color) {
+  return color;
+}
+A.prototype.toColor = function(colorAsString) {
+  for (var c in Color) {
+    if (Color[c] === colorAsString) return Color[c];
+  }
+  return null;
+}
+A.prototype.execute = function(f) {
+  return String(f(this.b));
+}
+A.prototype.execute2 = function(f) {
+  return f(this.b) + f(this.b, 1) + f(this.b, 2);
+}
+A.prototype.getBisFunc = function() {
+  return function(b) {
+    return new B(b.v + 'Bis');
+  };
+}
+
+B = function(v) {
+  this.v = v;
+}
+B.prototype.toString = function() {
+  return this.v;
+}
+
+C = function() {
+  this.gender = 'male';
+  this.genders = ['female', 'female'];
+};
+
+</script>
+<link rel="x-dart-test" href="types_handling_test.dart">
+<script src="packages/test/dart.js"></script>
