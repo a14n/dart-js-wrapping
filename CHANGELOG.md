@@ -1,4 +1,8 @@
 
+# v0.2.0+1 (2018-05-28)
+
+Fix issue with callback returning `void`.
+
 # v0.2.0 (2018-05-28)
 
 Total rewrite on top of the [source_gen](https://pub.dartlang.org/packages/source_gen) package.
