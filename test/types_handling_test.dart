@@ -35,6 +35,8 @@ abstract class _A implements JsInterface {
   BisFunc getBisFunc();
 
   SimpleFunc simpleFunc;
+
+  void executeVoidFunction(void f());
 }
 
 abstract class _B implements JsInterface {
@@ -100,5 +102,12 @@ main() {
     final o = new A();
     expect(o.execute2((b, [i]) => b.toString() + ' $i ').toString(),
         'init null init 1 init 2 ');
+  });
+
+  test('Function returning void should work', () {
+    final o = new A();
+    var i = 1;
+    o.executeVoidFunction(() => i++);
+    expect(i, 2);
   });
 }

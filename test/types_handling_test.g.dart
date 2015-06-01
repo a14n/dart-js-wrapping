@@ -1,5 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// 2015-05-28T14:29:32.960Z
+// 2015-06-01T07:08:49.255Z
 
 part of js_wrapping.test.types_handling_test;
 
@@ -34,75 +34,85 @@ class A extends JsInterface implements _A {
   A() : this.created(new JsObject(context['A']));
 
   void set b(B _b) {
-    asJsObject(this)['b'] = __codec32.encode(_b);
+    asJsObject(this)['b'] = __codec29.encode(_b);
   }
-  B get b => __codec32.decode(asJsObject(this)['b']);
+  B get b => __codec29.decode(asJsObject(this)['b']);
   void set bs(List<B> _bs) {
-    asJsObject(this)['bs'] = __codec33.encode(_bs);
+    asJsObject(this)['bs'] = __codec30.encode(_bs);
   }
-  List<B> get bs => __codec33.decode(asJsObject(this)['bs']);
+  List<B> get bs => __codec30.decode(asJsObject(this)['bs']);
   void set li(List<int> _li) {
-    asJsObject(this)['li'] = __codec34.encode(_li);
+    asJsObject(this)['li'] = __codec31.encode(_li);
   }
-  List<int> get li => __codec34.decode(asJsObject(this)['li']);
+  List<int> get li => __codec31.decode(asJsObject(this)['li']);
 
   String toColorString(Color c) =>
-      asJsObject(this).callMethod('toColorString', [__codec36.encode(c)]);
+      asJsObject(this).callMethod('toColorString', [__codec33.encode(c)]);
   Color toColor(String s) =>
-      __codec36.decode(asJsObject(this).callMethod('toColor', [s]));
+      __codec33.decode(asJsObject(this).callMethod('toColor', [s]));
 
   String execute(B f(B b)) =>
-      asJsObject(this).callMethod('execute', [__codec37.encode(f)]);
+      asJsObject(this).callMethod('execute', [__codec34.encode(f)]);
 
   String execute2(String f(B s, [int i])) =>
-      asJsObject(this).callMethod('execute2', [__codec38.encode(f)]);
+      asJsObject(this).callMethod('execute2', [__codec35.encode(f)]);
 
   BisFunc getBisFunc() =>
-      __codec37.decode(asJsObject(this).callMethod('getBisFunc'));
+      __codec34.decode(asJsObject(this).callMethod('getBisFunc'));
 
   void set simpleFunc(SimpleFunc _simpleFunc) {
-    asJsObject(this)['simpleFunc'] = __codec35.encode(_simpleFunc);
+    asJsObject(this)['simpleFunc'] = __codec32.encode(_simpleFunc);
   }
-  SimpleFunc get simpleFunc => __codec35.decode(asJsObject(this)['simpleFunc']);
+  SimpleFunc get simpleFunc => __codec32.decode(asJsObject(this)['simpleFunc']);
+
+  void executeVoidFunction(void f()) {
+    asJsObject(this).callMethod('executeVoidFunction', [__codec36.encode(f)]);
+  }
 }
 /// codec for js_wrapping.test.types_handling_test.B
-final __codec32 = new JsInterfaceCodec<B>((o) => new B.created(o));
+final __codec29 = new JsInterfaceCodec<B>((o) => new B.created(o));
 
 /// codec for dart.core.List<B>
-final __codec33 = new JsListCodec<B>(__codec32);
+final __codec30 = new JsListCodec<B>(__codec29);
 
 /// codec for dart.core.List<int>
-final __codec34 = new JsListCodec<int>(null);
+final __codec31 = new JsListCodec<int>(null);
 
 /// codec for js_wrapping.test.types_handling_test.(int) → String
-final __codec35 = new FunctionCodec /*<(int) → String>*/ ((f) => f,
+final __codec32 = new FunctionCodec /*<(int) → String>*/ ((f) => f,
     (JsFunction f) => (p_i) {
   return f.apply([p_i]);
 });
 
 /// codec for js_wrapping.test.types_handling_test.Color
-final __codec36 = new BiMapCodec<Color, dynamic>(
+final __codec33 = new BiMapCodec<Color, dynamic>(
     new Map<Color, dynamic>.fromIterable(Color.values, value: asJs));
 
 /// codec for js_wrapping.test.types_handling_test.(B) → B
-final __codec37 = new FunctionCodec /*<(B) → B>*/ ((f) => (p_b) {
-  p_b = __codec32.decode(p_b);
+final __codec34 = new FunctionCodec /*<(B) → B>*/ ((f) => (p_b) {
+  p_b = __codec29.decode(p_b);
   final result = f(p_b);
-  return __codec32.encode(result);
+  return __codec29.encode(result);
 }, (JsFunction f) => (p_b) {
-  p_b = __codec32.encode(p_b);
+  p_b = __codec29.encode(p_b);
   final result = f.apply([p_b]);
-  return __codec32.decode(result);
+  return __codec29.decode(result);
 });
 
 /// codec for js_wrapping.test.types_handling_test.(B, [int]) → String
-final __codec38 = new FunctionCodec /*<(B, [int]) → String>*/ ((f) => (p_s,
+final __codec35 = new FunctionCodec /*<(B, [int]) → String>*/ ((f) => (p_s,
     [p_i]) {
-  p_s = __codec32.decode(p_s);
+  p_s = __codec29.decode(p_s);
   return f(p_s, p_i);
 }, (JsFunction f) => (p_s, [p_i]) {
-  p_s = __codec32.encode(p_s);
+  p_s = __codec29.encode(p_s);
   return f.apply([p_s, p_i]);
+});
+
+/// codec for js_wrapping.test.types_handling_test.() → void
+final __codec36 = new FunctionCodec /*<() → void>*/ ((f) => f,
+    (JsFunction f) => () {
+  f.apply([]);
 });
 
 // **************************************************************************

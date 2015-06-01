@@ -31,6 +31,9 @@ A.prototype.getBisFunc = function() {
     return new B(b.v + 'Bis');
   };
 }
+A.prototype.executeVoidFunction = function(f) {
+  f();
+}
 
 B = function(v) {
   this.v = v;
