@@ -9,11 +9,12 @@ library js_wrapping;
 import 'dart:js';
 
 export 'dart:js';
+
 export 'adapter/js_list.dart';
 export 'adapter/js_map.dart';
 export 'util/codec.dart';
 
-final JsObject _obj = context['Object'];
+final _obj = context['Object'] as JsFunction;
 
 /// The base class of Dart interfaces for JavaScript objects.
 abstract class JsInterface extends JsRef<JsObject> {
@@ -26,8 +27,10 @@ abstract class JsRef<T> {
 
   JsRef.created(this._value);
 
-  @override int get hashCode => _value.hashCode;
-  @override bool operator ==(other) =>
+  @override
+  int get hashCode => _value.hashCode;
+  @override
+  bool operator ==(other) =>
       identical(this, other) || other is JsRef && _value == other._value;
 }
 
@@ -37,7 +40,8 @@ abstract class JsEnum extends JsRef {
 }
 
 /// Returns the underlying [JsObject] corresponding to the non nullable [o].
-JsObject asJsObject(JsRef<JsObject> o) => o._value;
+JsObject/*=T*/ asJsObject/*<T extends JsObject>*/(JsRef<JsObject> o) =>
+    o._value as JsObject/*=T*/;
 
 /// Returns the underlying js value corresponding to [o] if [o] is a [JsRef]
 /// (usually [JsEnumBase] or [JsInterface]). Otherwise it returns [o].
@@ -45,6 +49,7 @@ asJs(o) => o is JsRef ? o._value : o;
 
 /// A metadata annotation that marks an enum as a set of values.
 const jsEnum = const _JsEnum();
+
 class _JsEnum {
   const _JsEnum();
 }
@@ -61,6 +66,7 @@ class JsName {
 /// A metadata annotation used to indicate that the Js object is a anonymous js
 /// object. That is it is created with `new Object()`.
 const anonymous = const _Anonymous();
+
 class _Anonymous {
   const _Anonymous();
 }

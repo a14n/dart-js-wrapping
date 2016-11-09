@@ -4,15 +4,15 @@
 
 library js_wrapping.adapter.object_as_map;
 
-import 'dart:convert';
 import 'dart:collection' show Maps, MapMixin;
+import 'dart:convert';
 import 'dart:js';
 
 import 'package:js_wrapping/js_wrapping.dart' show JsInterface;
 
 import '../src/codec_util.dart';
 
-final JsObject _obj = context['Object'];
+final _obj = context['Object'] as JsFunction;
 
 /// A [Map] interface wrapper for [JsObject]s.
 ///
@@ -33,7 +33,8 @@ class JsObjectAsMap<V> extends JsInterface with MapMixin<String, V> {
   /// Creates an instance backed by the JavaScript object [o].
   JsObjectAsMap.created(JsObject o, Codec<V, dynamic> codec)
       : _o = o,
-        _codec = codec != null ? codec : const IdentityCodec() as Codec<V,dynamic>,
+        _codec =
+            codec != null ? codec : const IdentityCodec() as Codec<V, dynamic>,
         super.created(o);
 
   void _checkKey(String key) {
@@ -54,15 +55,16 @@ class JsObjectAsMap<V> extends JsInterface with MapMixin<String, V> {
   @override
   V remove(Object key) {
     final value = this[key];
-    _o.deleteProperty(key);
+    _o.deleteProperty(key as String);
     return value;
   }
 
   @override
-  Iterable<String> get keys => _obj.callMethod('keys', [_o]) as Iterable<String>;
+  Iterable<String> get keys =>
+      _obj.callMethod('keys', [_o]) as Iterable<String>;
 
   @override
-  bool containsKey(Object key) => _o.hasProperty(key);
+  bool containsKey(Object key) => _o.hasProperty(key as String);
 
   @override
   V putIfAbsent(String key, V ifAbsent()) {

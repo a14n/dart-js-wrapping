@@ -15,7 +15,7 @@ class ClassNotFinalField extends JsInterface implements _ClassNotFinalField {
     context['Class0']['i'] = _i;
   }
 
-  static int get i => context['Class0']['i'];
+  static int get i => context['Class0']['i'] as int;
 }
 
 @JsName('Class0')
@@ -26,7 +26,7 @@ class ClassPrivateField extends JsInterface implements _ClassPrivateField {
     context['Class0']['i'] = __i;
   }
 
-  static int get _i => context['Class0']['i'];
+  static int get _i => context['Class0']['i'] as int;
 }
 
 @JsName('Class0')
@@ -37,7 +37,7 @@ class ClassRenamedField extends JsInterface implements _ClassRenamedField {
     context['Class0']['i'] = _iBis;
   }
 
-  static int get iBis => context['Class0']['i'];
+  static int get iBis => context['Class0']['i'] as int;
 }
 
 @JsName('Class0')
@@ -49,14 +49,14 @@ class ClassRenamedPrivateField extends JsInterface
     context['Class0']['i'] = __iBis;
   }
 
-  static int get _iBis => context['Class0']['i'];
+  static int get _iBis => context['Class0']['i'] as int;
 }
 
 @JsName('Class0')
 class ClassWithGetter extends JsInterface implements _ClassWithGetter {
   ClassWithGetter.created(JsObject o) : super.created(o);
 
-  static int get i => context['Class0']['i'];
+  static int get i => context['Class0']['i'] as int;
 }
 
 @JsName('Class0')
@@ -73,7 +73,7 @@ class ClassWithPrivateGetter extends JsInterface
     implements _ClassWithPrivateGetter {
   ClassWithPrivateGetter.created(JsObject o) : super.created(o);
 
-  static int get _i => context['Class0']['i'];
+  static int get _i => context['Class0']['i'] as int;
 }
 
 @JsName('Class0')
@@ -91,7 +91,7 @@ class ClassWithRenamedGetter extends JsInterface
     implements _ClassWithRenamedGetter {
   ClassWithRenamedGetter.created(JsObject o) : super.created(o);
 
-  static int get iBis => context['Class0']['i'];
+  static int get iBis => context['Class0']['i'] as int;
 }
 
 @JsName('Class0')

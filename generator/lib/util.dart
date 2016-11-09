@@ -8,6 +8,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 LibraryElement getLib(LibraryElement libElement, String name) =>
     libElement.importedLibraries.firstWhere((l) => l.name == name,
@@ -25,10 +26,10 @@ bool isAnnotationOfType(
     ElementAnnotation annotation, ClassElement annotationClass) {
   var metaElement = annotation.element;
   var exp;
-  var type;
+  DartType type;
   if (metaElement is PropertyAccessorElement) {
     exp = metaElement.variable;
-    type = exp.evaluationResult.value.type;
+    type = exp.evaluationResult.value.type as DartType;
   } else if (metaElement is ConstructorElement) {
     exp = metaElement;
     type = metaElement.enclosingElement.type;

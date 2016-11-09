@@ -60,7 +60,7 @@ abstract class _JsBar extends JsInterface {
   void set a(int a) {
     getState(this)[#a] = a;
   }
-  int get a => getState(this)[#a];
+  int get a => getState(this)[#a] as int;
 }
 
 abstract class _JsBaz extends JsBar {

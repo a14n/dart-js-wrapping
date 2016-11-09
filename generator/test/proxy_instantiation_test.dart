@@ -47,7 +47,7 @@ main() {
   });
 
   test('2 Class0 should be equals and have the same hashcode', () {
-    final jsO = new js.JsObject(js.context['Class0']);
+    final jsO = new js.JsObject(js.context['Class0'] as js.JsFunction);
     final o1 = new Class0.created(jsO);
     final o2 = new Class0.created(jsO);
     expect(o1 == o2, true);
@@ -69,7 +69,7 @@ main() {
   });
 
   test('Class0Alias and Class0 should be equals is proxyfiing the same js', () {
-    final jsO = new js.JsObject(js.context['Class0']);
+    final jsO = new js.JsObject(js.context['Class0'] as js.JsFunction);
     final o1 = new Class0.created(jsO);
     final o2 = new Class0Alias.created(jsO);
     expect(o1 == o2, true);

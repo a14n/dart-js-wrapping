@@ -16,8 +16,8 @@ final _STATE = new Expando<Map<Symbol, dynamic>>();
 /// state is actually store onto the [JsObject].
 ///
 /// It takes [JsInterface] or [JsObject] as parameter.
-Map<Symbol, dynamic> getState(/*JsInterface|JsObject*/o) {
-  if (o is JsInterface) o = asJsObject(o as JsRef<JsObject>);
+Map<Symbol, dynamic> getState(/*JsInterface|JsObject*/ o) {
+  if (o is JsInterface) o = asJsObject(o as JsInterface);
   Map<Symbol, dynamic> state = _STATE[o];
   if (state == null) {
     state = <Symbol, dynamic>{};

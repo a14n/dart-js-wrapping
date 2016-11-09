@@ -6,6 +6,7 @@
 library google_maps.sample.simple;
 
 import 'dart:html';
+
 import 'package:js_wrapping/js_wrapping.dart';
 
 part 'page.g.dart';
@@ -42,7 +43,8 @@ abstract class _MapOptions implements JsInterface {
 @jsEnum
 enum _MapTypeId { HYBRID, ROADMAP, SATELLITE, TERRAIN }
 
-final GEvent event = new GEvent.created(context['google']['maps']['event']);
+final event =
+    new GEvent.created(context['google']['maps']['event'] as JsObject);
 
 abstract class _GEvent implements JsInterface {
   MapsEventListener addDomListener(

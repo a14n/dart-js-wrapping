@@ -17,7 +17,7 @@ import 'package:source_gen/src/utils.dart';
 
 import 'util.dart';
 
-const _LIB_NAME = 'js_wrapping';
+const String _LIB_NAME = 'js_wrapping';
 
 const _CODECS_PREFIX = '__codec';
 
@@ -138,7 +138,7 @@ class JsEnumGenerator {
   }
 
   Iterable<String> getEnumValues() {
-    EnumDeclaration enumDecl = getNodeOfElement(clazz);
+    final enumDecl = getNodeOfElement(clazz) as EnumDeclaration;
     return enumDecl.constants.map((e) => e.name.name);
   }
 }
@@ -160,7 +160,7 @@ class JsInterfaceClassGenerator {
   String generate() {
     final newClassName = getPublicClassName(clazz);
 
-    final ClassDeclaration classNode = clazz.computeNode();
+    final classNode = clazz.computeNode() as ClassDeclaration;
 
     // add implements to make analyzer happy
     if (classNode.implementsClause == null) {
@@ -226,13 +226,12 @@ class JsInterfaceClassGenerator {
           throw '@anonymous JsInterface can not have constructor with '
               'parameters';
         }
-        newJsObject += "context['Object']";
+        newJsObject += "context['Object'] as JsFunction";
       } else {
         final jsName = computeJsName(clazz, _jsNameClass);
-        newJsObject += getPath(jsName);
+        newJsObject += getPath(jsName) + " as JsFunction";
         if (constr.parameters.isNotEmpty) {
-          final parameterList = convertParameters(constr.parameters);
-          newJsObject += ", [$parameterList]";
+          newJsObject += ", [${convertParameters(constr.parameters)}]";
         }
       }
       newJsObject += ")";
@@ -275,7 +274,8 @@ class JsInterfaceClassGenerator {
     if (namedParams.isNotEmpty) {
       if (nonNamedParams.isNotEmpty) parameterList += ',';
       parameterList += '() {';
-      parameterList += "final o = new JsObject(context['Object']);";
+      parameterList +=
+          "final o = new JsObject(context['Object'] as JsFunction);";
       for (final p in namedParams) {
         parameterList +=
             "if (${p.displayName} != null) o['${p.displayName}'] = " +
@@ -312,7 +312,8 @@ class JsInterfaceClassGenerator {
           (accessor.computeNode() as MethodDeclaration).externalKeyword);
     }
 
-    final jsName = getNameAnnotation(accessor.computeNode(), _jsNameClass);
+    final jsName = getNameAnnotation(
+        accessor.computeNode() as AnnotatedNode, _jsNameClass);
     final name = jsName != null
         ? jsName
         : accessor.isPrivate
@@ -335,19 +336,20 @@ class JsInterfaceClassGenerator {
     transformer.replace(accessor.computeNode().end - 1,
         accessor.computeNode().end, newFuncDecl);
 
-    getAnnotations(accessor.computeNode(), _jsNameClass)
+    getAnnotations(accessor.computeNode() as AnnotatedNode, _jsNameClass)
         .forEach(transformer.removeNode);
   }
 
   void transformVariables(Iterable<PropertyAccessorElement> accessors) {
     accessors.forEach((accessor) {
-      final VariableDeclarationList varDeclList =
-          accessor.variable.computeNode().parent;
-      var jsName =
-          getNameAnnotation(accessor.variable.computeNode(), _jsNameClass);
+      final varDeclList =
+          accessor.variable.computeNode().parent as VariableDeclarationList;
+      var jsName = getNameAnnotation(
+          accessor.variable.computeNode() as AnnotatedNode, _jsNameClass);
       jsName = jsName != null
           ? jsName
-          : getNameAnnotation(varDeclList.parent, _jsNameClass);
+          : getNameAnnotation(
+              varDeclList.parent as AnnotatedNode, _jsNameClass);
       jsName = jsName != null
           ? jsName
           : accessor.isPrivate
@@ -377,10 +379,8 @@ class JsInterfaceClassGenerator {
     });
 
     // remove variable declarations
-    final Set<VariableDeclaration> variables =
-        accessors.map((e) => e.variable.computeNode()).toSet();
-    final Set<VariableDeclarationList> varDeclLists =
-        variables.map((e) => e.parent).toSet();
+    final variables = accessors.map((e) => e.variable.computeNode()).toSet();
+    final varDeclLists = variables.map((e) => e.parent).toSet();
     varDeclLists.forEach((varDeclList) {
       transformer.removeNode(varDeclList.parent);
     });
@@ -418,8 +418,8 @@ class JsInterfaceClassGenerator {
       transformer.insertAt(
           m.computeNode().end - 1,
           " => ${codec == null
-          ? call
-          : "$codec.decode($call)"}");
+          ? (call + (m.returnType.isDynamic ? '' : ' as ${m.returnType}'))
+          : "$codec.decode($call as ${isListType(m.returnType) ? 'JsArray':'JsObject'})"}");
     }
 
     getAnnotations(m.computeNode(), _jsNameClass)
@@ -429,8 +429,8 @@ class JsInterfaceClassGenerator {
   String createGetterBody(DartType type, String name, String target) {
     final codec = getCodec(type);
     return (codec == null
-            ? "$target['$name']"
-            : "$codec.decode($target['$name'])") +
+            ? ("$target['$name']" + (type.isDynamic ? '' : ' as $type'))
+            : "$codec.decode($target['$name'] as ${isListType(type) ? 'JsArray':'JsObject'})") +
         ';';
   }
 
@@ -473,10 +473,9 @@ class JsInterfaceClassGenerator {
   String createFunctionCodec(FunctionType type) {
     final returnCodec = getCodec(type.returnType);
 
-    final parameters = type.parameters.map((p) => 'p_' + p.name).join(', ');
     String parametersDecl = type.parameters
         .where((p) => p.parameterKind == ParameterKind.REQUIRED)
-        .map((p) => 'p_' + p.name)
+        .map((p) => '${p.type} p_${p.name}')
         .join(', ');
     if (type.parameters
         .any((p) => p.parameterKind == ParameterKind.POSITIONAL)) {
@@ -490,22 +489,22 @@ class JsInterfaceClassGenerator {
     }
 
     final decode = () {
-      var paramChanges = '';
-      type.parameters.forEach((p) {
+      var parameters = type.parameters.map((p) {
         final codec = getCodec(p.type);
-        if (codec != null) {
-          paramChanges += 'p_${p.name} = $codec.encode(p_${p.name});';
-        }
-      });
+        return codec != null ? '$codec.encode(p_${p.name})' : 'p_${p.name}';
+      }).join(',');
       var call = 'f.apply([$parameters])';
       if (returnCodec != null) {
-        call = 'final result = $call; return $returnCodec.decode(result);';
-      } else if (!type.returnType.isVoid) {
-        call = 'return $call;';
+        call =
+            '$returnCodec.decode($call as ${isListType(type.returnType) ? 'JsArray' : 'JsObject'})';
+      } else if (type.returnType.isVoid) {
+        return '(JsFunction f) => ($parametersDecl) { $call; }';
+      } else if (type.returnType.isDynamic) {
+        call = '$call';
       } else {
-        call = '$call;';
+        call = '$call as ${type.returnType}';
       }
-      return '(JsFunction f) => ($parametersDecl) { $paramChanges $call }';
+      return '(JsFunction f) => ($parametersDecl) => $call';
     }();
 
     final encode = () {
@@ -513,22 +512,23 @@ class JsInterfaceClassGenerator {
       if (returnCodec == null && paramCodecs.every((c) => c == null)) {
         return '(f) => f';
       } else {
-        var paramChanges = '';
-        type.parameters.forEach((p) {
+        var parameters = type.parameters.map((p) {
           final codec = getCodec(p.type);
-          if (codec != null) {
-            paramChanges += 'p_${p.name} = $codec.decode(p_${p.name});';
-          }
-        });
+          return codec != null
+              ? '$codec.decode(p_${p.name} as ${isListType(p.type) ? 'JsArray' : 'JsObject'})'
+              : 'p_${p.name}';
+        }).join(',');
         var call = 'f($parameters)';
         if (returnCodec != null) {
-          call = 'final result = $call; return $returnCodec.encode(result);';
-        } else if (!type.returnType.isVoid) {
-          call = 'return $call;';
+          call = '$returnCodec.encode($call as ${type.returnType})';
+        } else if (type.returnType.isVoid) {
+          return '(f) => ($parametersDecl) { $call; }';
+        } else if (type.returnType.isDynamic) {
+          call = '$call';
         } else {
-          call = '$call;';
+          call = '$call as ${type.returnType}';
         }
-        return '(f) => ($parametersDecl) { $paramChanges $call }';
+        return '(f) => ($parametersDecl) => $call';
       }
     }();
 
@@ -608,7 +608,7 @@ String getPublicClassName(ClassElement clazz) =>
 // workaround issue 23071
 AnnotatedNode getNodeOfElement(Element e) {
   if (e == null || e.isSynthetic) return null;
-  if (!(e is ClassElement && e.isEnum)) return e.computeNode();
+  if (!(e is ClassElement && e.isEnum)) return e.computeNode() as AnnotatedNode;
   return e.library.units
       .expand((u) => u
           .computeNode()
