@@ -33,7 +33,7 @@ class JsObjectAsMap<V> extends JsInterface with MapMixin<String, V> {
   /// Creates an instance backed by the JavaScript object [o].
   JsObjectAsMap.created(JsObject o, Codec<V, dynamic> codec)
       : _o = o,
-        _codec = codec != null ? codec : const IdentityCodec(),
+        _codec = codec != null ? codec : const IdentityCodec() as Codec<V,dynamic>,
         super.created(o);
 
   void _checkKey(String key) {
@@ -43,7 +43,7 @@ class JsObjectAsMap<V> extends JsInterface with MapMixin<String, V> {
   }
 
   @override
-  V operator [](String key) => _codec.decode(_o[key]);
+  V operator [](Object key) => _codec.decode(_o[key]);
 
   @override
   void operator []=(String key, V value) {
@@ -52,22 +52,22 @@ class JsObjectAsMap<V> extends JsInterface with MapMixin<String, V> {
   }
 
   @override
-  V remove(String key) {
+  V remove(Object key) {
     final value = this[key];
     _o.deleteProperty(key);
     return value;
   }
 
   @override
-  Iterable<String> get keys => _obj.callMethod('keys', [_o]);
+  Iterable<String> get keys => _obj.callMethod('keys', [_o]) as Iterable<String>;
 
   @override
-  bool containsKey(String key) => _o.hasProperty(key);
+  bool containsKey(Object key) => _o.hasProperty(key);
 
   @override
   V putIfAbsent(String key, V ifAbsent()) {
     _checkKey(key);
-    return Maps.putIfAbsent(this, key, ifAbsent);
+    return Maps.putIfAbsent(this, key, ifAbsent) as V;
   }
 
   @override
