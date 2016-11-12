@@ -8,19 +8,22 @@ part of js_wrapping_generator.example.js_proxy;
 // **************************************************************************
 
 /// codec for js_wrapping_generator.example.js_proxy.JsBar
-final __codec4 = new JsInterfaceCodec<JsBar>((o) => new JsBar.created(o));
+final __codec5 = new JsInterfaceCodec<JsBar>((o) => new JsBar.created(o));
 
 /// codec for dart.core.List<JsFoo>
-final __codec3 = new JsListCodec<JsFoo>(__codec2);
+final __codec4 = new JsListCodec<JsFoo>(__codec3);
 
 /// codec for js_wrapping_generator.example.js_proxy.JsFoo
-final __codec2 = new JsInterfaceCodec<JsFoo>((o) => new JsFoo.created(o));
+final __codec3 = new JsInterfaceCodec<JsFoo>((o) => new JsFoo.created(o));
 
 /// codec for dart.core.List<num>
-final __codec1 = new JsListCodec<num>(null);
+final __codec2 = new JsListCodec<num>(null);
 
 /// codec for dart.core.List<dynamic>
-final __codec0 = new JsListCodec<dynamic>(null);
+final __codec1 = new JsListCodec<dynamic>(__codec0);
+
+/// codec for null.dynamic
+final __codec0 = new DynamicCodec();
 
 @GeneratedFrom(_JsFoo)
 class JsFoo extends JsInterface {
@@ -31,7 +34,7 @@ class JsFoo extends JsInterface {
 
   static int get static2 => context['z']['y']['x']['JsFoo']['static2'] as int;
   static int staticMethod(JsFoo foo) => context['z']['y']['x']['JsFoo']
-      .callMethod('staticMethod', [__codec2.encode(foo)]) as int;
+      .callMethod('staticMethod', [__codec3.encode(foo)]) as int;
 
   JsFoo.created(JsObject o) : super.created(o);
   JsFoo()
@@ -39,20 +42,20 @@ class JsFoo extends JsInterface {
             new JsObject(context['z']['y']['x']['JsFoo'] as JsFunction));
 
   void set l1(List _l1) {
-    asJsObject(this)['l1'] = __codec0.encode(_l1);
+    asJsObject(this)['l1'] = __codec1.encode(_l1);
   }
 
-  List get l1 => __codec0.decode(asJsObject(this)['l1'] as JsArray);
+  List get l1 => __codec1.decode(asJsObject(this)['l1'] as JsArray);
   void set l2(List<num> _l2) {
-    asJsObject(this)['l2'] = __codec1.encode(_l2);
+    asJsObject(this)['l2'] = __codec2.encode(_l2);
   }
 
-  List<num> get l2 => __codec1.decode(asJsObject(this)['l2'] as JsArray);
+  List<num> get l2 => __codec2.decode(asJsObject(this)['l2'] as JsArray);
   void set l3(List<JsFoo> _l3) {
-    asJsObject(this)['l3'] = __codec3.encode(_l3);
+    asJsObject(this)['l3'] = __codec4.encode(_l3);
   }
 
-  List<JsFoo> get l3 => __codec3.decode(asJsObject(this)['l3'] as JsArray);
+  List<JsFoo> get l3 => __codec4.decode(asJsObject(this)['l3'] as JsArray);
 
   void set i(int _i) {
     asJsObject(this)['_i'] = _i;
@@ -81,16 +84,18 @@ class JsFoo extends JsInterface {
   String get b => '';
   void set b(String b) {}
 
-  m1() => asJsObject(this).callMethod('m1');
+  m1() => __codec0.decode(asJsObject(this).callMethod('m1') as JsObject);
   void m2() {
     asJsObject(this).callMethod('m2');
   }
 
   String m3() => asJsObject(this).callMethod('m3') as String;
   String m4(int a) => asJsObject(this).callMethod('m4', [a]) as String;
-  int m5(int a, b) => asJsObject(this).callMethod('m5', [a, b]) as int;
+  int m5(int a, b) =>
+      asJsObject(this).callMethod('m5', [a, __codec0.encode(b)]) as int;
 
-  int _m6(int a, b) => asJsObject(this).callMethod('_m6', [a, b]) as int;
+  int _m6(int a, b) =>
+      asJsObject(this).callMethod('_m6', [a, __codec0.encode(b)]) as int;
 }
 
 @GeneratedFrom(_JsBar)
@@ -103,7 +108,7 @@ class JsBar extends JsInterface {
   factory JsBar() = dynamic;
   factory JsBar.named(int x, int y) = dynamic;
 
-  JsBar m1() => __codec4.decode(asJsObject(this).callMethod('m1') as JsObject);
+  JsBar m1() => __codec5.decode(asJsObject(this).callMethod('m1') as JsObject);
 
   void set a(int a) {
     getState(this)[#a] = a;

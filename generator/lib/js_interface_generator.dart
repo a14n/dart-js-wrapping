@@ -444,7 +444,9 @@ class JsInterfaceClassGenerator {
   }
 
   String getCodec(DartType type) => registerCodecIfAbsent(type, () {
-        if (isJsInterface(lib, type)) {
+        if (type.isDynamic) {
+          return 'new DynamicCodec()';
+        } else if (isJsInterface(lib, type)) {
           return 'new JsInterfaceCodec<$type>((o) => new $type.created(o))';
         } else if (isListType(type)) {
           final typeParam = (type as InterfaceType).typeArguments.first;
