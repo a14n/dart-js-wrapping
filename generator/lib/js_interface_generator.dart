@@ -163,12 +163,11 @@ class JsInterfaceClassGenerator {
     final classNode = clazz.computeNode() as ClassDeclaration;
 
     // add implements to make analyzer happy
-    if (classNode.implementsClause == null) {
-      transformer.insertAt(
-          classNode.leftBracket.offset, ' implements ${clazz.displayName}');
-    } else {
+    transformer.insertAt(classNode.offset, '@GeneratedFrom(${clazz.name})');
+
+    // remove implement JsInterface
+    if (classNode.implementsClause != null) {
       var interfaceCount = classNode.implementsClause.interfaces.length;
-      // remove implement JsInterface
       classNode.implementsClause.interfaces
           .where((e) => e.name.name == 'JsInterface')
           .forEach((e) {
@@ -188,9 +187,8 @@ class JsInterfaceClassGenerator {
           transformer.removeBetween(begin, end);
         }
       });
-
-      transformer.insertAt(classNode.implementsClause.end,
-          (interfaceCount > 0 ? ', ' : '') + clazz.displayName);
+      if (interfaceCount == 0)
+        transformer.removeToken(classNode.implementsClause.implementsKeyword);
     }
 
     // add JsInterface extension

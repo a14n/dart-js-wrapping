@@ -25,8 +25,9 @@ final __codec1 =
 /// codec for dart.core.List<dynamic>
 final __codec0 = new JsListCodec<dynamic>(null);
 
+@GeneratedFrom(_GMap)
 @JsName('Map')
-class GMap extends JsInterface implements _GMap {
+class GMap extends JsInterface {
   GMap.created(JsObject o) : super.created(o);
   GMap(Node mapDiv, [MapOptions opts])
       : this.created(new JsObject(
@@ -37,7 +38,8 @@ class GMap extends JsInterface implements _GMap {
   num get zoom => _getZoom();
 }
 
-class LatLng extends JsInterface implements _LatLng {
+@GeneratedFrom(_LatLng)
+class LatLng extends JsInterface {
   LatLng.created(JsObject o) : super.created(o);
   LatLng(num lat, num lng, [bool noWrap])
       : this.created(new JsObject(
@@ -55,8 +57,9 @@ class LatLng extends JsInterface implements _LatLng {
       asJsObject(this).callMethod('toUrlValue', [precision]) as String;
 }
 
+@GeneratedFrom(_MapOptions)
 @anonymous
-class MapOptions extends JsInterface implements _MapOptions {
+class MapOptions extends JsInterface {
   MapOptions.created(JsObject o) : super.created(o);
   MapOptions() : this.created(new JsObject(context['Object'] as JsFunction));
 
@@ -99,7 +102,8 @@ class MapTypeId extends JsEnum {
   _MapTypeId _dumbMethod2() => _dumbMethod1();
 }
 
-class GEvent extends JsInterface implements _GEvent {
+@GeneratedFrom(_GEvent)
+class GEvent extends JsInterface {
   GEvent.created(JsObject o) : super.created(o);
 
   MapsEventListener addDomListener(
@@ -141,6 +145,7 @@ class GEvent extends JsInterface implements _GEvent {
   }
 }
 
-class MapsEventListener extends JsInterface implements _MapsEventListener {
+@GeneratedFrom(_MapsEventListener)
+class MapsEventListener extends JsInterface {
   MapsEventListener.created(JsObject o) : super.created(o);
 }

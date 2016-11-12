@@ -7,15 +7,17 @@ part of js_wrapping_generator.test.proxy_accessors_test;
 // Target: library js_wrapping_generator.test.proxy_accessors_test
 // **************************************************************************
 
-class Class0 extends JsInterface implements _Class0 {
+@GeneratedFrom(_Class0)
+class Class0 extends JsInterface {
   Class0.created(JsObject o) : super.created(o);
   Class0() : this.created(new JsObject(context['Class0'] as JsFunction));
 
   int get i => asJsObject(this)['i'] as int;
 }
 
+@GeneratedFrom(_ClassFinalField)
 @JsName('Class0')
-class ClassFinalField extends JsInterface implements _ClassFinalField {
+class ClassFinalField extends JsInterface {
   ClassFinalField.created(JsObject o) : super.created(o);
   ClassFinalField()
       : this.created(new JsObject(context['Class0'] as JsFunction));
@@ -23,8 +25,9 @@ class ClassFinalField extends JsInterface implements _ClassFinalField {
   int get i => asJsObject(this)['i'] as int;
 }
 
+@GeneratedFrom(_ClassNotFinalField)
 @JsName('Class0')
-class ClassNotFinalField extends JsInterface implements _ClassNotFinalField {
+class ClassNotFinalField extends JsInterface {
   ClassNotFinalField.created(JsObject o) : super.created(o);
   ClassNotFinalField()
       : this.created(new JsObject(context['Class0'] as JsFunction));
@@ -36,8 +39,9 @@ class ClassNotFinalField extends JsInterface implements _ClassNotFinalField {
   int get i => asJsObject(this)['i'] as int;
 }
 
+@GeneratedFrom(_ClassPrivateField)
 @JsName('Class0')
-class ClassPrivateField extends JsInterface implements _ClassPrivateField {
+class ClassPrivateField extends JsInterface {
   ClassPrivateField.created(JsObject o) : super.created(o);
   ClassPrivateField()
       : this.created(new JsObject(context['Class0'] as JsFunction));
@@ -49,8 +53,9 @@ class ClassPrivateField extends JsInterface implements _ClassPrivateField {
   int get _i => asJsObject(this)['i'] as int;
 }
 
+@GeneratedFrom(_ClassRenamedField)
 @JsName('Class0')
-class ClassRenamedField extends JsInterface implements _ClassRenamedField {
+class ClassRenamedField extends JsInterface {
   ClassRenamedField.created(JsObject o) : super.created(o);
   ClassRenamedField()
       : this.created(new JsObject(context['Class0'] as JsFunction));
@@ -62,9 +67,9 @@ class ClassRenamedField extends JsInterface implements _ClassRenamedField {
   int get iBis => asJsObject(this)['i'] as int;
 }
 
+@GeneratedFrom(_ClassRenamedPrivateField)
 @JsName('Class0')
-class ClassRenamedPrivateField extends JsInterface
-    implements _ClassRenamedPrivateField {
+class ClassRenamedPrivateField extends JsInterface {
   ClassRenamedPrivateField.created(JsObject o) : super.created(o);
   ClassRenamedPrivateField()
       : this.created(new JsObject(context['Class0'] as JsFunction));
@@ -76,8 +81,9 @@ class ClassRenamedPrivateField extends JsInterface
   int get _iBis => asJsObject(this)['i'] as int;
 }
 
+@GeneratedFrom(_ClassWithGetter)
 @JsName('Class0')
-class ClassWithGetter extends JsInterface implements _ClassWithGetter {
+class ClassWithGetter extends JsInterface {
   ClassWithGetter.created(JsObject o) : super.created(o);
   ClassWithGetter()
       : this.created(new JsObject(context['Class0'] as JsFunction));
@@ -85,8 +91,9 @@ class ClassWithGetter extends JsInterface implements _ClassWithGetter {
   int get i => asJsObject(this)['i'] as int;
 }
 
+@GeneratedFrom(_ClassWithSetter)
 @JsName('Class0')
-class ClassWithSetter extends JsInterface implements _ClassWithSetter {
+class ClassWithSetter extends JsInterface {
   ClassWithSetter.created(JsObject o) : super.created(o);
   ClassWithSetter()
       : this.created(new JsObject(context['Class0'] as JsFunction));
@@ -96,9 +103,9 @@ class ClassWithSetter extends JsInterface implements _ClassWithSetter {
   }
 }
 
+@GeneratedFrom(_ClassWithPrivateGetter)
 @JsName('Class0')
-class ClassWithPrivateGetter extends JsInterface
-    implements _ClassWithPrivateGetter {
+class ClassWithPrivateGetter extends JsInterface {
   ClassWithPrivateGetter.created(JsObject o) : super.created(o);
   ClassWithPrivateGetter()
       : this.created(new JsObject(context['Class0'] as JsFunction));
@@ -106,9 +113,9 @@ class ClassWithPrivateGetter extends JsInterface
   int get _i => asJsObject(this)['i'] as int;
 }
 
+@GeneratedFrom(_ClassWithPrivateSetter)
 @JsName('Class0')
-class ClassWithPrivateSetter extends JsInterface
-    implements _ClassWithPrivateSetter {
+class ClassWithPrivateSetter extends JsInterface {
   ClassWithPrivateSetter.created(JsObject o) : super.created(o);
   ClassWithPrivateSetter()
       : this.created(new JsObject(context['Class0'] as JsFunction));
@@ -118,9 +125,9 @@ class ClassWithPrivateSetter extends JsInterface
   }
 }
 
+@GeneratedFrom(_ClassWithRenamedGetter)
 @JsName('Class0')
-class ClassWithRenamedGetter extends JsInterface
-    implements _ClassWithRenamedGetter {
+class ClassWithRenamedGetter extends JsInterface {
   ClassWithRenamedGetter.created(JsObject o) : super.created(o);
   ClassWithRenamedGetter()
       : this.created(new JsObject(context['Class0'] as JsFunction));
@@ -128,9 +135,9 @@ class ClassWithRenamedGetter extends JsInterface
   int get iBis => asJsObject(this)['i'] as int;
 }
 
+@GeneratedFrom(_ClassWithRenamedSetter)
 @JsName('Class0')
-class ClassWithRenamedSetter extends JsInterface
-    implements _ClassWithRenamedSetter {
+class ClassWithRenamedSetter extends JsInterface {
   ClassWithRenamedSetter.created(JsObject o) : super.created(o);
   ClassWithRenamedSetter()
       : this.created(new JsObject(context['Class0'] as JsFunction));

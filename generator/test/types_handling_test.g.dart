@@ -70,7 +70,8 @@ final __codec1 = new JsListCodec<int>(null);
 /// codec for dart.core.List<dynamic>
 final __codec0 = new JsListCodec<dynamic>(null);
 
-class A extends JsInterface implements _A {
+@GeneratedFrom(_A)
+class A extends JsInterface {
   A.created(JsObject o) : super.created(o);
   A() : this.created(new JsObject(context['A'] as JsFunction));
 
@@ -117,7 +118,8 @@ class A extends JsInterface implements _A {
   }
 }
 
-class B extends JsInterface implements _B {
+@GeneratedFrom(_B)
+class B extends JsInterface {
   B.created(JsObject o) : super.created(o);
   B(String v) : this.created(new JsObject(context['B'] as JsFunction, [v]));
 

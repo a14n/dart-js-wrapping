@@ -22,7 +22,8 @@ final __codec1 = new JsListCodec<num>(null);
 /// codec for dart.core.List<dynamic>
 final __codec0 = new JsListCodec<dynamic>(null);
 
-class JsFoo extends JsInterface implements _JsFoo {
+@GeneratedFrom(_JsFoo)
+class JsFoo extends JsInterface {
   static int get static1 => context['z']['y']['x']['JsFoo']['static1'] as int;
   static void set static2(int _static2) {
     context['z']['y']['x']['JsFoo']['static2'] = _static2;
@@ -92,8 +93,9 @@ class JsFoo extends JsInterface implements _JsFoo {
   int _m6(int a, b) => asJsObject(this).callMethod('_m6', [a, b]) as int;
 }
 
+@GeneratedFrom(_JsBar)
 @JsName('a.b.JsBar')
-class JsBar extends JsInterface implements _JsBar {
+class JsBar extends JsInterface {
   JsBar.created(JsObject o) : super.created(o) {
     getState(this).putIfAbsent(#a, () => 0);
   }
@@ -110,12 +112,14 @@ class JsBar extends JsInterface implements _JsBar {
   int get a => getState(this)[#a] as int;
 }
 
-class JsBaz extends JsBar implements _JsBaz {
+@GeneratedFrom(_JsBaz)
+class JsBaz extends JsBar {
   JsBaz.created(JsObject o) : super.created(o);
   factory JsBaz() = dynamic;
 }
 
-class _Context extends JsInterface implements __Context {
+@GeneratedFrom(__Context)
+class _Context extends JsInterface {
   _Context.created(JsObject o) : super.created(o);
 
   int find(String a) => asJsObject(this).callMethod('find', [a]) as int;
