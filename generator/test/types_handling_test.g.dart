@@ -25,15 +25,14 @@ class Color extends JsEnum {
 
 /// codec for js_wrapping_generator.test.types_handling_test.(B, [int]) → String
 final __codec11 = new FunctionCodec/*<(B, [int]) → String>*/(
-    (f) => (B p_s, [p_i]) => f(__codec7.decode(p_s as JsObject), p_i) as String,
-    (JsFunction f) =>
-        (B p_s, [p_i]) => f.apply([__codec7.encode(p_s), p_i]) as String);
+    (f) => (p_s, [p_i]) => f(__codec7.decode(p_s), p_i),
+    (JsFunction f) => (p_s, [p_i]) => f.apply([__codec7.encode(p_s), p_i]));
 
 /// codec for js_wrapping_generator.test.types_handling_test.(B) → B
 final __codec10 = new FunctionCodec/*<(B) → B>*/(
-    (f) => (B p_b) => __codec7.encode(f(__codec7.decode(p_b as JsObject)) as B),
-    (JsFunction f) => (B p_b) =>
-        __codec7.decode(f.apply([__codec7.encode(p_b)]) as JsObject));
+    (f) => (p_b) => __codec7.encode(f(__codec7.decode(p_b))),
+    (JsFunction f) =>
+        (p_b) => __codec7.decode(f.apply([__codec7.encode(p_b)])));
 
 /// codec for js_wrapping_generator.test.types_handling_test.Color
 final __codec9 = new BiMapCodec<Color, dynamic>(
@@ -54,21 +53,18 @@ final __codec6 = new FunctionCodec/*<() → void>*/(
 
 /// codec for js_wrapping_generator.test.types_handling_test.(dynamic, [int]) → String
 final __codec5 = new FunctionCodec/*<(dynamic, [int]) → String>*/(
-    (f) => (dynamic p_s, [p_i]) =>
-        f(__codec0.decode(p_s as JsObject), p_i) as String,
-    (JsFunction f) =>
-        (dynamic p_s, [p_i]) => f.apply([__codec0.encode(p_s), p_i]) as String);
+    (f) => (p_s, [p_i]) => f(__codec0.decode(p_s), p_i),
+    (JsFunction f) => (p_s, [p_i]) => f.apply([__codec0.encode(p_s), p_i]));
 
 /// codec for js_wrapping_generator.test.types_handling_test.(dynamic) → dynamic
 final __codec4 = new FunctionCodec/*<(dynamic) → dynamic>*/(
-    (f) => (dynamic p_b) =>
-        __codec0.encode(f(__codec0.decode(p_b as JsObject)) as dynamic),
-    (JsFunction f) => (dynamic p_b) =>
-        __codec0.decode(f.apply([__codec0.encode(p_b)]) as JsObject));
+    (f) => (p_b) => __codec0.encode(f(__codec0.decode(p_b))),
+    (JsFunction f) =>
+        (p_b) => __codec0.decode(f.apply([__codec0.encode(p_b)])));
 
 /// codec for js_wrapping_generator.test.types_handling_test.(int) → String
 final __codec3 = new FunctionCodec/*<(int) → String>*/(
-    (f) => f, (JsFunction f) => (int p_i) => f.apply([p_i]) as String);
+    (f) => f, (JsFunction f) => (p_i) => f.apply([p_i]));
 
 /// codec for dart.core.List<int>
 final __codec2 = new JsListCodec<int>(null);
@@ -82,45 +78,43 @@ final __codec0 = new DynamicCodec();
 @GeneratedFrom(_A)
 class A extends JsInterface {
   A.created(JsObject o) : super.created(o);
-  A() : this.created(new JsObject(context['A'] as JsFunction));
+  A() : this.created(new JsObject(context['A']));
 
   void set b(B _b) {
     asJsObject(this)['b'] = __codec7.encode(_b);
   }
 
-  B get b => __codec7.decode(asJsObject(this)['b'] as JsObject);
+  B get b => __codec7.decode(asJsObject(this)['b']);
   void set bs(List<B> _bs) {
     asJsObject(this)['bs'] = __codec8.encode(_bs);
   }
 
-  List<B> get bs => __codec8.decode(asJsObject(this)['bs'] as JsArray);
+  List<B> get bs => __codec8.decode(asJsObject(this)['bs']);
   void set li(List<int> _li) {
     asJsObject(this)['li'] = __codec2.encode(_li);
   }
 
-  List<int> get li => __codec2.decode(asJsObject(this)['li'] as JsArray);
+  List<int> get li => __codec2.decode(asJsObject(this)['li']);
 
   String toColorString(Color c) =>
-      asJsObject(this).callMethod('toColorString', [__codec9.encode(c)])
-      as String;
+      asJsObject(this).callMethod('toColorString', [__codec9.encode(c)]);
   Color toColor(String s) =>
-      __codec9.decode(asJsObject(this).callMethod('toColor', [s]) as JsObject);
+      __codec9.decode(asJsObject(this).callMethod('toColor', [s]));
 
   String execute(B f(B b)) =>
-      asJsObject(this).callMethod('execute', [__codec10.encode(f)]) as String;
+      asJsObject(this).callMethod('execute', [__codec10.encode(f)]);
 
   String execute2(String f(B s, [int i])) =>
-      asJsObject(this).callMethod('execute2', [__codec11.encode(f)]) as String;
+      asJsObject(this).callMethod('execute2', [__codec11.encode(f)]);
 
   BisFunc getBisFunc() =>
-      __codec10.decode(asJsObject(this).callMethod('getBisFunc') as JsObject);
+      __codec10.decode(asJsObject(this).callMethod('getBisFunc'));
 
   void set simpleFunc(SimpleFunc _simpleFunc) {
     asJsObject(this)['simpleFunc'] = __codec3.encode(_simpleFunc);
   }
 
-  SimpleFunc get simpleFunc =>
-      __codec3.decode(asJsObject(this)['simpleFunc'] as JsObject);
+  SimpleFunc get simpleFunc => __codec3.decode(asJsObject(this)['simpleFunc']);
 
   void executeVoidFunction(void f()) {
     asJsObject(this).callMethod('executeVoidFunction', [__codec6.encode(f)]);
@@ -130,7 +124,7 @@ class A extends JsInterface {
 @GeneratedFrom(_B)
 class B extends JsInterface {
   B.created(JsObject o) : super.created(o);
-  B(String v) : this.created(new JsObject(context['B'] as JsFunction, [v]));
+  B(String v) : this.created(new JsObject(context['B'], [v]));
 
-  String toString() => asJsObject(this).callMethod('toString') as String;
+  String toString() => asJsObject(this).callMethod('toString');
 }

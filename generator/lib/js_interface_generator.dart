@@ -224,10 +224,10 @@ class JsInterfaceClassGenerator {
           throw '@anonymous JsInterface can not have constructor with '
               'parameters';
         }
-        newJsObject += "context['Object'] as JsFunction";
+        newJsObject += "context['Object']";
       } else {
         final jsName = computeJsName(clazz, _jsNameClass);
-        newJsObject += getPath(jsName) + " as JsFunction";
+        newJsObject += getPath(jsName);
         if (constr.parameters.isNotEmpty) {
           newJsObject += ", [${convertParameters(constr.parameters)}]";
         }
@@ -272,8 +272,7 @@ class JsInterfaceClassGenerator {
     if (namedParams.isNotEmpty) {
       if (nonNamedParams.isNotEmpty) parameterList += ',';
       parameterList += '() {';
-      parameterList +=
-          "final o = new JsObject(context['Object'] as JsFunction);";
+      parameterList += "final o = new JsObject(context['Object']);";
       for (final p in namedParams) {
         parameterList +=
             "if (${p.displayName} != null) o['${p.displayName}'] = " +
@@ -416,8 +415,8 @@ class JsInterfaceClassGenerator {
       transformer.insertAt(
           m.computeNode().end - 1,
           " => ${codec == null
-          ? (call + (m.returnType.isDynamic ? '' : ' as ${m.returnType}'))
-          : "$codec.decode($call as ${isListType(m.returnType) ? 'JsArray':'JsObject'})"}");
+          ? call
+          : "$codec.decode($call)"}");
     }
 
     getAnnotations(m.computeNode(), _jsNameClass)
@@ -427,8 +426,8 @@ class JsInterfaceClassGenerator {
   String createGetterBody(DartType type, String name, String target) {
     final codec = getCodec(type);
     return (codec == null
-            ? ("$target['$name']" + (type.isDynamic ? '' : ' as $type'))
-            : "$codec.decode($target['$name'] as ${isListType(type) ? 'JsArray':'JsObject'})") +
+            ? "$target['$name']"
+            : "$codec.decode($target['$name'])") +
         ';';
   }
 
@@ -444,7 +443,7 @@ class JsInterfaceClassGenerator {
   }
 
   String getCodec(DartType type) => registerCodecIfAbsent(type, () {
-        if (type.isDynamic) {
+        if (type.isDynamic || type.isObject) {
           return 'new DynamicCodec()';
         } else if (isJsInterface(lib, type)) {
           return 'new JsInterfaceCodec<$type>((o) => new $type.created(o))';
@@ -475,7 +474,7 @@ class JsInterfaceClassGenerator {
 
     String parametersDecl = type.parameters
         .where((p) => p.parameterKind == ParameterKind.REQUIRED)
-        .map((p) => '${p.type} p_${p.name}')
+        .map((p) => 'p_${p.name}')
         .join(', ');
     if (type.parameters
         .any((p) => p.parameterKind == ParameterKind.POSITIONAL)) {
@@ -495,14 +494,9 @@ class JsInterfaceClassGenerator {
       }).join(',');
       var call = 'f.apply([$parameters])';
       if (returnCodec != null) {
-        call =
-            '$returnCodec.decode($call as ${isListType(type.returnType) ? 'JsArray' : 'JsObject'})';
+        call = '$returnCodec.decode($call)';
       } else if (type.returnType.isVoid) {
         return '(JsFunction f) => ($parametersDecl) { $call; }';
-      } else if (type.returnType.isDynamic) {
-        call = '$call';
-      } else {
-        call = '$call as ${type.returnType}';
       }
       return '(JsFunction f) => ($parametersDecl) => $call';
     }();
@@ -514,19 +508,13 @@ class JsInterfaceClassGenerator {
       } else {
         var parameters = type.parameters.map((p) {
           final codec = getCodec(p.type);
-          return codec != null
-              ? '$codec.decode(p_${p.name} as ${isListType(p.type) ? 'JsArray' : 'JsObject'})'
-              : 'p_${p.name}';
+          return codec != null ? '$codec.decode(p_${p.name})' : 'p_${p.name}';
         }).join(',');
         var call = 'f($parameters)';
         if (returnCodec != null) {
-          call = '$returnCodec.encode($call as ${type.returnType})';
+          call = '$returnCodec.encode($call)';
         } else if (type.returnType.isVoid) {
           return '(f) => ($parametersDecl) { $call; }';
-        } else if (type.returnType.isDynamic) {
-          call = '$call';
-        } else {
-          call = '$call as ${type.returnType}';
         }
         return '(f) => ($parametersDecl) => $call';
       }

@@ -34,10 +34,9 @@ class GMap extends JsInterface {
   GMap.created(JsObject o) : super.created(o);
   GMap(Node mapDiv, [MapOptions opts])
       : this.created(new JsObject(
-            context['google']['maps']['Map'] as JsFunction,
-            [mapDiv, __codec2.encode(opts)]));
+            context['google']['maps']['Map'], [mapDiv, __codec2.encode(opts)]));
 
-  num _getZoom() => asJsObject(this).callMethod('getZoom') as num;
+  num _getZoom() => asJsObject(this).callMethod('getZoom');
   num get zoom => _getZoom();
 }
 
@@ -46,42 +45,40 @@ class LatLng extends JsInterface {
   LatLng.created(JsObject o) : super.created(o);
   LatLng(num lat, num lng, [bool noWrap])
       : this.created(new JsObject(
-            context['google']['maps']['LatLng'] as JsFunction,
-            [lat, lng, noWrap]));
+            context['google']['maps']['LatLng'], [lat, lng, noWrap]));
 
   bool equals(LatLng other) =>
-      asJsObject(this).callMethod('equals', [__codec3.encode(other)]) as bool;
+      asJsObject(this).callMethod('equals', [__codec3.encode(other)]);
   num get lat => _lat();
-  num _lat() => asJsObject(this).callMethod('lat') as num;
+  num _lat() => asJsObject(this).callMethod('lat');
   num get lng => _lng();
-  num _lng() => asJsObject(this).callMethod('lng') as num;
-  String toString() => asJsObject(this).callMethod('toString') as String;
+  num _lng() => asJsObject(this).callMethod('lng');
+  String toString() => asJsObject(this).callMethod('toString');
   String toUrlValue([num precision]) =>
-      asJsObject(this).callMethod('toUrlValue', [precision]) as String;
+      asJsObject(this).callMethod('toUrlValue', [precision]);
 }
 
 @GeneratedFrom(_MapOptions)
 @anonymous
 class MapOptions extends JsInterface {
   MapOptions.created(JsObject o) : super.created(o);
-  MapOptions() : this.created(new JsObject(context['Object'] as JsFunction));
+  MapOptions() : this.created(new JsObject(context['Object']));
 
   void set zoom(int _zoom) {
     asJsObject(this)['zoom'] = _zoom;
   }
 
-  int get zoom => asJsObject(this)['zoom'] as int;
+  int get zoom => asJsObject(this)['zoom'];
   void set center(LatLng _center) {
     asJsObject(this)['center'] = __codec3.encode(_center);
   }
 
-  LatLng get center => __codec3.decode(asJsObject(this)['center'] as JsObject);
+  LatLng get center => __codec3.decode(asJsObject(this)['center']);
   void set mapTypeId(MapTypeId _mapTypeId) {
     asJsObject(this)['mapTypeId'] = __codec4.encode(_mapTypeId);
   }
 
-  MapTypeId get mapTypeId =>
-      __codec4.decode(asJsObject(this)['mapTypeId'] as JsObject);
+  MapTypeId get mapTypeId => __codec4.decode(asJsObject(this)['mapTypeId']);
 }
 
 class MapTypeId extends JsEnum {
@@ -112,30 +109,21 @@ class GEvent extends JsInterface {
   MapsEventListener addDomListener(
           dynamic instance, String eventName, Function handler,
           [bool capture]) =>
-      __codec5.decode(asJsObject(this).callMethod('addDomListener', [
-        __codec0.encode(instance),
-        eventName,
-        handler,
-        capture
-      ]) as JsObject);
+      __codec5.decode(asJsObject(this).callMethod('addDomListener',
+          [__codec0.encode(instance), eventName, handler, capture]));
   MapsEventListener addDomListenerOnce(
           dynamic instance, String eventName, Function handler,
           [bool capture]) =>
-      __codec5.decode(asJsObject(this).callMethod('addDomListenerOnce', [
-        __codec0.encode(instance),
-        eventName,
-        handler,
-        capture
-      ]) as JsObject);
+      __codec5.decode(asJsObject(this).callMethod('addDomListenerOnce',
+          [__codec0.encode(instance), eventName, handler, capture]));
   MapsEventListener addListener(
           dynamic instance, String eventName, Function handler) =>
       __codec5.decode(asJsObject(this).callMethod(
-              'addListener', [__codec0.encode(instance), eventName, handler])
-          as JsObject);
+          'addListener', [__codec0.encode(instance), eventName, handler]));
   MapsEventListener addListenerOnce(
           dynamic instance, String eventName, Function handler) =>
-      __codec5.decode(asJsObject(this).callMethod('addListenerOnce',
-          [__codec0.encode(instance), eventName, handler]) as JsObject);
+      __codec5.decode(asJsObject(this).callMethod(
+          'addListenerOnce', [__codec0.encode(instance), eventName, handler]));
   void clearInstanceListeners(dynamic instance) {
     asJsObject(this)
         .callMethod('clearInstanceListeners', [__codec0.encode(instance)]);

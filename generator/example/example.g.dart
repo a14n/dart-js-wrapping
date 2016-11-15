@@ -27,56 +27,54 @@ final __codec0 = new DynamicCodec();
 
 @GeneratedFrom(_JsFoo)
 class JsFoo extends JsInterface {
-  static int get static1 => context['z']['y']['x']['JsFoo']['static1'] as int;
+  static int get static1 => context['z']['y']['x']['JsFoo']['static1'];
   static void set static2(int _static2) {
     context['z']['y']['x']['JsFoo']['static2'] = _static2;
   }
 
-  static int get static2 => context['z']['y']['x']['JsFoo']['static2'] as int;
+  static int get static2 => context['z']['y']['x']['JsFoo']['static2'];
   static int staticMethod(JsFoo foo) => context['z']['y']['x']['JsFoo']
-      .callMethod('staticMethod', [__codec3.encode(foo)]) as int;
+      .callMethod('staticMethod', [__codec3.encode(foo)]);
 
   JsFoo.created(JsObject o) : super.created(o);
-  JsFoo()
-      : this.created(
-            new JsObject(context['z']['y']['x']['JsFoo'] as JsFunction));
+  JsFoo() : this.created(new JsObject(context['z']['y']['x']['JsFoo']));
 
   void set l1(List _l1) {
     asJsObject(this)['l1'] = __codec1.encode(_l1);
   }
 
-  List get l1 => __codec1.decode(asJsObject(this)['l1'] as JsArray);
+  List get l1 => __codec1.decode(asJsObject(this)['l1']);
   void set l2(List<num> _l2) {
     asJsObject(this)['l2'] = __codec2.encode(_l2);
   }
 
-  List<num> get l2 => __codec2.decode(asJsObject(this)['l2'] as JsArray);
+  List<num> get l2 => __codec2.decode(asJsObject(this)['l2']);
   void set l3(List<JsFoo> _l3) {
     asJsObject(this)['l3'] = __codec4.encode(_l3);
   }
 
-  List<JsFoo> get l3 => __codec4.decode(asJsObject(this)['l3'] as JsArray);
+  List<JsFoo> get l3 => __codec4.decode(asJsObject(this)['l3']);
 
   void set i(int _i) {
     asJsObject(this)['_i'] = _i;
   }
 
-  int get i => asJsObject(this)['_i'] as int;
+  int get i => asJsObject(this)['_i'];
 
   void set k2(num _k2) {
     asJsObject(this)['k'] = _k2;
   }
 
-  num get k2 => asJsObject(this)['k'] as num;
+  num get k2 => asJsObject(this)['k'];
   void set k1(num _k1) {
     asJsObject(this)['k'] = _k1;
   }
 
-  num get k1 => asJsObject(this)['k'] as num;
+  num get k1 => asJsObject(this)['k'];
   int j = null;
-  bool get l => asJsObject(this)['l'] as bool;
+  bool get l => asJsObject(this)['l'];
 
-  String get a => asJsObject(this)['a'] as String;
+  String get a => asJsObject(this)['a'];
   void set a(String a) {
     asJsObject(this)['a'] = a;
   }
@@ -84,18 +82,18 @@ class JsFoo extends JsInterface {
   String get b => '';
   void set b(String b) {}
 
-  m1() => __codec0.decode(asJsObject(this).callMethod('m1') as JsObject);
+  m1() => __codec0.decode(asJsObject(this).callMethod('m1'));
   void m2() {
     asJsObject(this).callMethod('m2');
   }
 
-  String m3() => asJsObject(this).callMethod('m3') as String;
-  String m4(int a) => asJsObject(this).callMethod('m4', [a]) as String;
+  String m3() => asJsObject(this).callMethod('m3');
+  String m4(int a) => asJsObject(this).callMethod('m4', [a]);
   int m5(int a, b) =>
-      asJsObject(this).callMethod('m5', [a, __codec0.encode(b)]) as int;
+      asJsObject(this).callMethod('m5', [a, __codec0.encode(b)]);
 
   int _m6(int a, b) =>
-      asJsObject(this).callMethod('_m6', [a, __codec0.encode(b)]) as int;
+      asJsObject(this).callMethod('_m6', [a, __codec0.encode(b)]);
 }
 
 @GeneratedFrom(_JsBar)
@@ -108,7 +106,7 @@ class JsBar extends JsInterface {
   factory JsBar() = dynamic;
   factory JsBar.named(int x, int y) = dynamic;
 
-  JsBar m1() => __codec5.decode(asJsObject(this).callMethod('m1') as JsObject);
+  JsBar m1() => __codec5.decode(asJsObject(this).callMethod('m1'));
 
   void set a(int a) {
     getState(this)[#a] = a;
@@ -127,15 +125,15 @@ class JsBaz extends JsBar {
 class _Context extends JsInterface {
   _Context.created(JsObject o) : super.created(o);
 
-  int find(String a) => asJsObject(this).callMethod('find', [a]) as int;
+  int find(String a) => asJsObject(this).callMethod('find', [a]);
 
   void set a(String _a) {
     asJsObject(this)['a'] = _a;
   }
 
-  String get a => asJsObject(this)['a'] as String;
+  String get a => asJsObject(this)['a'];
 
-  String get b => asJsObject(this)['b'] as String;
+  String get b => asJsObject(this)['b'];
 
   set b(String b1) {
     asJsObject(this)['b'] = b1;
