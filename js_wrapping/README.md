@@ -27,7 +27,7 @@ You can create a wrapper like :
 abstract class _LatLng implements JsInterface {
 
   // factories to create js objects
-  factory _LatLng(num lat, num lng)=> null;
+  factory _LatLng(num lat, num lng) => null;
 
   // uninitialized fields to bind to properties
   num lat, lng;
@@ -47,9 +47,9 @@ Add the following to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  js_wrapping: ^0.3.0
+  js_wrapping: ^0.4.0
 dev_dependencies:
-  js_wrapping_generator: ^0.3.0
+  js_wrapping_generator: ^0.4.0
 ```
 
 ### Adding the generator

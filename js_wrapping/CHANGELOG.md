@@ -1,11 +1,20 @@
 
-# v0.2.0+1 (2018-05-28)
+# v0.4.0 (2017-06-20)
+
+- Fix issue with [dart-lang/sdk#28371](https://github.com/dart-lang/sdk/issues/28371).
+
+  **Breaking change**: use `factory _MyClass() => null;` instead of
+  `external factory _MyClass()` for your construtor templates.
+- remove comment generics syntax
+
+# v0.2.0+1 (2015-06-01)
 
 Fix issue with callback returning `void`.
 
-# v0.2.0 (2018-05-28)
+# v0.2.0 (2015-05-28)
 
-Total rewrite on top of the [source_gen](https://pub.dartlang.org/packages/source_gen) package.
+Total rewrite on top of the [source_gen](https://pub.dartlang.org/packages/source_gen)
+package.
 
 # Semantic Version Conventions
 
