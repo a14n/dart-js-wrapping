@@ -13,7 +13,7 @@ main() {
       expect(createInterfaceSkeleton('MyClass'), '''
 @JsName('MyClass')
 abstract class _MyClass implements JsInterface {
-  external factory _MyClass();
+  factory _MyClass() => null;
 }''');
     });
 
@@ -21,7 +21,7 @@ abstract class _MyClass implements JsInterface {
       expect(createInterfaceSkeleton('a.b.MyClass'), '''
 @JsName('a.b.MyClass')
 abstract class _MyClass implements JsInterface {
-  external factory _MyClass();
+  factory _MyClass() => null;
 }''');
     });
   });

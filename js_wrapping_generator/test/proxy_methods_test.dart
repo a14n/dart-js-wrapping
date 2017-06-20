@@ -13,7 +13,7 @@ import 'package:test/test.dart';
 part 'proxy_methods_test.g.dart';
 
 abstract class _Class0 implements JsInterface {
-  external factory _Class0();
+  factory _Class0() => null;
 
   int getI();
   void setI(int i);
@@ -21,14 +21,14 @@ abstract class _Class0 implements JsInterface {
 
 @JsName('Class0')
 abstract class _ClassPrivateMethod implements JsInterface {
-  external factory _ClassPrivateMethod();
+  factory _ClassPrivateMethod() => null;
 
   int _getI();
 }
 
 @JsName('Class0')
 abstract class _ClassRenamedMethod implements JsInterface {
-  external factory _ClassRenamedMethod();
+  factory _ClassRenamedMethod() => null;
 
   @JsName('getI')
   int getIBis();
@@ -36,14 +36,14 @@ abstract class _ClassRenamedMethod implements JsInterface {
 
 @JsName('Class0')
 abstract class _ClassRenamedPrivateMethod implements JsInterface {
-  external factory _ClassRenamedPrivateMethod();
+  factory _ClassRenamedPrivateMethod() => null;
 
   @JsName('getI')
   int _getIBis();
 }
 
 abstract class _Class1 implements JsInterface {
-  external factory _Class1();
+  factory _Class1() => null;
 
   void set1(String s);
   void set2(String s, [int i]);

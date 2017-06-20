@@ -13,29 +13,29 @@ import 'package:test/test.dart';
 part 'proxy_instantiation_test.g.dart';
 
 abstract class _Class0 implements JsInterface {
-  external factory _Class0();
+  factory _Class0() => null;
 }
 
 abstract class _Class1 implements JsInterface {
-  external factory _Class1(String s);
+  factory _Class1(String s) => null;
 }
 
 @JsName('Class0')
 abstract class _Class0Alias implements JsInterface {
-  external factory _Class0Alias();
+  factory _Class0Alias() => null;
 }
 
 @JsName('my.package.Class2')
 abstract class _Class2 implements JsInterface {
-  external factory _Class2();
+  factory _Class2() => null;
 }
 
 abstract class _Class3 implements JsInterface {
-  external factory _Class3(String s, [int i, int j]);
+  factory _Class3(String s, [int i, int j]) => null;
 }
 
 abstract class _Class4 implements JsInterface {
-  external factory _Class4(String s, {int i, int j});
+  factory _Class4(String s, {int i, int j}) => null;
 }
 
 main() {

@@ -15,7 +15,7 @@ abstract class _JsFoo implements JsInterface {
   static int static2;
   external static int staticMethod(JsFoo foo);
 
-  external factory _JsFoo();
+  factory _JsFoo() => null;
 
   List l1;
   List<num> l2;

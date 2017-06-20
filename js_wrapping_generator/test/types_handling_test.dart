@@ -18,7 +18,7 @@ typedef String SimpleFunc(int i);
 typedef B BisFunc(B b);
 
 abstract class _A implements JsInterface {
-  external factory _A();
+  factory _A() => null;
 
   B b;
   List<B> bs;
@@ -39,7 +39,7 @@ abstract class _A implements JsInterface {
 }
 
 abstract class _B implements JsInterface {
-  external factory _B(String v);
+  factory _B(String v) => null;
 
   String toString();
 }

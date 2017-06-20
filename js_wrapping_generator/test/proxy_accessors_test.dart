@@ -13,35 +13,35 @@ import 'package:test/test.dart';
 part 'proxy_accessors_test.g.dart';
 
 abstract class _Class0 implements JsInterface {
-  external factory _Class0();
+  factory _Class0() => null;
 
   final int i;
 }
 
 @JsName('Class0')
 abstract class _ClassFinalField implements JsInterface {
-  external factory _ClassFinalField();
+  factory _ClassFinalField() => null;
 
   final int i;
 }
 
 @JsName('Class0')
 abstract class _ClassNotFinalField implements JsInterface {
-  external factory _ClassNotFinalField();
+  factory _ClassNotFinalField() => null;
 
   int i;
 }
 
 @JsName('Class0')
 abstract class _ClassPrivateField implements JsInterface {
-  external factory _ClassPrivateField();
+  factory _ClassPrivateField() => null;
 
   int _i;
 }
 
 @JsName('Class0')
 abstract class _ClassRenamedField implements JsInterface {
-  external factory _ClassRenamedField();
+  factory _ClassRenamedField() => null;
 
   @JsName('i')
   int iBis;
@@ -49,7 +49,7 @@ abstract class _ClassRenamedField implements JsInterface {
 
 @JsName('Class0')
 abstract class _ClassRenamedPrivateField implements JsInterface {
-  external factory _ClassRenamedPrivateField();
+  factory _ClassRenamedPrivateField() => null;
 
   @JsName('i')
   int _iBis;
@@ -57,35 +57,35 @@ abstract class _ClassRenamedPrivateField implements JsInterface {
 
 @JsName('Class0')
 abstract class _ClassWithGetter implements JsInterface {
-  external factory _ClassWithGetter();
+  factory _ClassWithGetter() => null;
 
   int get i;
 }
 
 @JsName('Class0')
 abstract class _ClassWithSetter implements JsInterface {
-  external factory _ClassWithSetter();
+  factory _ClassWithSetter() => null;
 
   set i(int i);
 }
 
 @JsName('Class0')
 abstract class _ClassWithPrivateGetter implements JsInterface {
-  external factory _ClassWithPrivateGetter();
+  factory _ClassWithPrivateGetter() => null;
 
   int get _i;
 }
 
 @JsName('Class0')
 abstract class _ClassWithPrivateSetter implements JsInterface {
-  external factory _ClassWithPrivateSetter();
+  factory _ClassWithPrivateSetter() => null;
 
   set _i(int i);
 }
 
 @JsName('Class0')
 abstract class _ClassWithRenamedGetter implements JsInterface {
-  external factory _ClassWithRenamedGetter();
+  factory _ClassWithRenamedGetter() => null;
 
   @JsName('i')
   int get iBis;
@@ -93,7 +93,7 @@ abstract class _ClassWithRenamedGetter implements JsInterface {
 
 @JsName('Class0')
 abstract class _ClassWithRenamedSetter implements JsInterface {
-  external factory _ClassWithRenamedSetter();
+  factory _ClassWithRenamedSetter() => null;
 
   @JsName('i')
   set iBis(int i);

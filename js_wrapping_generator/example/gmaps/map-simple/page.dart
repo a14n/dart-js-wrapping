@@ -13,14 +13,14 @@ part 'page.g.dart';
 
 @JsName('Map')
 abstract class _GMap implements JsInterface {
-  external factory _GMap(Node mapDiv, [MapOptions opts]);
+  factory _GMap(Node mapDiv, [MapOptions opts]) => null;
 
   num _getZoom();
   num get zoom => _getZoom();
 }
 
 abstract class _LatLng implements JsInterface {
-  external factory _LatLng(num lat, num lng, [bool noWrap]);
+  factory _LatLng(num lat, num lng, [bool noWrap]) => null;
 
   bool equals(LatLng other);
   num get lat => _lat();
@@ -33,7 +33,7 @@ abstract class _LatLng implements JsInterface {
 
 @anonymous
 abstract class _MapOptions implements JsInterface {
-  external factory _MapOptions();
+  factory _MapOptions() => null;
 
   int zoom;
   LatLng center;

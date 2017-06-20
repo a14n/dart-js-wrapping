@@ -14,12 +14,12 @@ import 'package:test/test.dart';
 part 'namespaced_library_test.g.dart';
 
 abstract class _Class0 implements JsInterface {
-  external factory _Class0();
+  factory _Class0() => null;
 }
 
 @JsName('b.Class1')
 abstract class _Class1 implements JsInterface {
-  external factory _Class1();
+  factory _Class1() => null;
 }
 
 main() {

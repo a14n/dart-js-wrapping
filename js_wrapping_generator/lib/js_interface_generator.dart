@@ -211,10 +211,9 @@ class JsInterfaceClassGenerator {
       transformer.replace(constr.computeNode().returnType.offset,
           constr.computeNode().returnType.end, newClassName);
 
-      // generate only external factory constructor
+      // generate only factory constructor returning null
       if (!constr.isFactory ||
-          constr.computeNode().externalKeyword == null ||
-          constr.computeNode().initializers.isNotEmpty) {
+          constr.computeNode().body.toString() != '=> null;') {
         continue;
       }
 
@@ -235,9 +234,9 @@ class JsInterfaceClassGenerator {
       newJsObject += ")";
 
       transformer.removeToken(constr.computeNode().factoryKeyword);
-      transformer.removeToken(constr.computeNode().externalKeyword);
+      transformer.removeNode(constr.computeNode().body);
       transformer.insertAt(
-          constr.computeNode().end - 1, " : this.created($newJsObject)");
+          constr.computeNode().end, " : this.created($newJsObject);");
     }
 
     // generate the constructor .created
@@ -521,7 +520,7 @@ class JsInterfaceClassGenerator {
     }();
 
     // TODO(aa) type for Function can be "int -> String" : create typedef
-    return 'new FunctionCodec/*<$type>*/($encode, $decode)';
+    return 'new FunctionCodec<Function>/*<$type>*/($encode, $decode)';
   }
 
   String registerCodecIfAbsent(DartType type, String getCodecInitializer()) {
