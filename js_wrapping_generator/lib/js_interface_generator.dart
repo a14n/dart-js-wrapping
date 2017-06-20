@@ -212,8 +212,10 @@ class JsInterfaceClassGenerator {
           constr.computeNode().returnType.end, newClassName);
 
       // generate only factory constructor returning null
+      final body = constr.computeNode().body;
       if (!constr.isFactory ||
-          constr.computeNode().body.toString() != '=> null;') {
+          body is! ExpressionFunctionBody ||
+          body is ExpressionFunctionBody && body.expression is! NullLiteral) {
         continue;
       }
 
