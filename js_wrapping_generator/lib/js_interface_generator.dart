@@ -213,9 +213,7 @@ class JsInterfaceClassGenerator {
 
       // generate only factory constructor returning null
       final body = constr.computeNode().body;
-      if (!constr.isFactory ||
-          body is! ExpressionFunctionBody ||
-          body is ExpressionFunctionBody && body.expression is! NullLiteral) {
+      if (!constr.isFactory || !hasToBeGenerated(body)) {
         continue;
       }
 
@@ -299,15 +297,15 @@ class JsInterfaceClassGenerator {
       .isNotEmpty;
 
   void transformAccessor(PropertyAccessorElement accessor) {
-    if (accessor.isStatic &&
-        (accessor.computeNode() as MethodDeclaration).externalKeyword == null)
+    if (accessor.isStatic) {
+      final body = (accessor.computeNode() as MethodDeclaration).body;
+      if (hasToBeGenerated(body)) {
+        transformer.removeBetween(body.offset, body.end - 1);
+      } else {
+        return;
+      }
+    } else if (!accessor.isAbstract) {
       return;
-    if (!accessor.isStatic && !accessor.isAbstract) return;
-
-    if (accessor.isStatic &&
-        (accessor.computeNode() as MethodDeclaration).externalKeyword != null) {
-      transformer.removeToken(
-          (accessor.computeNode() as MethodDeclaration).externalKeyword);
     }
 
     final jsName = getNameAnnotation(
@@ -573,6 +571,9 @@ class JsInterfaceClassGenerator {
     }
     return false;
   }
+
+  bool hasToBeGenerated(FunctionBody body) =>
+      body is ExpressionFunctionBody && body.expression is NullLiteral;
 }
 
 String computeJsName(ClassElement clazz, ClassElement jsNameClass) {
