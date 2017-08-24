@@ -28,10 +28,7 @@ class JsInterfaceGenerator extends IncrementalGenerator {
   @override
   Future<String> generateForLibraryElement(LibraryReader library, _) async {
     generator.codecsAlreadyEmitted.clear();
-    return (await Future.wait((library.allElements).map(
-            (e) async => await generator.generate(new LibraryReader(e), null))))
-        .where((e) => e != null)
-        .join();
+    return generator.generate(library, _);
   }
 }
 
@@ -42,24 +39,29 @@ class _OldJsInterfaceGenerator extends Generator {
   _OldJsInterfaceGenerator();
 
   Future<String> generate(LibraryReader library, _) async {
-    final element = library.element;
+    return (await Future.wait((library.allElements).map(
+            (e) async => await generateForElement(e))))
+        .where((e) => e != null)
+        .join();
+  }
+
+  Future<String> generateForElement(Element element) async {
     codecs.putIfAbsent(element.library, () => <CodecSource>[]);
     codecsAlreadyEmitted.putIfAbsent(element.library, () => <CodecSource>[]);
 
     // JsInterface
     if (element is ClassElement) {
-      final classElement = element as ClassElement;
-      if (isJsInterface(classElement.library, classElement.type) &&
-          isNotGenerated(classElement) &&
-          classElement.isAbstract &&
-          classElement.isPrivate) {
-        final codecsOfLib = codecs[classElement.library];
+      if (isJsInterface(element.library, element.type) &&
+          isNotGenerated(element) &&
+          element.isAbstract &&
+          element.isPrivate) {
+        final codecsOfLib = codecs[element.library];
 
         String output =
-            new JsInterfaceClassGenerator(classElement, codecsOfLib).generate();
+            new JsInterfaceClassGenerator(element, codecsOfLib).generate();
 
         // generate new codecs
-        final emitedCodecsOfLib = codecsAlreadyEmitted[classElement.library];
+        final emitedCodecsOfLib = codecsAlreadyEmitted[element.library];
         if (codecsOfLib.length > emitedCodecsOfLib.length) {
           for (int i = emitedCodecsOfLib.length; i < codecsOfLib.length; i++) {
             final codec = codecsOfLib[i];
@@ -76,10 +78,10 @@ class _OldJsInterfaceGenerator extends Generator {
       }
 
       // JsEnum
-      if (hasJsEnumAnnotation(classElement) &&
-          isNotGenerated(classElement) &&
-          classElement.isPrivate) {
-        return new JsEnumGenerator(classElement).generate();
+      if (hasJsEnumAnnotation(element) &&
+          isNotGenerated(element) &&
+          element.isPrivate) {
+        return new JsEnumGenerator(element).generate();
       }
     }
 
@@ -384,10 +386,10 @@ class JsInterfaceClassGenerator {
   }
 
   void transformMethod(MethodElement m) {
-    if (m.isStatic && m.computeNode().externalKeyword == null) return;
+    if (m.isStatic && !m.isExternal) return;
     if (!m.isStatic && !m.isAbstract) return;
 
-    if (m.isStatic && m.computeNode().externalKeyword != null) {
+    if (m.isStatic && m.isExternal) {
       transformer.removeToken(m.computeNode().externalKeyword);
     }
 
