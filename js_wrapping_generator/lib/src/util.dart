@@ -98,13 +98,7 @@ DartType substituteTypeToGeneric(
       final argumentsTypes = type.typeArguments
           .map((e) => substituteTypeToGeneric(genericsMapping, e))
           .toList();
-
-      // http://dartbug.com/19253
-      //        final t = type.substitute4(argumentsTypes);
-      //        return t;
-
-      final newType = new InterfaceTypeImpl(type.element);
-      newType.typeArguments = argumentsTypes;
+      final newType = type.instantiate(argumentsTypes);
       return newType;
     } else {
       return type;

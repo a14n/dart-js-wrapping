@@ -39,8 +39,8 @@ class _OldJsInterfaceGenerator extends Generator {
   _OldJsInterfaceGenerator();
 
   Future<String> generate(LibraryReader library, _) async {
-    return (await Future.wait((library.allElements).map(
-            (e) async => await generateForElement(e))))
+    return (await Future.wait((library.allElements)
+            .map((e) async => await generateForElement(e))))
         .where((e) => e != null)
         .join();
   }
@@ -301,8 +301,11 @@ class JsInterfaceClassGenerator {
 
   void transformAccessor(PropertyAccessorElement accessor) {
     if (accessor.isStatic) {
+      if (accessor.isExternal) {
+        transformer.removeToken((accessor.computeNode() as MethodDeclaration).externalKeyword);
+      }
       final body = (accessor.computeNode() as MethodDeclaration).body;
-      if (hasToBeGenerated(body)) {
+      if (body is EmptyFunctionBody || hasToBeGenerated(body)) {
         transformer.removeBetween(body.offset, body.end - 1);
       } else {
         return;
