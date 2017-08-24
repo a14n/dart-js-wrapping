@@ -8,7 +8,10 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:source_gen/src/annotation.dart';
+import 'package:source_gen/source_gen.dart';
+
+bool matchAnnotation(Type type, ElementAnnotation annotation) =>
+    new TypeChecker.fromRuntime(type).hasAnnotationOfExact(annotation.element);
 
 LibraryElement getLib(LibraryElement library, String name) =>
     library.importedLibraries
@@ -20,9 +23,6 @@ ClassElement getType(
 
 bool hasAnnotation(Element element, Type type) =>
     element.metadata.any((e) => matchAnnotation(type, e));
-
-getAnnotation(Element element, Type type) => instantiateAnnotation(
-    element.metadata.singleWhere((e) => matchAnnotation(type, e)));
 
 Iterable<Annotation> getAnnotations(AnnotatedNode node, Type type) sync* {
   if (node == null || node.metadata == null) return;
@@ -111,7 +111,7 @@ DartType substituteTypeToGeneric(
     }
   }
   if (type is FunctionType) {
-    return type.substitute3(type.typeArguments
+    return type.instantiate(type.typeArguments
         .map((e) => substituteTypeToGeneric(genericsMapping, e))
         .toList());
   }

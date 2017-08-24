@@ -11,8 +11,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 LibraryElement getLib(LibraryElement libElement, String name) =>
-    libElement.importedLibraries.firstWhere((l) => l.name == name,
-        orElse: () => null);
+    libElement.importedLibraries
+        .firstWhere((l) => l.name == name, orElse: () => null);
 
 ClassElement getType(
     LibraryElement libElement, String libName, String className) {
@@ -51,8 +51,8 @@ Iterable<Annotation> getAnnotations(
   }
 }
 
-String getSourceCode(Element element) => element.source.contents.data.substring(
-    element.computeNode().offset, element.computeNode().end);
+String getSourceCode(Element element) => element.source.contents.data
+    .substring(element.computeNode().offset, element.computeNode().end);
 
 class SourceTransformation {
   int begin;

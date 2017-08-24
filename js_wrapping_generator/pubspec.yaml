@@ -4,14 +4,14 @@ author: Alexandre Ardhuin <alexandre.ardhuin@gmail.com>
 description: With that package you will be able to easilly generate wrapper for JS library in Dart.
 homepage: https://github.com/a14n/dart-js-wrapping
 environment:
-  sdk: '>=1.21.0 <2.0.0'
+  sdk: '>=1.22.1 <2.0.0'
 dependencies:
-  analyzer: ^0.29.11
-  build: ^0.9.3
-  build_runner: ^0.3.4
+  analyzer: ^0.30.0+2
+  build: ^0.10.0+1
+  build_runner: ^0.4.0+3
   js_wrapping: 0.4.0
   path: ^1.4.2
-  source_gen: ^0.5.8
+  source_gen: ^0.7.1
 dev_dependencies:
   browser: ^0.10.0
   test: ^0.12.0
