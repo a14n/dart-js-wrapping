@@ -18,20 +18,19 @@ abstract class IncrementalGenerator extends Generator {
   const IncrementalGenerator({this.maxIterations: 1000});
 
   Future<String> generateForLibraryElement(
-      LibraryElement library, BuildStep buildStep);
+      LibraryReader library, BuildStep buildStep);
 
   @override
-  Future<String> generate(Element element, BuildStep buildStep) async {
-    if (element is! LibraryElement) return null;
-    final lib = element as LibraryElement;
-    final generatedPart = getGeneratedPart(lib);
+  Future<String> generate(LibraryReader library, BuildStep buildStep) async {
+    final element = library.element;
+    final generatedPart = getGeneratedPart(element);
 
     if (generatedPart == null) return null;
 
     // back up the initial content of the part to restore at the end
     String genContent, initialContent;
     try {
-      initialContent = lib.context.getContents(generatedPart.source).data;
+      initialContent = element.context.getContents(generatedPart.source).data;
       genContent = initialContent;
     } on StateError {
       genContent = '';
@@ -44,7 +43,8 @@ abstract class IncrementalGenerator extends Generator {
         throw new StateError(
             'No stable content after $maxIterations generations');
 
-      final nextGenContent = await generateForLibraryElement(lib, buildStep);
+      final nextGenContent =
+          await generateForLibraryElement(library, buildStep);
 
       // exit if stable
       if (nextGenContent == genContent) break;
@@ -52,12 +52,12 @@ abstract class IncrementalGenerator extends Generator {
       genContent = nextGenContent;
 
       // next increment : add current genContent to initial content
-      lib.context.applyChanges(
+      element.context.applyChanges(
           new ChangeSet()..changedContent(generatedPart.source, genContent));
     }
 
     // reset part to its initial content
-    lib.context.applyChanges(initialContent == null
+    element.context.applyChanges(initialContent == null
         ? (new ChangeSet()..removedSource(generatedPart.source))
         : (new ChangeSet()
           ..changedContent(generatedPart.source, initialContent)));

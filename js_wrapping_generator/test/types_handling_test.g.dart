@@ -4,7 +4,6 @@ part of js_wrapping_generator.test.types_handling_test;
 
 // **************************************************************************
 // Generator: JsInterfaceGenerator
-// Target: library js_wrapping_generator.test.types_handling_test
 // **************************************************************************
 
 class Color extends JsEnum {

@@ -10,7 +10,9 @@ import 'package:js_wrapping_generator/js_interface_creator.dart';
 main() {
   group('JsInterface creation', () {
     test('should accept simple name', () {
-      expect(createInterfaceSkeleton('MyClass'), '''
+      expect(
+          createInterfaceSkeleton('MyClass'),
+          '''
 @JsName('MyClass')
 abstract class _MyClass implements JsInterface {
   factory _MyClass() => null;
@@ -18,7 +20,9 @@ abstract class _MyClass implements JsInterface {
     });
 
     test('should accept qualified name', () {
-      expect(createInterfaceSkeleton('a.b.MyClass'), '''
+      expect(
+          createInterfaceSkeleton('a.b.MyClass'),
+          '''
 @JsName('a.b.MyClass')
 abstract class _MyClass implements JsInterface {
   factory _MyClass() => null;

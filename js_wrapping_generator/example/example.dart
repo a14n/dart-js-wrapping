@@ -60,6 +60,7 @@ abstract class _JsBar extends JsInterface {
   void set a(int a) {
     getState(this)[#a] = a;
   }
+
   int get a => getState(this)[#a] as int;
 }
 
@@ -84,6 +85,7 @@ String get a => _context.a;
 void set a(String _a) {
   _context.a = _a;
 }
+
 String get b => _context.b;
 void set b(String _b) {
   _context.b = _b;

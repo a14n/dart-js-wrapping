@@ -8,12 +8,14 @@ import 'package:build_runner/build_runner.dart';
 import 'package:js_wrapping_generator/js_interface_generator.dart';
 import 'package:source_gen/source_gen.dart';
 
-final PhaseGroup phases = new PhaseGroup.singleAction(
-    new GeneratorBuilder([
-      new JsInterfaceGenerator(),
-    ]),
-    new InputSet('js_wrapping_generator', const [
+final List<BuildAction> phases = <BuildAction>[
+  new BuildAction(
+    new PartBuilder([new JsInterfaceGenerator()]),
+    'js_wrapping_generator',
+    inputs: const [
       'example/**/*.dart',
       'example/*.dart',
       'test/*.dart',
-    ]));
+    ],
+  )
+];

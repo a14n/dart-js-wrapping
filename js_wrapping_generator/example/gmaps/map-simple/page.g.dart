@@ -4,7 +4,6 @@ part of google_maps.sample.simple;
 
 // **************************************************************************
 // Generator: JsInterfaceGenerator
-// Target: library google_maps.sample.simple
 // **************************************************************************
 
 /// codec for google_maps.sample.simple.MapsEventListener

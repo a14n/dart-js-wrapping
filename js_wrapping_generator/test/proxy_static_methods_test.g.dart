@@ -4,7 +4,6 @@ part of js_wrapping_generator.test.proxy_static_methods_test;
 
 // **************************************************************************
 // Generator: JsInterfaceGenerator
-// Target: library js_wrapping_generator.test.proxy_static_methods_test
 // **************************************************************************
 
 @GeneratedFrom(_Class0)

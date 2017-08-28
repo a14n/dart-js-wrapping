@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:js_wrapping_generator/src/incremental_generator.dart';
 import 'package:source_gen/source_gen.dart';
-import 'package:source_gen/src/utils.dart';
 
 import 'util.dart';
 
@@ -27,12 +26,9 @@ class JsInterfaceGenerator extends IncrementalGenerator {
   final generator = new _OldJsInterfaceGenerator();
 
   @override
-  Future<String> generateForLibraryElement(LibraryElement library, _) async {
+  Future<String> generateForLibraryElement(LibraryReader library, _) async {
     generator.codecsAlreadyEmitted.clear();
-    return (await Future.wait(getElementsFromLibraryElement(library)
-            .map((e) async => await generator.generate(e, null))))
-        .where((e) => e != null)
-        .join();
+    return generator.generate(library, _);
   }
 }
 
@@ -42,44 +38,51 @@ class _OldJsInterfaceGenerator extends Generator {
 
   _OldJsInterfaceGenerator();
 
-  Future<String> generate(Element element, _) async {
+  Future<String> generate(LibraryReader library, _) async {
+    return (await Future.wait((library.allElements)
+            .map((e) async => await generateForElement(e))))
+        .where((e) => e != null)
+        .join();
+  }
+
+  Future<String> generateForElement(Element element) async {
     codecs.putIfAbsent(element.library, () => <CodecSource>[]);
     codecsAlreadyEmitted.putIfAbsent(element.library, () => <CodecSource>[]);
 
     // JsInterface
-    if (element is ClassElement &&
-        isJsInterface(element.library, element.type) &&
-        isNotGenerated(element) &&
-        element.isAbstract &&
-        element.isPrivate) {
-      final codecsOfLib = codecs[element.library];
+    if (element is ClassElement) {
+      if (isJsInterface(element.library, element.type) &&
+          isNotGenerated(element) &&
+          element.isAbstract &&
+          element.isPrivate) {
+        final codecsOfLib = codecs[element.library];
 
-      String output =
-          new JsInterfaceClassGenerator(element, codecsOfLib).generate();
+        String output =
+            new JsInterfaceClassGenerator(element, codecsOfLib).generate();
 
-      // generate new codecs
-      final emitedCodecsOfLib = codecsAlreadyEmitted[element.library];
-      if (codecsOfLib.length > emitedCodecsOfLib.length) {
-        for (int i = emitedCodecsOfLib.length; i < codecsOfLib.length; i++) {
-          final codec = codecsOfLib[i];
-          emitedCodecsOfLib.add(codec);
-          if (codec.variableName != null) {
-            output = '' +
-                '/// codec for ${codec.type}\n' +
-                'final ${codec.variableName} = ${codec.initializer};\n' +
-                output;
+        // generate new codecs
+        final emitedCodecsOfLib = codecsAlreadyEmitted[element.library];
+        if (codecsOfLib.length > emitedCodecsOfLib.length) {
+          for (int i = emitedCodecsOfLib.length; i < codecsOfLib.length; i++) {
+            final codec = codecsOfLib[i];
+            emitedCodecsOfLib.add(codec);
+            if (codec.variableName != null) {
+              output = '' +
+                  '/// codec for ${codec.type}\n' +
+                  'final ${codec.variableName} = ${codec.initializer};\n' +
+                  output;
+            }
           }
         }
+        return output;
       }
-      return output;
-    }
 
-    // JsEnum
-    if (element is ClassElement &&
-        hasJsEnumAnnotation(element) &&
-        isNotGenerated(element) &&
-        element.isPrivate) {
-      return new JsEnumGenerator(element).generate();
+      // JsEnum
+      if (hasJsEnumAnnotation(element) &&
+          isNotGenerated(element) &&
+          element.isPrivate) {
+        return new JsEnumGenerator(element).generate();
+      }
     }
 
     return null;
@@ -298,8 +301,11 @@ class JsInterfaceClassGenerator {
 
   void transformAccessor(PropertyAccessorElement accessor) {
     if (accessor.isStatic) {
+      if (accessor.isExternal) {
+        transformer.removeToken((accessor.computeNode() as MethodDeclaration).externalKeyword);
+      }
       final body = (accessor.computeNode() as MethodDeclaration).body;
-      if (hasToBeGenerated(body)) {
+      if (body is EmptyFunctionBody || hasToBeGenerated(body)) {
         transformer.removeBetween(body.offset, body.end - 1);
       } else {
         return;
@@ -383,10 +389,10 @@ class JsInterfaceClassGenerator {
   }
 
   void transformMethod(MethodElement m) {
-    if (m.isStatic && m.computeNode().externalKeyword == null) return;
+    if (m.isStatic && !m.isExternal) return;
     if (!m.isStatic && !m.isAbstract) return;
 
-    if (m.isStatic && m.computeNode().externalKeyword != null) {
+    if (m.isStatic && m.isExternal) {
       transformer.removeToken(m.computeNode().externalKeyword);
     }
 
