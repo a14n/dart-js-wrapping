@@ -13,28 +13,28 @@ import 'package:test/test.dart';
 part 'proxy_static_methods_test.g.dart';
 
 abstract class _Class0 implements JsInterface {
-  external static int getI();
-  external static void setI(int i);
+  static int getI() => $js;
+  static void setI(int i) => $js;
   factory _Class0() => null;
 }
 
 @JsName('Class0')
 abstract class _ClassPrivateMethod implements JsInterface {
-  external static int _getI();
+  static int _getI() => $js;
   factory _ClassPrivateMethod() => null;
 }
 
 @JsName('Class0')
 abstract class _ClassRenamedMethod implements JsInterface {
   @JsName('getI')
-  external static int getIBis();
+  static int getIBis() => $js;
   factory _ClassRenamedMethod() => null;
 }
 
 @JsName('Class0')
 abstract class _ClassRenamedPrivateMethod implements JsInterface {
   @JsName('getI')
-  external static int _getIBis();
+  static int _getIBis() => $js;
   factory _ClassRenamedPrivateMethod() => null;
 }
 

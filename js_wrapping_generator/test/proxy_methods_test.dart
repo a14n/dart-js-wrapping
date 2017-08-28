@@ -13,7 +13,7 @@ import 'package:test/test.dart';
 part 'proxy_methods_test.g.dart';
 
 abstract class _Class0 implements JsInterface {
-  factory _Class0() => null;
+  factory _Class0() => $js;
 
   int getI();
   void setI(int i);

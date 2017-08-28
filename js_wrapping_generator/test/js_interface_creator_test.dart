@@ -15,7 +15,7 @@ main() {
           '''
 @JsName('MyClass')
 abstract class _MyClass implements JsInterface {
-  factory _MyClass() => null;
+  factory _MyClass() => \$js;
 }''');
     });
 
@@ -25,7 +25,7 @@ abstract class _MyClass implements JsInterface {
           '''
 @JsName('a.b.MyClass')
 abstract class _MyClass implements JsInterface {
-  factory _MyClass() => null;
+  factory _MyClass() => \$js;
 }''');
     });
   });

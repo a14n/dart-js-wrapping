@@ -9,6 +9,6 @@ String createInterfaceSkeleton(String name) {
   return '''
 @JsName('$name')
 abstract class $className implements JsInterface {
-  factory $className() => null;
+  factory $className() => \$js;
 }''';
 }

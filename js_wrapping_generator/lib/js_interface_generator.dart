@@ -301,11 +301,10 @@ class JsInterfaceClassGenerator {
 
   void transformAccessor(PropertyAccessorElement accessor) {
     if (accessor.isStatic) {
-      if (accessor.isExternal) {
-        transformer.removeToken((accessor.computeNode() as MethodDeclaration).externalKeyword);
-      }
       final body = (accessor.computeNode() as MethodDeclaration).body;
-      if (body is EmptyFunctionBody || hasToBeGenerated(body)) {
+      if (body is EmptyFunctionBody ||
+          body is BlockFunctionBody && body.block.statements.isEmpty ||
+          hasToBeGenerated(body)) {
         transformer.removeBetween(body.offset, body.end - 1);
       } else {
         return;
@@ -389,12 +388,15 @@ class JsInterfaceClassGenerator {
   }
 
   void transformMethod(MethodElement m) {
-    if (m.isStatic && !m.isExternal) return;
-    if (!m.isStatic && !m.isAbstract) return;
-
-    if (m.isStatic && m.isExternal) {
-      transformer.removeToken(m.computeNode().externalKeyword);
+    if (m.isStatic) {
+      final body = m.computeNode().body;
+      if (body is EmptyFunctionBody || hasToBeGenerated(body)) {
+        transformer.removeBetween(body.offset, body.end - 1);
+      } else {
+        return;
+      }
     }
+    if (!m.isStatic && !m.isAbstract) return;
 
     final jsName = getNameAnnotation(m.computeNode(), _jsNameClass);
     final name = jsName != null
@@ -579,7 +581,10 @@ class JsInterfaceClassGenerator {
   }
 
   bool hasToBeGenerated(FunctionBody body) =>
-      body is ExpressionFunctionBody && body.expression is NullLiteral;
+      body is ExpressionFunctionBody &&
+      (body.expression is NullLiteral ||
+          body.expression is Identifier &&
+              (body.expression as Identifier).bestElement?.name == r'$js');
 }
 
 String computeJsName(ClassElement clazz, ClassElement jsNameClass) {

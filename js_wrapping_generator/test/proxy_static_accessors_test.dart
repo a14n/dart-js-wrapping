@@ -36,34 +36,34 @@ abstract class _ClassRenamedPrivateField implements JsInterface {
 
 @JsName('Class0')
 abstract class _ClassWithGetter implements JsInterface {
-  external static int get i;
+  static int get i => $js;
 }
 
 @JsName('Class0')
 abstract class _ClassWithSetter implements JsInterface {
-  external static set i(int i);
+  static set i(int i) {}
 }
 
 @JsName('Class0')
 abstract class _ClassWithPrivateGetter implements JsInterface {
-  external static int get _i;
+  static int get _i => $js;
 }
 
 @JsName('Class0')
 abstract class _ClassWithPrivateSetter implements JsInterface {
-  external static set _i(int i);
+  static set _i(int i) {}
 }
 
 @JsName('Class0')
 abstract class _ClassWithRenamedGetter implements JsInterface {
   @JsName('i')
-  external static int get iBis;
+  static int get iBis => $js;
 }
 
 @JsName('Class0')
 abstract class _ClassWithRenamedSetter implements JsInterface {
   @JsName('i')
-  external static set iBis(int i);
+  static set iBis(int i) {}
 }
 
 main() {

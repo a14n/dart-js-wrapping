@@ -70,6 +70,9 @@ class _Anonymous {
   const _Anonymous();
 }
 
+/// A placeholder for generation of factory contructors and static members.
+const $js = null;
+
 /// This class should not be directly used. It allows to silent the analyzer.
 class GeneratedFrom {
   final Type type;

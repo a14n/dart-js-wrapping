@@ -11,9 +11,9 @@ import 'package:js_wrapping/util/state.dart';
 part 'example.g.dart';
 
 abstract class _JsFoo implements JsInterface {
-  external static int get static1;
+  static int get static1 => $js;
   static int static2;
-  external static int staticMethod(JsFoo foo);
+  static int staticMethod(JsFoo foo) => $js;
 
   factory _JsFoo() => null;
 
