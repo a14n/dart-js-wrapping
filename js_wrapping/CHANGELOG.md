@@ -1,4 +1,8 @@
 
+# v0.4.1 (2017-06-20)
+
+- upgrade dependencies
+
 # v0.4.0 (2017-06-20)
 
 - Fix issue with [dart-lang/sdk#28371](https://github.com/dart-lang/sdk/issues/28371).
