@@ -493,19 +493,19 @@ class JsInterfaceClassGenerator {
           .join(', ');
       parametersDecl += ']';
     }
-
     final decode = () {
       var parameters = type.parameters.map((p) {
         final codec = getCodec(p.type);
         return codec != null ? '$codec.encode(p_${p.name})' : 'p_${p.name}';
       }).join(',');
-      var call = 'f.apply([$parameters])';
+      var call =
+          '(f is JsFunction ? f.apply([$parameters]) : Function.apply(f, [$parameters]))';
       if (returnCodec != null) {
         call = '$returnCodec.decode($call)';
       } else if (type.returnType.isVoid) {
-        return '(JsFunction f) => ($parametersDecl) { $call; }';
+        return '(f) => ($parametersDecl) { $call; }';
       }
-      return '(JsFunction f) => ($parametersDecl) => $call';
+      return '(f) => ($parametersDecl) => $call';
     }();
 
     final encode = () {
