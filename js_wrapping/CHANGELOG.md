@@ -1,5 +1,9 @@
 
-# v0.4.1 (2017-06-20)
+# v0.4.2 (2017-06-30)
+
+- Fix issue with js function unwrapping.
+
+# v0.4.1 (2017-08-28)
 
 - upgrade dependencies
 
