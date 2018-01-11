@@ -62,7 +62,7 @@ class DynamicCodec extends ConditionalCodec {
 class JsInterfaceCodec<T extends JsInterface>
     extends ConditionalCodec<T, JsObject> {
   JsInterfaceCodec(Factory<JsObject, T> decode,
-      [Predicate<JsObject> acceptEncodedValue])
+      [Predicate acceptEncodedValue])
       : super.fromFactories((T o) => asJsObject(o), decode,
           acceptEncodedValue: acceptEncodedValue);
 }
@@ -101,7 +101,7 @@ class BiMapCodec<S, T> extends ConditionalCodec<S, T> {
 class FunctionCodec<T extends Function>
     extends ConditionalCodec<T, dynamic /*JsFunction|Function*/ > {
   FunctionCodec(Factory<T, dynamic /*JsFunction|Function*/ > encode,
-      Factory<JsFunction, T> decode)
+      Factory<dynamic /*JsFunction|Function*/, T> decode)
       : super.fromFactories(encode, decode,
           acceptEncodedValue: (o) => o is JsFunction);
 }
