@@ -61,7 +61,7 @@ class JsObjectAsMap<V> extends JsInterface with MapMixin<String, V> {
 
   @override
   Iterable<String> get keys =>
-      _obj.callMethod('keys', [_o]) as Iterable<String>;
+      _obj.callMethod('keys', [_o]).map<String>((key) => key);
 
   @override
   bool containsKey(Object key) => _o.hasProperty(key as String);
