@@ -4,7 +4,7 @@
 
 library js_wrapping.adapter.object_as_map;
 
-import 'dart:collection' show Maps, MapMixin;
+import 'dart:collection' show MapMixin;
 import 'dart:convert';
 import 'dart:js';
 
@@ -69,7 +69,7 @@ class JsObjectAsMap<V> extends JsInterface with MapMixin<String, V> {
   @override
   V putIfAbsent(String key, V ifAbsent()) {
     _checkKey(key);
-    return Maps.putIfAbsent(this, key, ifAbsent) as V;
+    return super.putIfAbsent(key, ifAbsent);
   }
 
   @override
@@ -80,5 +80,9 @@ class JsObjectAsMap<V> extends JsInterface with MapMixin<String, V> {
   }
 
   @override
-  void clear() => Maps.clear(this);
+  void clear() {
+    for (var key in keys) {
+      _o.deleteProperty(key);
+    }
+  }
 }
