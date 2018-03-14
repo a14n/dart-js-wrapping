@@ -1,3 +1,6 @@
+# v0.4.3 (2018-03-14)
+
+- Fix runtime cast failure in `JsObjectAsMap.keys` for dart2.
 
 # v0.4.2 (2017-06-30)
 
