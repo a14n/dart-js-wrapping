@@ -499,7 +499,7 @@ class JsInterfaceClassGenerator {
         return codec != null ? '$codec.encode(p_${p.name})' : 'p_${p.name}';
       }).join(',');
       var call =
-          '(f is JsFunction ? f.apply([$parameters]) : Function.apply(f, [$parameters]))';
+          'f is JsFunction ? f.apply([$parameters]) : Function.apply(f, [$parameters])';
       if (returnCodec != null) {
         call = '$returnCodec.decode($call)';
       } else if (type.returnType.isVoid) {
@@ -528,7 +528,7 @@ class JsInterfaceClassGenerator {
     }();
 
     // TODO(aa) type for Function can be "int -> String" : create typedef
-    return 'new FunctionCodec<Function>/*<$type>*/($encode, $decode)';
+    return 'new FunctionCodec<Function>/*<$type>*/($encode, $decode,)';
   }
 
   String registerCodecIfAbsent(DartType type, String getCodecInitializer()) {
