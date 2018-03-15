@@ -3,7 +3,7 @@
 part of google_maps.sample.simple;
 
 // **************************************************************************
-// Generator: JsInterfaceGenerator
+// Generator: JsWrappingGenerator
 // **************************************************************************
 
 /// codec for google_maps.sample.simple.MapsEventListener

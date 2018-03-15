@@ -20,8 +20,8 @@ const String _LIB_NAME = 'js_wrapping';
 
 const _CODECS_PREFIX = '__codec';
 
-class JsInterfaceGenerator extends IncrementalGenerator {
-  JsInterfaceGenerator();
+class JsWrappingGenerator extends IncrementalGenerator {
+  JsWrappingGenerator();
 
   final generator = new _OldJsInterfaceGenerator();
 

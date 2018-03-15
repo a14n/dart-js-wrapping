@@ -94,6 +94,7 @@ main() {
     expect(asJsObject(o).callMethod('simpleFunc', [4]), '4');
 
     asJsObject(o)['simpleFunc'] = (int i) => '$i$i';
+    expect(o.simpleFunc, new isInstanceOf<Function>());
     expect(o.simpleFunc(3), '33');
   });
 

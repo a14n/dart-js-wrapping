@@ -3,7 +3,7 @@
 part of js_wrapping_generator.test.proxy_static_methods_test;
 
 // **************************************************************************
-// Generator: JsInterfaceGenerator
+// Generator: JsWrappingGenerator
 // **************************************************************************
 
 @GeneratedFrom(_Class0)

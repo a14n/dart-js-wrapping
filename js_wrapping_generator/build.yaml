@@ -1,0 +1,18 @@
+targets:
+  $default:
+    builders:
+      js_wrapping_generator|js_wrapping:
+        enabled: true
+    sources:
+    - 'example/**/*.dart'
+    - 'example/*.dart'
+    - 'test/*.dart'
+
+builders:
+  js_wrapping:
+    target: ":js_wrapping_generator"
+    import: "package:js_wrapping_generator/builder.dart"
+    builder_factories: ["jsWrapping"]
+    build_extensions: {".dart": [".g.dart"]}
+    auto_apply: dependents
+    build_to: source

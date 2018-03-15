@@ -3,7 +3,7 @@
 part of js_wrapping_generator.test.proxy_accessors_test;
 
 // **************************************************************************
-// Generator: JsInterfaceGenerator
+// Generator: JsWrappingGenerator
 // **************************************************************************
 
 @GeneratedFrom(_Class0)

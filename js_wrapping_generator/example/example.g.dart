@@ -3,7 +3,7 @@
 part of js_wrapping_generator.example.js_proxy;
 
 // **************************************************************************
-// Generator: JsInterfaceGenerator
+// Generator: JsWrappingGenerator
 // **************************************************************************
 
 /// codec for js_wrapping_generator.example.js_proxy.JsBar

@@ -3,7 +3,7 @@
 part of js_wrapping_generator.test.namespaced_library_test;
 
 // **************************************************************************
-// Generator: JsInterfaceGenerator
+// Generator: JsWrappingGenerator
 // **************************************************************************
 
 @GeneratedFrom(_Class0)
