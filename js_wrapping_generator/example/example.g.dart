@@ -6,24 +6,6 @@ part of js_wrapping_generator.example.js_proxy;
 // Generator: JsWrappingGenerator
 // **************************************************************************
 
-/// codec for js_wrapping_generator.example.js_proxy.JsBar
-final __codec5 = new JsInterfaceCodec<JsBar>((o) => new JsBar.created(o));
-
-/// codec for dart.core.List<JsFoo>
-final __codec4 = new JsListCodec<JsFoo>(__codec3);
-
-/// codec for js_wrapping_generator.example.js_proxy.JsFoo
-final __codec3 = new JsInterfaceCodec<JsFoo>((o) => new JsFoo.created(o));
-
-/// codec for dart.core.List<num>
-final __codec2 = new JsListCodec<num>(null);
-
-/// codec for dart.core.List<dynamic>
-final __codec1 = new JsListCodec<dynamic>(__codec0);
-
-/// codec for null.dynamic
-final __codec0 = new DynamicCodec();
-
 @GeneratedFrom(_JsFoo)
 class JsFoo extends JsInterface {
   static int get static1 => context['z']['y']['x']['JsFoo']['static1'];
@@ -138,3 +120,21 @@ class _Context extends JsInterface {
     asJsObject(this)['b'] = b1;
   }
 }
+
+/// codec for null.dynamic
+final __codec0 = new DynamicCodec();
+
+/// codec for dart.core.List<dynamic>
+final __codec1 = new JsListCodec<dynamic>(__codec0);
+
+/// codec for dart.core.List<num>
+final __codec2 = new JsListCodec<num>(null);
+
+/// codec for js_wrapping_generator.example.js_proxy.JsFoo
+final __codec3 = new JsInterfaceCodec<JsFoo>((o) => new JsFoo.created(o));
+
+/// codec for dart.core.List<JsFoo>
+final __codec4 = new JsListCodec<JsFoo>(__codec3);
+
+/// codec for js_wrapping_generator.example.js_proxy.JsBar
+final __codec5 = new JsInterfaceCodec<JsBar>((o) => new JsBar.created(o));

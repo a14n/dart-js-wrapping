@@ -21,60 +21,38 @@ const String _LIB_NAME = 'js_wrapping';
 const _CODECS_PREFIX = '__codec';
 
 class JsWrappingGenerator extends IncrementalGenerator {
-  JsWrappingGenerator();
-
-  final generator = new _OldJsInterfaceGenerator();
-
   @override
   Future<String> generateForLibraryElement(LibraryReader library, _) async {
-    generator.codecsAlreadyEmitted.clear();
-    return generator.generate(library, _);
+    return new _OldJsInterfaceGenerator().generate(library, _);
   }
 }
 
 class _OldJsInterfaceGenerator extends Generator {
-  final codecs = <LibraryElement, List<CodecSource>>{};
-  final codecsAlreadyEmitted = <LibraryElement, List<CodecSource>>{};
+  final codecs = <CodecSource>[];
 
   _OldJsInterfaceGenerator();
 
   Future<String> generate(LibraryReader library, _) async {
-    return (await Future.wait((library.allElements)
-            .map((e) async => await generateForElement(e))))
-        .where((e) => e != null)
+    final sections = await Future.wait(
+        library.allElements.map((e) async => await generateForElement(e)));
+    final sectionsOutput = sections.where((e) => e != null).join();
+    final codecsOutput = codecs
+        .where((c) => c.variableName != null)
+        .map((c) =>
+            '/// codec for ${c.type}\n' +
+            'final ${c.variableName} = ${c.initializer};\n')
         .join();
+    return sectionsOutput + codecsOutput;
   }
 
   Future<String> generateForElement(Element element) async {
-    codecs.putIfAbsent(element.library, () => <CodecSource>[]);
-    codecsAlreadyEmitted.putIfAbsent(element.library, () => <CodecSource>[]);
-
     // JsInterface
     if (element is ClassElement) {
       if (isJsInterface(element.library, element.type) &&
           isNotGenerated(element) &&
           element.isAbstract &&
           element.isPrivate) {
-        final codecsOfLib = codecs[element.library];
-
-        String output =
-            new JsInterfaceClassGenerator(element, codecsOfLib).generate();
-
-        // generate new codecs
-        final emitedCodecsOfLib = codecsAlreadyEmitted[element.library];
-        if (codecsOfLib.length > emitedCodecsOfLib.length) {
-          for (int i = emitedCodecsOfLib.length; i < codecsOfLib.length; i++) {
-            final codec = codecsOfLib[i];
-            emitedCodecsOfLib.add(codec);
-            if (codec.variableName != null) {
-              output = '' +
-                  '/// codec for ${codec.type}\n' +
-                  'final ${codec.variableName} = ${codec.initializer};\n' +
-                  output;
-            }
-          }
-        }
-        return output;
+        return new JsInterfaceClassGenerator(element, codecs).generate();
       }
 
       // JsEnum
