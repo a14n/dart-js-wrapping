@@ -14,8 +14,6 @@ export 'adapter/js_list.dart';
 export 'adapter/js_map.dart';
 export 'util/codec.dart';
 
-final _obj = context['Object'] as JsFunction;
-
 /// The base class of Dart interfaces for JavaScript objects.
 abstract class JsInterface extends JsRef<JsObject> {
   JsInterface.created(JsObject o) : super.created(o);
