@@ -47,16 +47,14 @@ Add the following to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  js_wrapping: ^0.4.0
+  js_wrapping: ^0.4.5
 dev_dependencies:
-  js_wrapping_generator: ^0.4.0
+  js_wrapping_generator: ^0.4.5
 ```
 
-### Adding the generator
+### Running the generator
 
-A generator is used to automatically implement the JsInterface you will create. You have to configure a `tool/phases.dart` file.
-You can adapt the [file used in google_maps](https://github.com/a14n/dart-google-maps/blob/master/tool/phases.dart). See the 
-[Running generators section of the source_gen package](https://github.com/dart-lang/source_gen#running-generators).
+See the [Running generators section of the source_gen package](https://github.com/dart-lang/source_gen#running-generators).
 
 ## Usage
 
@@ -206,7 +204,7 @@ final __codec2 = new JsInterfaceCodec<Person>((o) => new Person.created(o));
 
 Note that in `sayHelloTo` `other` is unwrapped with `toJs` automatically. In `get father` a new `Person` object is created.
 
-NB: returning `List`s and using them as parameters are also supported. 
+NB: returning `List`s and using them as parameters are also supported.
 
 ### Names used
 
