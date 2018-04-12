@@ -6,19 +6,19 @@ library js_wrapping.src.codec_util;
 
 import 'dart:convert';
 
-class IdentityCodec extends Codec {
+class IdentityCodec<E> extends Codec<E, E> {
   const IdentityCodec();
 
   @override
-  Converter get decoder => const _IdentityConverter();
+  Converter<E, E> get decoder => const _IdentityConverter();
 
   @override
-  Converter get encoder => const _IdentityConverter();
+  Converter<E, E> get encoder => const _IdentityConverter();
 }
 
-class _IdentityConverter extends Converter {
+class _IdentityConverter<E> extends Converter<E, E> {
   const _IdentityConverter();
 
   @override
-  convert(input) => input;
+  E convert(E input) => input;
 }
