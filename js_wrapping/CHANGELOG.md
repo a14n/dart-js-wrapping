@@ -1,3 +1,7 @@
+# v0.4.7 (2018-04-13)
+
+- Revert changes introduce in 0.4.6.
+
 # v0.4.6 (2018-04-13)
 
 - Fix `IdentityConverter` for dart2.
