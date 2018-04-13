@@ -1,3 +1,15 @@
+# v0.4.6 (2018-04-13)
+
+- Fix `IdentityConverter` for dart2.
+
+# v0.4.5 (2018-04-07)
+
+- Remove unused codec in generated code.
+
+# v0.4.4 (2018-04-06)
+
+- Migrate to new build_runner system.
+
 # v0.4.3 (2018-03-14)
 
 - Fix runtime cast failure in `JsObjectAsMap.keys` for dart2.

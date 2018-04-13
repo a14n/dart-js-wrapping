@@ -47,9 +47,9 @@ Add the following to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  js_wrapping: ^0.4.5
+  js_wrapping: ^0.4.6
 dev_dependencies:
-  js_wrapping_generator: ^0.4.5
+  js_wrapping_generator: ^0.4.6
 ```
 
 ### Running the generator
