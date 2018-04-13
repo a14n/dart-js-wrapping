@@ -26,7 +26,7 @@ class JsList<E> extends JsInterface with ListMixin<E> {
   /// Creates an instance backed by the JavaScript object [o].
   JsList.created(JsArray o, Codec<E, dynamic> codec)
       : _o = o,
-        _codec = codec != null ? codec : const IdentityCodec<E>(),
+        _codec = codec != null ? codec : const IdentityCodec() as Codec<E,dynamic>,
         super.created(o);
 
   @override
