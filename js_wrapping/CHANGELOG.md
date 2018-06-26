@@ -1,3 +1,7 @@
+# v0.4.8 (2018-06-26)
+
+- Fix issue in `JsList` and `JsMap` without codec.
+
 # v0.4.7 (2018-04-13)
 
 - Revert changes introduce in 0.4.6.
