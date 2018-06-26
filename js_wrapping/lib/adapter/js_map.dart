@@ -10,7 +10,7 @@ import 'dart:js';
 
 import 'package:js_wrapping/js_wrapping.dart' show JsInterface;
 
-import '../src/codec_util.dart';
+import '../util/codec.dart';
 
 final _obj = context['Object'] as JsFunction;
 
@@ -33,8 +33,7 @@ class JsObjectAsMap<V> extends JsInterface with MapMixin<String, V> {
   /// Creates an instance backed by the JavaScript object [o].
   JsObjectAsMap.created(JsObject o, Codec<V, dynamic> codec)
       : _o = o,
-        _codec =
-            codec != null ? codec : const IdentityCodec() as Codec<V, dynamic>,
+        _codec = codec ?? new IdentityCodec(),
         super.created(o);
 
   void _checkKey(String key) {

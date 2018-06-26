@@ -10,7 +10,7 @@ import 'dart:js';
 
 import 'package:js_wrapping/js_wrapping.dart' show JsInterface;
 
-import '../src/codec_util.dart';
+import '../util/codec.dart';
 
 /// A [List] interface wrapper for [JsArray]s.
 ///
@@ -26,7 +26,7 @@ class JsList<E> extends JsInterface with ListMixin<E> {
   /// Creates an instance backed by the JavaScript object [o].
   JsList.created(JsArray o, Codec<E, dynamic> codec)
       : _o = o,
-        _codec = codec != null ? codec : const IdentityCodec() as Codec<E,dynamic>,
+        _codec = codec ?? new IdentityCodec(),
         super.created(o);
 
   @override
