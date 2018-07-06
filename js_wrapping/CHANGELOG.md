@@ -1,3 +1,7 @@
+# v0.4.9 (2018-07-06)
+
+- Bump dependencies.
+
 # v0.4.8 (2018-06-26)
 
 - Fix issue in `JsList` and `JsMap` without codec.
