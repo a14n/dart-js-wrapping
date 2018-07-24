@@ -3,7 +3,7 @@
 part of js_wrapping_generator.example.js_proxy;
 
 // **************************************************************************
-// Generator: JsWrappingGenerator
+// JsWrappingGenerator
 // **************************************************************************
 
 @GeneratedFrom(_JsFoo)
@@ -121,7 +121,7 @@ class _Context extends JsInterface {
   }
 }
 
-/// codec for null.dynamic
+/// codec for dart.core.dynamic
 final __codec0 = new DynamicCodec();
 
 /// codec for dart.core.List<dynamic>

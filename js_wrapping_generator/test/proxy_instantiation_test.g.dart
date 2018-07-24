@@ -3,7 +3,7 @@
 part of js_wrapping_generator.test.proxy_instantiation_test;
 
 // **************************************************************************
-// Generator: JsWrappingGenerator
+// JsWrappingGenerator
 // **************************************************************************
 
 @GeneratedFrom(_Class0)

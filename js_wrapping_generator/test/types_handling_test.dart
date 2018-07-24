@@ -53,7 +53,7 @@ main() {
 
   test('JsInterface should be wrap/unwrap', () {
     final o = new A();
-    expect(o.b, new isInstanceOf<B>());
+    expect(o.b, const TypeMatcher<B>());
     expect(o.b.toString(), 'init');
 
     o.b = new B('update');
@@ -62,25 +62,25 @@ main() {
 
   test('List of JsInterface should be wrap/unwrap', () {
     final o = new A();
-    expect(o.bs, new isInstanceOf<List<B>>());
+    expect(o.bs, const TypeMatcher<List<B>>());
     expect(o.bs.length, 2);
     expect(o.bs[0].toString(), 'b1');
     expect(o.bs[1].toString(), 'b2');
 
     o.bs = [new B('u1')];
-    expect(asJsObject(o)['bs'], new isInstanceOf<JsArray>());
+    expect(asJsObject(o)['bs'], const TypeMatcher<JsArray>());
     expect(asJsObject(o)['bs'].length, 1);
     expect(asJsObject(o)['bs'][0].callMethod('toString'), 'u1');
   });
 
   test('List of int should be wrap/unwrap', () {
     final o = new A();
-    expect(o.li, new isInstanceOf<List>());
+    expect(o.li, const TypeMatcher<List>());
     expect(o.li.length, 3);
     expect(o.li, [3, 4, 6]);
 
     o.li = [1];
-    expect(asJsObject(o)['li'], new isInstanceOf<JsArray>());
+    expect(asJsObject(o)['li'], const TypeMatcher<JsArray>());
     expect(asJsObject(o)['li'].length, 1);
     expect(asJsObject(o)['li'], [1]);
   });
@@ -94,7 +94,7 @@ main() {
     expect(asJsObject(o).callMethod('simpleFunc', [4]), '4');
 
     asJsObject(o)['simpleFunc'] = (int i) => '$i$i';
-    expect(o.simpleFunc, new isInstanceOf<Function>());
+    expect(o.simpleFunc, const TypeMatcher<Function>());
     expect(o.simpleFunc(3), '33');
   });
 

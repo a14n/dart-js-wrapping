@@ -40,9 +40,7 @@ String formatParameter(
       ? formatFunction(type, p.name, genericsMapping)
       : '${type} ${p.name}';
   if (p.defaultValueCode != null) {
-    if (p.parameterKind == ParameterKind.POSITIONAL) code += '=';
-    if (p.parameterKind == ParameterKind.NAMED) code += ':';
-    code += p.defaultValueCode;
+    code += '=${p.defaultValueCode}';
   }
   return code;
 }
@@ -51,12 +49,10 @@ String formatFunction(
     FunctionType type, String name, Map<DartType, DartType> genericsMapping) {
   String result = '${type.returnType.displayName} ${name}(';
 
-  final requiredParameters =
-      type.parameters.where((p) => p.parameterKind == ParameterKind.REQUIRED);
+  final requiredParameters = type.parameters.where((p) => p.isNotOptional);
   final optionalPositionalParameters =
-      type.parameters.where((p) => p.parameterKind == ParameterKind.POSITIONAL);
-  final optionalNamedParameters =
-      type.parameters.where((p) => p.parameterKind == ParameterKind.NAMED);
+      type.parameters.where((p) => p.isOptionalPositional);
+  final optionalNamedParameters = type.parameters.where((p) => p.isNamed);
 
   result += requiredParameters
       .map((p) => formatParameter(p, genericsMapping))

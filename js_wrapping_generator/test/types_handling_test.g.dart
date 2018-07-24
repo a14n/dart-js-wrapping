@@ -3,7 +3,7 @@
 part of js_wrapping_generator.test.types_handling_test;
 
 // **************************************************************************
-// Generator: JsWrappingGenerator
+// JsWrappingGenerator
 // **************************************************************************
 
 class Color extends JsEnum {

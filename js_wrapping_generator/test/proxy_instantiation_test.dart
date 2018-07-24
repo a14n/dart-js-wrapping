@@ -42,7 +42,7 @@ main() {
   test('Class0 should be instantiable', () {
     final o = new Class0();
     final jsO = asJsObject(o);
-    expect(jsO, new isInstanceOf<js.JsObject>());
+    expect(jsO, const TypeMatcher<js.JsObject>());
     expect(js.context.callMethod('isClass0', [jsO]), true);
   });
 
@@ -64,7 +64,7 @@ main() {
   test('Class0Alias should create a Class0 js object', () {
     final o = new Class0Alias();
     final jsO = asJsObject(o);
-    expect(jsO, new isInstanceOf<js.JsObject>());
+    expect(jsO, const TypeMatcher<js.JsObject>());
     expect(js.context.callMethod('isClass0', [jsO]), true);
   });
 
@@ -79,7 +79,7 @@ main() {
   test('Class2 should create a my.package.Class2 js object', () {
     final o = new Class2();
     final jsO = asJsObject(o);
-    expect(jsO, new isInstanceOf<js.JsObject>());
+    expect(jsO, const TypeMatcher<js.JsObject>());
     expect(js.context.callMethod('isClass2', [jsO]), true);
   });
 

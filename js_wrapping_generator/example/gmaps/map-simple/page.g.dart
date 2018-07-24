@@ -3,7 +3,7 @@
 part of google_maps.sample.simple;
 
 // **************************************************************************
-// Generator: JsWrappingGenerator
+// JsWrappingGenerator
 // **************************************************************************
 
 @GeneratedFrom(_GMap)
@@ -139,7 +139,7 @@ final __codec1 = new JsInterfaceCodec<LatLng>((o) => new LatLng.created(o));
 final __codec2 = new BiMapCodec<MapTypeId, dynamic>(
     new Map<MapTypeId, dynamic>.fromIterable(MapTypeId.values, value: asJs));
 
-/// codec for null.dynamic
+/// codec for dart.core.dynamic
 final __codec3 = new DynamicCodec();
 
 /// codec for google_maps.sample.simple.MapsEventListener

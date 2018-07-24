@@ -243,10 +243,8 @@ class JsInterfaceClassGenerator {
   }
 
   String convertParameters(List<ParameterElement> parameters) {
-    final nonNamedParams =
-        parameters.where((p) => p.parameterKind != ParameterKind.NAMED);
-    final namedParams =
-        parameters.where((p) => p.parameterKind == ParameterKind.NAMED);
+    final nonNamedParams = parameters.where((p) => !p.isNamed);
+    final namedParams = parameters.where((p) => p.isNamed);
 
     String parameterList = nonNamedParams.map(convertParameterToJs).join(', ');
     if (namedParams.isNotEmpty) {
@@ -397,11 +395,8 @@ class JsInterfaceClassGenerator {
           m.computeNode().end - 1, m.computeNode().end, "{ $call; }");
     } else {
       final codec = getCodec(m.returnType);
-      transformer.insertAt(
-          m.computeNode().end - 1,
-          " => ${codec == null
-          ? call
-          : "$codec.decode($call)"}");
+      transformer.insertAt(m.computeNode().end - 1,
+          " => ${codec == null ? call : "$codec.decode($call)"}");
     }
 
     getAnnotations(m.computeNode(), _jsNameClass)
@@ -458,15 +453,14 @@ class JsInterfaceClassGenerator {
     final returnCodec = getCodec(type.returnType);
 
     String parametersDecl = type.parameters
-        .where((p) => p.parameterKind == ParameterKind.REQUIRED)
+        .where((p) => p.isNotOptional)
         .map((p) => 'p_${p.name}')
         .join(', ');
-    if (type.parameters
-        .any((p) => p.parameterKind == ParameterKind.POSITIONAL)) {
+    if (type.parameters.any((p) => p.isOptionalPositional)) {
       if (parametersDecl.isNotEmpty) parametersDecl += ',';
       parametersDecl += '[';
       parametersDecl += type.parameters
-          .where((p) => p.parameterKind == ParameterKind.POSITIONAL)
+          .where((p) => p.isOptionalPositional)
           .map((p) => 'p_' + p.name)
           .join(', ');
       parametersDecl += ']';
