@@ -1,7 +1,7 @@
 name: js_wrapping
-version: 0.4.9
+version: 0.5.0
 author: Alexandre Ardhuin <alexandre.ardhuin@gmail.com>
 description: That package contains elements to easilly wrap JS library in Dart.
 homepage: https://github.com/a14n/dart-js-wrapping
 environment:
-  sdk: '>=1.21.0 <2.0.0'
+  sdk: '>=2.0.0-dev.67.0 <2.0.0'
