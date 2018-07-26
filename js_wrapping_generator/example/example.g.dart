@@ -9,7 +9,7 @@ part of js_wrapping_generator.example.js_proxy;
 @GeneratedFrom(_JsFoo)
 class JsFoo extends JsInterface {
   static int get static1 => context['z']['y']['x']['JsFoo']['static1'];
-  static void set static2(int _static2) {
+  static set static2(int _static2) {
     context['z']['y']['x']['JsFoo']['static2'] = _static2;
   }
 
@@ -17,37 +17,37 @@ class JsFoo extends JsInterface {
   static int staticMethod(JsFoo foo) => context['z']['y']['x']['JsFoo']
       .callMethod('staticMethod', [__codec3.encode(foo)]);
 
+  JsFoo() : this.created(JsObject(context['z']['y']['x']['JsFoo']));
   JsFoo.created(JsObject o) : super.created(o);
-  JsFoo() : this.created(new JsObject(context['z']['y']['x']['JsFoo']));
 
-  void set l1(List _l1) {
+  set l1(List _l1) {
     asJsObject(this)['l1'] = __codec1.encode(_l1);
   }
 
   List get l1 => __codec1.decode(asJsObject(this)['l1']);
-  void set l2(List<num> _l2) {
+  set l2(List<num> _l2) {
     asJsObject(this)['l2'] = __codec2.encode(_l2);
   }
 
   List<num> get l2 => __codec2.decode(asJsObject(this)['l2']);
-  void set l3(List<JsFoo> _l3) {
+  set l3(List<JsFoo> _l3) {
     asJsObject(this)['l3'] = __codec4.encode(_l3);
   }
 
   List<JsFoo> get l3 => __codec4.decode(asJsObject(this)['l3']);
 
-  void set i(int _i) {
+  set i(int _i) {
     asJsObject(this)['_i'] = _i;
   }
 
   int get i => asJsObject(this)['_i'];
 
-  void set k2(num _k2) {
+  set k2(num _k2) {
     asJsObject(this)['k'] = _k2;
   }
 
   num get k2 => asJsObject(this)['k'];
-  void set k1(num _k1) {
+  set k1(num _k1) {
     asJsObject(this)['k'] = _k1;
   }
 
@@ -98,17 +98,16 @@ class JsBar extends JsInterface {
 
 @GeneratedFrom(_JsBaz)
 class JsBaz extends JsBar {
-  JsBaz.created(JsObject o) : super.created(o);
   factory JsBaz() = dynamic;
+  JsBaz.created(JsObject o) : super.created(o);
 }
 
 @GeneratedFrom(__Context)
 class _Context extends JsInterface {
   _Context.created(JsObject o) : super.created(o);
-
   int find(String a) => asJsObject(this).callMethod('find', [a]);
 
-  void set a(String _a) {
+  set a(String _a) {
     asJsObject(this)['a'] = _a;
   }
 
@@ -122,19 +121,19 @@ class _Context extends JsInterface {
 }
 
 /// codec for dart.core.dynamic
-final __codec0 = new DynamicCodec();
+final __codec0 = DynamicCodec();
 
 /// codec for dart.core.List<dynamic>
-final __codec1 = new JsListCodec<dynamic>(__codec0);
+final __codec1 = JsListCodec<dynamic>(__codec0);
 
 /// codec for dart.core.List<num>
-final __codec2 = new JsListCodec<num>(null);
+final __codec2 = JsListCodec<num>(null);
 
 /// codec for js_wrapping_generator.example.js_proxy.JsFoo
-final __codec3 = new JsInterfaceCodec<JsFoo>((o) => new JsFoo.created(o));
+final __codec3 = JsInterfaceCodec<JsFoo>((o) => JsFoo.created(o));
 
 /// codec for dart.core.List<JsFoo>
-final __codec4 = new JsListCodec<JsFoo>(__codec3);
+final __codec4 = JsListCodec<JsFoo>(__codec3);
 
 /// codec for js_wrapping_generator.example.js_proxy.JsBar
-final __codec5 = new JsInterfaceCodec<JsBar>((o) => new JsBar.created(o));
+final __codec5 = JsInterfaceCodec<JsBar>((o) => JsBar.created(o));

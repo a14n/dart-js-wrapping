@@ -1,8 +1,9 @@
 # Dart Js Wrapping
 
-This package allows developers to define well-typed interfaces for JavaScript objects. Typed JavaScript Interfaces are classes
-that describes a JavaScript object and have a well-defined Dart API, complete with type annotations, constructors, even optional
-and named parameters.
+This package allows developers to define well-typed interfaces for JavaScript
+objects. Typed JavaScript Interfaces are classes
+that describes a JavaScript object and have a well-defined Dart API, complete
+with type annotations, constructors, even optional and named parameters.
 
 ## Writing Js wrapper
 
@@ -47,9 +48,9 @@ Add the following to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  js_wrapping: ^0.4.7
+  js_wrapping: ^0.5.0
 dev_dependencies:
-  js_wrapping_generator: ^0.4.7
+  js_wrapping_generator: ^0.5.0
 ```
 
 ### Running the generator
@@ -62,8 +63,9 @@ See the [Running generators section of the source_gen package](https://github.co
 
 ### Defining Typed JavaScript Interfaces
 
-To create a Typed JavaScript Interface you will start by creating a private class that extends or implements `JsInterface`. It
-will be the template used to create a really class that wrap the underlying JsObject.
+To create a Typed JavaScript Interface you will start by creating a private
+class that extends or implements `JsInterface`. It will be the template used to
+create a really class that wrap the underlying JsObject.
 
 ```dart
 import 'package:js_wrapping/js_wrapping.dart';
@@ -91,8 +93,9 @@ The contructor `created` allows to wrap existing `JsObject`.
 
 ### Constructors to create js object
 
-If `Foo` is a js object/function you can create a new instance in js with `new Foo()`. To make it possible to create such js
-instance from the Dart-side you have to define a `factory` constructor:
+If `Foo` is a js object/function you can create a new instance in js with
+`new Foo()`. To make it possible to create such js instance from the Dart-side
+you have to define a `factory` constructor:
 
 ```dart
 abstract class _Foo implements JsInterface {
@@ -115,8 +118,9 @@ NB: You can also use named constructors.
 
 ### Properties and accessors
 
-Properties or abstract getters/setters can be added to the private class and will generate getters and setters to access to the
-properties of the underlying js object.
+Properties or abstract getters/setters can be added to the private class and
+will generate getters and setters to access to the properties of the underlying
+js object.
 
 ```dart
 abstract class _Person implements JsInterface {
@@ -147,7 +151,8 @@ class Person extends JsInterface implements _Person {
 }
 ```
 
-NB: `asJsObject(this)` is used to get the underlying JsObject and perform operations on it.
+NB: `asJsObject(this)` is used to get the underlying JsObject and perform
+operations on it.
 
 ### Methods
 
@@ -176,8 +181,9 @@ class Person extends JsInterface implements _Person {
 
 ### Parameters types and return types
 
-The generation relies on the type annotations provided. If you use a JsInterface as return type the generator will automatically
-wrap the underlying js object in the indicated type. You are also allowed to use JsInterface as parameters.
+The generation relies on the type annotations provided. If you use a JsInterface
+as return type the generator will automatically wrap the underlying js object in
+the indicated type. You are also allowed to use JsInterface as parameters.
 
 For instance:
 
@@ -202,7 +208,8 @@ class Person extends JsInterface implements _Person {
 final __codec2 = new JsInterfaceCodec<Person>((o) => new Person.created(o));
 ```
 
-Note that in `sayHelloTo` `other` is unwrapped with `toJs` automatically. In `get father` a new `Person` object is created.
+Note that in `sayHelloTo` `other` is unwrapped with `toJs` automatically. In
+`get father` a new `Person` object is created.
 
 NB: returning `List`s and using them as parameters are also supported.
 
@@ -210,8 +217,9 @@ NB: returning `List`s and using them as parameters are also supported.
 
 #### constructors
 
-By default the names used for object instantiation are the name minus the prepended `_`. Thus a class `_Foo` will use the js
-function/class `Foo`. You can override this name by providing a  `JsName('MyClassName')` on the class.
+By default the names used for object instantiation are the name minus the
+prepended `_`. Thus a class `_Foo` will use the js function/class `Foo`. You can
+override this name by providing a  `JsName('MyClassName')` on the class.
 
 ```dart
 @JsName('People')
@@ -223,9 +231,10 @@ abstract class _Person implements JsInterface {
 
 #### members
 
-By default the name used for the call is the member's name if public or the name minus the prepended `_` if private. Thus the
-methods `m1()` and `_m1()` will use the same js function `m1`. You can override this name by providing a `JsName('myMemberName')`
-on the member.
+By default the name used for the call is the member's name if public or the name
+minus the prepended `_` if private. Thus the methods `m1()` and `_m1()` will use
+the same js function `m1`. You can override this name by providing a
+`JsName('myMemberName')` on the member.
 
 ```dart
 abstract class _Person implements JsInterface {
@@ -237,7 +246,8 @@ abstract class _Person implements JsInterface {
 
 #### anonymous objects
 
-It's common to instantiate anonymous Js object. If your private classe maps an anonymous object you can add `@anonymous` on it.
+It's common to instantiate anonymous Js object. If your private classe maps an
+anonymous object you can add `@anonymous` on it.
 
 ```dart
 @anonymous
@@ -260,7 +270,8 @@ Note the `context['Object']` used on creation.
 
 #### create getter from method
 
-If a js object as a `getXxx()` function you would like to map on the dart side with a `get xxx` you can do something like that:
+If a js object as a `getXxx()` function you would like to map on the dart side
+with a `get xxx` you can do something like that:
 
 ```dart
 abstract class _Person implements JsInterface {
@@ -273,7 +284,8 @@ This can be applied to any redirection you'd like to do.
 
 #### avoid to repeat a namespace on every classes
 
-You can add a `JsName('my.namespace')` on your library. Thus every constructor will prepend the name of the class with this name.
+You can add a `JsName('my.namespace')` on your library. Thus every constructor
+will prepend the name of the class with this name.
 
 ```dart
 @JsName('my.namespace')

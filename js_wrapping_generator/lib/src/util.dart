@@ -11,7 +11,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:source_gen/source_gen.dart';
 
 bool matchAnnotation(Type type, ElementAnnotation annotation) =>
-    new TypeChecker.fromRuntime(type).hasAnnotationOfExact(annotation.element);
+    TypeChecker.fromRuntime(type).hasAnnotationOfExact(annotation.element);
 
 LibraryElement getLib(LibraryElement library, String name) =>
     library.importedLibraries
@@ -26,7 +26,7 @@ bool hasAnnotation(Element element, Type type) =>
 
 Iterable<Annotation> getAnnotations(AnnotatedNode node, Type type) sync* {
   if (node == null || node.metadata == null) return;
-  for (Annotation a in node.metadata) {
+  for (final a in node.metadata) {
     if (matchAnnotation(type, a.elementAnnotation)) {
       yield a;
     }
@@ -36,9 +36,9 @@ Iterable<Annotation> getAnnotations(AnnotatedNode node, Type type) sync* {
 String formatParameter(
     ParameterElement p, Map<DartType, DartType> genericsMapping) {
   final type = substituteTypeToGeneric(genericsMapping, p.type);
-  String code = type is FunctionType
+  var code = type is FunctionType
       ? formatFunction(type, p.name, genericsMapping)
-      : '${type} ${p.name}';
+      : '$type ${p.name}';
   if (p.defaultValueCode != null) {
     code += '=${p.defaultValueCode}';
   }
@@ -47,37 +47,35 @@ String formatParameter(
 
 String formatFunction(
     FunctionType type, String name, Map<DartType, DartType> genericsMapping) {
-  String result = '${type.returnType.displayName} ${name}(';
-
   final requiredParameters = type.parameters.where((p) => p.isNotOptional);
   final optionalPositionalParameters =
       type.parameters.where((p) => p.isOptionalPositional);
   final optionalNamedParameters = type.parameters.where((p) => p.isNamed);
 
-  result += requiredParameters
+  var params = '';
+  params += requiredParameters
       .map((p) => formatParameter(p, genericsMapping))
       .join(', ');
 
   if (optionalPositionalParameters.isNotEmpty) {
-    if (requiredParameters.isNotEmpty) result += ', ';
-    result += '[';
-    result += optionalPositionalParameters
+    if (requiredParameters.isNotEmpty) params += ', ';
+    params += '[';
+    params += optionalPositionalParameters
         .map((p) => formatParameter(p, genericsMapping))
         .join(', ');
-    result += ']';
+    params += ']';
   }
 
   if (optionalNamedParameters.isNotEmpty) {
-    if (requiredParameters.isNotEmpty) result += ', ';
-    result += '{';
-    result += optionalNamedParameters
+    if (requiredParameters.isNotEmpty) params += ', ';
+    params += '{';
+    params += optionalNamedParameters
         .map((p) => formatParameter(p, genericsMapping))
         .join(', ');
-    result += '}';
+    params += '}';
   }
 
-  result += ')';
-  return result;
+  return '${type.returnType.displayName} $name($params)';
 }
 
 /// Returns the [name] or the [name] prefixed by `this.` if a parameter has this
@@ -136,34 +134,38 @@ class Transformer {
   bool get hasTransformations => _transformations.isNotEmpty;
 
   void insertAt(int index, String content) =>
-      _transformations.add(new SourceTransformation.insertion(index, content));
+      _transformations.add(SourceTransformation.insertion(index, content));
 
   void removeBetween(int begin, int end) =>
-      _transformations.add(new SourceTransformation.removal(begin, end));
+      _transformations.add(SourceTransformation.removal(begin, end));
 
-  void removeNode(AstNode node) => _transformations
-      .add(new SourceTransformation.removal(node.offset, node.end));
+  void removeNode(AstNode node) =>
+      _transformations.add(SourceTransformation.removal(node.offset, node.end));
 
   void removeToken(Token token) => _transformations
-      .add(new SourceTransformation.removal(token.offset, token.end));
+      .add(SourceTransformation.removal(token.offset, token.end));
 
   void replace(int begin, int end, String content) =>
-      _transformations.add(new SourceTransformation(begin, end, content));
+      _transformations.add(SourceTransformation(begin, end, content));
 
-  String applyOnCode(String code, {int initialPadding: 0}) {
-    _transformations.forEach((e) => e.shift(initialPadding));
+  String applyOnCode(String code, {int initialPadding = 0}) {
+    var result = code;
+    for (final transformation in _transformations) {
+      transformation.shift(initialPadding);
+    }
     for (var i = 0; i < _transformations.length; i++) {
       final t = _transformations[i];
-      code = code.substring(0, t.begin) + t.content + code.substring(t.end);
-      _transformations.skip(i + 1).forEach((e) {
-        if (e.end <= t.begin) return;
-        if (t.end <= e.begin) {
-          e.shift(t.content.length - (t.end - t.begin));
-          return;
+      result =
+          result.substring(0, t.begin) + t.content + result.substring(t.end);
+      for (final transformation in _transformations.skip(i + 1)) {
+        if (transformation.end <= t.begin) continue;
+        if (t.end <= transformation.begin) {
+          transformation.shift(t.content.length - (t.end - t.begin));
+          continue;
         }
-        throw 'Colision in transformations';
-      });
+        throw StateError('Colision in transformations');
+      }
     }
-    return code;
+    return result;
   }
 }

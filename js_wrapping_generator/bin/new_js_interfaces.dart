@@ -4,7 +4,7 @@
 
 import 'package:js_wrapping_generator/js_interface_creator.dart';
 
-main(List<String> args) {
+void main(List<String> args) {
   if (args.isEmpty) {
     print('You must provide one or more class names as arguments');
   }

@@ -8,8 +8,8 @@ part of js_wrapping_generator.test.proxy_methods_test;
 
 @GeneratedFrom(_Class0)
 class Class0 extends JsInterface {
+  Class0() : this.created(JsObject(context['Class0']));
   Class0.created(JsObject o) : super.created(o);
-  Class0() : this.created(new JsObject(context['Class0']));
 
   int getI() => asJsObject(this).callMethod('getI');
   void setI(int i) {
@@ -20,8 +20,8 @@ class Class0 extends JsInterface {
 @GeneratedFrom(_ClassPrivateMethod)
 @JsName('Class0')
 class ClassPrivateMethod extends JsInterface {
+  ClassPrivateMethod() : this.created(JsObject(context['Class0']));
   ClassPrivateMethod.created(JsObject o) : super.created(o);
-  ClassPrivateMethod() : this.created(new JsObject(context['Class0']));
 
   int _getI() => asJsObject(this).callMethod('getI');
 }
@@ -29,8 +29,8 @@ class ClassPrivateMethod extends JsInterface {
 @GeneratedFrom(_ClassRenamedMethod)
 @JsName('Class0')
 class ClassRenamedMethod extends JsInterface {
+  ClassRenamedMethod() : this.created(JsObject(context['Class0']));
   ClassRenamedMethod.created(JsObject o) : super.created(o);
-  ClassRenamedMethod() : this.created(new JsObject(context['Class0']));
 
   int getIBis() => asJsObject(this).callMethod('getI');
 }
@@ -38,16 +38,16 @@ class ClassRenamedMethod extends JsInterface {
 @GeneratedFrom(_ClassRenamedPrivateMethod)
 @JsName('Class0')
 class ClassRenamedPrivateMethod extends JsInterface {
+  ClassRenamedPrivateMethod() : this.created(JsObject(context['Class0']));
   ClassRenamedPrivateMethod.created(JsObject o) : super.created(o);
-  ClassRenamedPrivateMethod() : this.created(new JsObject(context['Class0']));
 
   int _getIBis() => asJsObject(this).callMethod('getI');
 }
 
 @GeneratedFrom(_Class1)
 class Class1 extends JsInterface {
+  Class1() : this.created(JsObject(context['Class1']));
   Class1.created(JsObject o) : super.created(o);
-  Class1() : this.created(new JsObject(context['Class1']));
 
   void set1(String s) {
     asJsObject(this).callMethod('set1', [s]);
@@ -61,7 +61,7 @@ class Class1 extends JsInterface {
     asJsObject(this).callMethod('set3', [
       s,
       () {
-        final o = new JsObject(context['Object']);
+        final o = JsObject(context['Object']);
         if (i != null) o['i'] = i;
         if (j != null) o['j'] = j;
         return o;

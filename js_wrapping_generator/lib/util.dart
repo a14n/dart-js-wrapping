@@ -24,8 +24,8 @@ ClassElement getType(
 
 bool isAnnotationOfType(
     ElementAnnotation annotation, ClassElement annotationClass) {
-  var metaElement = annotation.element;
-  var exp;
+  final metaElement = annotation.element;
+  dynamic exp;
   DartType type;
   if (metaElement is PropertyAccessorElement) {
     exp = metaElement.variable;
@@ -34,7 +34,7 @@ bool isAnnotationOfType(
     exp = metaElement;
     type = metaElement.enclosingElement.type;
   } else {
-    throw new UnimplementedError('Unsupported annotation: ${annotation}');
+    throw UnimplementedError('Unsupported annotation: $annotation');
   }
   if (exp == annotationClass) return true;
   return type.isSubtypeOf(annotationClass.type);
@@ -43,8 +43,8 @@ bool isAnnotationOfType(
 Iterable<Annotation> getAnnotations(
     AnnotatedNode node, ClassElement clazz) sync* {
   if (node == null || node.metadata == null) return;
-  for (Annotation a in node.metadata) {
-    var e = a.element;
+  for (final a in node.metadata) {
+    final e = a.element;
     if (e is ConstructorElement && e.type.returnType == clazz.type) {
       yield a;
     }
@@ -75,35 +75,37 @@ class Transformer {
   final _transformations = <SourceTransformation>[];
 
   void insertAt(int index, String content) =>
-      _transformations.add(new SourceTransformation.insertion(index, content));
+      _transformations.add(SourceTransformation.insertion(index, content));
 
   void removeBetween(int begin, int end) =>
-      _transformations.add(new SourceTransformation.removal(begin, end));
+      _transformations.add(SourceTransformation.removal(begin, end));
 
-  void removeNode(AstNode node) => _transformations
-      .add(new SourceTransformation.removal(node.offset, node.end));
+  void removeNode(AstNode node) =>
+      _transformations.add(SourceTransformation.removal(node.offset, node.end));
 
   void removeToken(Token token) => _transformations
-      .add(new SourceTransformation.removal(token.offset, token.end));
+      .add(SourceTransformation.removal(token.offset, token.end));
 
   void replace(int begin, int end, String content) =>
-      _transformations.add(new SourceTransformation(begin, end, content));
+      _transformations.add(SourceTransformation(begin, end, content));
 
   String applyOn(Element element) {
     var code = getSourceCode(element);
     final initialPadding = -element.computeNode().offset;
-    _transformations.forEach((e) => e.shift(initialPadding));
+    for (final transformation in _transformations) {
+      transformation.shift(initialPadding);
+    }
     for (var i = 0; i < _transformations.length; i++) {
       final t = _transformations[i];
       code = code.substring(0, t.begin) + t.content + code.substring(t.end);
-      _transformations.skip(i + 1).forEach((e) {
-        if (e.end <= t.begin) return;
-        if (t.end <= e.begin) {
-          e.shift(t.content.length - (t.end - t.begin));
-          return;
+      for (final transformation in _transformations.skip(i + 1)) {
+        if (transformation.end <= t.begin) continue;
+        if (t.end <= transformation.begin) {
+          transformation.shift(t.content.length - (t.end - t.begin));
+          continue;
         }
-        throw 'Colision in transformations';
-      });
+        throw StateError('Colision in transformations');
+      }
     }
     return code;
   }

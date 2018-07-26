@@ -5,7 +5,7 @@
 library js_wrapping.js_interface_creator;
 
 String createInterfaceSkeleton(String name) {
-  final className = '_' + name.substring(name.lastIndexOf('.') + 1);
+  final className = '_${name.substring(name.lastIndexOf('.') + 1)}';
   return '''
 @JsName('$name')
 abstract class $className implements JsInterface {

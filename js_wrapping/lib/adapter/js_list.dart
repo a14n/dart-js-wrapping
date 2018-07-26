@@ -4,8 +4,8 @@
 
 library js_wrapping.adapter.list;
 
-import 'dart:convert';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:js';
 
 import 'package:js_wrapping/js_wrapping.dart' show JsInterface;
@@ -21,19 +21,19 @@ class JsList<E> extends JsInterface with ListMixin<E> {
   final Codec<E, dynamic> _codec;
 
   /// Creates an instance backed by a new JavaScript Array.
-  JsList(Codec<E, dynamic> codec) : this.created(new JsArray(), codec);
+  JsList(Codec<E, dynamic> codec) : this.created(JsArray(), codec);
 
   /// Creates an instance backed by the JavaScript object [o].
   JsList.created(JsArray o, Codec<E, dynamic> codec)
       : _o = o,
-        _codec = codec ?? new IdentityCodec(),
+        _codec = codec ?? IdentityCodec(),
         super.created(o);
 
   @override
   int get length => _o.length;
 
   @override
-  void set length(int length) {
+  set length(int length) {
     _o.length = length;
   }
 
@@ -46,8 +46,8 @@ class JsList<E> extends JsInterface with ListMixin<E> {
   }
 
   @override
-  void add(E value) {
-    _o.add(_codec.encode(value));
+  void add(E element) {
+    _o.add(_codec.encode(element));
   }
 
   @override
@@ -73,8 +73,8 @@ class JsList<E> extends JsInterface with ListMixin<E> {
   E removeLast() => _codec.decode(_o.removeLast());
 
   @override
-  void setRange(int start, int end, Iterable<E> iterable, [int startFrom = 0]) {
-    _o.setRange(start, end, iterable.map(_codec.encode), startFrom);
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
+    _o.setRange(start, end, iterable.map(_codec.encode), skipCount);
   }
 
   @override

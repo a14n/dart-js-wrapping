@@ -11,20 +11,21 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:build/build.dart';
 import 'package:js_wrapping_generator/src/incremental_generator.dart';
 import 'package:source_gen/source_gen.dart';
 
 import 'util.dart';
 
-const String _LIB_NAME = 'js_wrapping';
+const String _libName = 'js_wrapping';
 
-const _CODECS_PREFIX = '__codec';
+const _codecsPrefix = '__codec';
 
 class JsWrappingGenerator extends IncrementalGenerator {
   @override
-  Future<String> generateForLibraryElement(LibraryReader library, _) async {
-    return new _OldJsInterfaceGenerator().generate(library, _);
-  }
+  Future<String> generateForLibraryElement(
+          LibraryReader library, BuildStep buildStep) async =>
+      _OldJsInterfaceGenerator().generate(library, buildStep);
 }
 
 class _OldJsInterfaceGenerator extends Generator {
@@ -32,17 +33,19 @@ class _OldJsInterfaceGenerator extends Generator {
 
   _OldJsInterfaceGenerator();
 
+  @override
   Future<String> generate(LibraryReader library, _) async {
     final sections = await Future.wait(
         library.allElements.map((e) async => await generateForElement(e)));
     final sectionsOutput = sections.where((e) => e != null).join();
     final codecsOutput = codecs
         .where((c) => c.variableName != null)
-        .map((c) =>
-            '/// codec for ${c.type}\n' +
+        .map((c) => '/// codec for ${c.type}\n'
             'final ${c.variableName} = ${c.initializer};\n')
         .join();
-    return sectionsOutput + codecsOutput;
+    return '''
+$sectionsOutput
+$codecsOutput''';
   }
 
   Future<String> generateForElement(Element element) async {
@@ -52,14 +55,14 @@ class _OldJsInterfaceGenerator extends Generator {
           isNotGenerated(element) &&
           element.isAbstract &&
           element.isPrivate) {
-        return new JsInterfaceClassGenerator(element, codecs).generate();
+        return JsInterfaceClassGenerator(element, codecs).generate();
       }
 
       // JsEnum
       if (hasJsEnumAnnotation(element) &&
           isNotGenerated(element) &&
           element.isPrivate) {
-        return new JsEnumGenerator(element).generate();
+        return JsEnumGenerator(element).generate();
       }
     }
 
@@ -83,39 +86,38 @@ class JsEnumGenerator {
 
   ClassElement _jsNameClass;
 
-  JsEnumGenerator(ClassElement clazz)
-      : lib = clazz.library,
-        clazz = clazz {
-    _jsNameClass = getType(lib, _LIB_NAME, 'JsName');
+  JsEnumGenerator(this.clazz) : lib = clazz.library {
+    _jsNameClass = getType(lib, _libName, 'JsName');
   }
 
   String generate() {
     final values = getEnumValues();
-    final jsPath = computeJsName(clazz, getType(lib, _LIB_NAME, 'JsName'));
+    final jsPath = computeJsName(clazz, getType(lib, _libName, 'JsName'));
     final name = getPublicClassName(clazz);
 
-    String result = '';
-
-    result += 'class $name extends JsEnum {';
-    result += "static final values = <$name>[${values.join(',')}];";
+    final result = StringBuffer()
+      ..write('class $name extends JsEnum {')
+      ..write("static final values = <$name>[${values.join(',')}];");
     for (final value in values) {
       final jsValue = "${getPath(jsPath)}['$value']";
-      result += "static final $value = new $name._('$value', $jsValue)";
-      result += ";\n";
+      result
+        ..write("static final $value = $name._('$value', $jsValue)")
+        ..write(';');
     }
-    result += '''
+    result.write('''
 
   final String _name;
   $name._(this._name, o) : super.created(o);
 
+  @override
   String toString() => '$name.\$_name';
 
   // dumb code to remove analyzer hint for unused _$name
   _$name _dumbMethod1() => _dumbMethod2();
   _$name _dumbMethod2() => _dumbMethod1();
 }
-''';
-    return result;
+''');
+    return result.toString();
   }
 
   Iterable<String> getEnumValues() {
@@ -127,15 +129,13 @@ class JsEnumGenerator {
 class JsInterfaceClassGenerator {
   final LibraryElement lib;
   final ClassElement clazz;
-  final transformer = new Transformer();
+  final transformer = Transformer();
   final List<CodecSource> codecs;
 
   ClassElement _jsNameClass;
 
-  JsInterfaceClassGenerator(ClassElement clazz, this.codecs)
-      : lib = clazz.library,
-        clazz = clazz {
-    _jsNameClass = getType(lib, _LIB_NAME, 'JsName');
+  JsInterfaceClassGenerator(this.clazz, this.codecs) : lib = clazz.library {
+    _jsNameClass = getType(lib, _libName, 'JsName');
   }
 
   String generate() {
@@ -149,9 +149,8 @@ class JsInterfaceClassGenerator {
     // remove implement JsInterface
     if (classNode.implementsClause != null) {
       var interfaceCount = classNode.implementsClause.interfaces.length;
-      classNode.implementsClause.interfaces
-          .where((e) => e.name.name == 'JsInterface')
-          .forEach((e) {
+      for (final e in classNode.implementsClause.interfaces
+          .where((e) => e.name.name == 'JsInterface')) {
         interfaceCount--;
         if (classNode.implementsClause.interfaces.length == 1) {
           transformer.removeNode(e);
@@ -167,7 +166,7 @@ class JsInterfaceClassGenerator {
           }
           transformer.removeBetween(begin, end);
         }
-      });
+      }
       if (interfaceCount == 0)
         transformer.removeToken(classNode.implementsClause.implementsKeyword);
     }
@@ -177,12 +176,21 @@ class JsInterfaceClassGenerator {
       transformer.insertAt(classNode.name.end, ' extends JsInterface');
     }
 
-    // remove abstract
-    transformer.removeToken(classNode.abstractKeyword);
+    transformer
+      // remove abstract
+      ..removeToken(classNode.abstractKeyword)
+      // rename class
+      ..replace(classNode.name.offset, classNode.name.end, newClassName);
 
-    // rename class
-    transformer.replace(
-        classNode.name.offset, classNode.name.end, newClassName);
+    // generate the constructor .created
+    if (!clazz.constructors.any((e) => e.name == 'created')) {
+      final insertionIndex =
+          clazz.constructors.where((e) => !e.isSynthetic).isEmpty
+              ? classNode.leftBracket.end
+              : clazz.constructors.last.computeNode().end;
+      transformer.insertAt(insertionIndex,
+          '$newClassName.created(JsObject o) : super.created(o);');
+    }
 
     // generate constructors
     for (final constr in clazz.constructors) {
@@ -198,36 +206,27 @@ class JsInterfaceClassGenerator {
         continue;
       }
 
-      var newJsObject = "new JsObject(";
+      var newJsObject = 'JsObject(';
       if (hasAnonymousAnnotations) {
         if (constr.parameters.isNotEmpty) {
-          throw '@anonymous JsInterface can not have constructor with '
-              'parameters';
+          throw ArgumentError('@anonymous JsInterface '
+              'can not have constructor with parameters');
         }
         newJsObject += "context['Object']";
       } else {
         final jsName = computeJsName(clazz, _jsNameClass);
         newJsObject += getPath(jsName);
         if (constr.parameters.isNotEmpty) {
-          newJsObject += ", [${convertParameters(constr.parameters)}]";
+          newJsObject += ', [${convertParameters(constr.parameters)}]';
         }
       }
-      newJsObject += ")";
+      newJsObject += ')';
 
-      transformer.removeToken(constr.computeNode().factoryKeyword);
-      transformer.removeNode(constr.computeNode().body);
-      transformer.insertAt(
-          constr.computeNode().end, " : this.created($newJsObject);");
-    }
-
-    // generate the constructor .created
-    if (!clazz.constructors.any((e) => e.name == 'created')) {
-      final insertionIndex =
-          clazz.constructors.where((e) => !e.isSynthetic).isEmpty
-              ? classNode.leftBracket.end
-              : clazz.constructors.first.computeNode().offset;
-      transformer.insertAt(insertionIndex,
-          '$newClassName.created(JsObject o) : super.created(o);\n');
+      final constructorDecl = constr.computeNode();
+      transformer
+        ..removeToken(constructorDecl.factoryKeyword)
+        ..removeNode(constructorDecl.body)
+        ..insertAt(constructorDecl.end, ' : this.created($newJsObject);');
     }
 
     // generate properties
@@ -246,21 +245,21 @@ class JsInterfaceClassGenerator {
     final nonNamedParams = parameters.where((p) => !p.isNamed);
     final namedParams = parameters.where((p) => p.isNamed);
 
-    String parameterList = nonNamedParams.map(convertParameterToJs).join(', ');
+    final parameterList = StringBuffer()
+      ..write(nonNamedParams.map(convertParameterToJs).join(', '));
     if (namedParams.isNotEmpty) {
-      if (nonNamedParams.isNotEmpty) parameterList += ',';
-      parameterList += '() {';
-      parameterList += "final o = new JsObject(context['Object']);";
+      if (nonNamedParams.isNotEmpty) parameterList.write(',');
+      parameterList
+        ..write('() {')
+        ..write("final o = JsObject(context['Object']);");
       for (final p in namedParams) {
-        parameterList +=
-            "if (${p.displayName} != null) o['${p.displayName}'] = " +
-                convertParameterToJs(p) +
-                ';';
+        parameterList
+          ..write('if (${p.displayName} != null)')
+          ..write(" o['${p.displayName}'] = ${convertParameterToJs(p)};");
       }
-      parameterList += 'return o;';
-      parameterList += '} ()';
+      parameterList.write('return o;} ()');
     }
-    return parameterList;
+    return parameterList.toString();
   }
 
   String convertParameterToJs(ParameterElement p) {
@@ -272,7 +271,7 @@ class JsInterfaceClassGenerator {
       .computeNode()
       .metadata
       .where((a) =>
-          a.element.library.name == _LIB_NAME && a.element.name == 'anonymous')
+          a.element.library.name == _libName && a.element.name == 'anonymous')
       .isNotEmpty;
 
   void transformAccessor(PropertyAccessorElement accessor) {
@@ -304,11 +303,11 @@ class JsInterfaceClassGenerator {
     String newFuncDecl;
     if (accessor.isGetter) {
       final getterBody = createGetterBody(accessor.returnType, name, target);
-      newFuncDecl = " => $getterBody";
+      newFuncDecl = ' => $getterBody';
     } else if (accessor.isSetter) {
       final setterBody =
           createSetterBody(accessor.parameters.first, target, jsName: name);
-      newFuncDecl = " { $setterBody }";
+      newFuncDecl = ' { $setterBody }';
     }
     transformer.replace(accessor.computeNode().end - 1,
         accessor.computeNode().end, newFuncDecl);
@@ -318,7 +317,7 @@ class JsInterfaceClassGenerator {
   }
 
   void transformVariables(Iterable<PropertyAccessorElement> accessors) {
-    accessors.forEach((accessor) {
+    for (final accessor in accessors) {
       final varDeclList =
           accessor.variable.computeNode().parent as VariableDeclarationList;
       var jsName = getNameAnnotation(
@@ -332,7 +331,7 @@ class JsInterfaceClassGenerator {
           : accessor.isPrivate
               ? accessor.displayName.substring(1)
               : accessor.displayName;
-      var name = accessor.displayName;
+      final name = accessor.displayName;
 
       final target = accessor.isStatic
           ? getPath(computeJsName(clazz, _jsNameClass))
@@ -344,23 +343,21 @@ class JsInterfaceClassGenerator {
       if (accessor.isGetter) {
         final getterBody =
             createGetterBody(accessor.returnType, jsName, target);
-        code += "$varType get $name => $getterBody";
+        code += '$varType get $name => $getterBody';
       } else if (accessor.isSetter) {
         final param = accessor.parameters.first;
         final setterBody = createSetterBody(param, target, jsName: jsName);
-        code += accessor.returnType.displayName +
-            " set $name($varType ${param.displayName})"
-            "{ $setterBody }";
+        code += ' set $name($varType ${param.displayName}){ $setterBody }';
       }
       transformer.insertAt(varDeclList.end + 1, code);
-    });
+    }
 
     // remove variable declarations
     final variables = accessors.map((e) => e.variable.computeNode()).toSet();
     final varDeclLists = variables.map((e) => e.parent).toSet();
-    varDeclLists.forEach((varDeclList) {
+    for (final varDeclList in varDeclLists) {
       transformer.removeNode(varDeclList.parent);
-    });
+    }
   }
 
   void transformMethod(MethodElement m) {
@@ -386,13 +383,13 @@ class JsInterfaceClassGenerator {
     var call = "$target.callMethod('$name'";
     if (m.parameters.isNotEmpty) {
       final parameterList = convertParameters(m.parameters);
-      call += ", [$parameterList]";
+      call += ', [$parameterList]';
     }
-    call += ")";
+    call += ')';
 
     if (m.returnType.isVoid) {
       transformer.replace(
-          m.computeNode().end - 1, m.computeNode().end, "{ $call; }");
+          m.computeNode().end - 1, m.computeNode().end, '{ $call; }');
     } else {
       final codec = getCodec(m.returnType);
       transformer.insertAt(m.computeNode().end - 1,
@@ -405,73 +402,71 @@ class JsInterfaceClassGenerator {
 
   String createGetterBody(DartType type, String name, String target) {
     final codec = getCodec(type);
-    return (codec == null
-            ? "$target['$name']"
-            : "$codec.decode($target['$name'])") +
-        ';';
+    return '${codec == null ? "$target['$name']" : "$codec.decode($target['$name'])"};';
   }
 
   String createSetterBody(ParameterElement param, String target,
       {String jsName}) {
     final name = param.displayName;
     final type = param.type;
-    jsName = jsName != null ? jsName : name;
+    final n = jsName != null ? jsName : name;
     final codec = getCodec(type);
-    return "$target['$jsName'] = " +
-        (codec == null ? name : "$codec.encode($name)") +
-        ';';
+    return "$target['$n'] = ${codec == null ? name : "$codec.encode($name)"};";
   }
 
   String getCodec(DartType type) => registerCodecIfAbsent(type, () {
         if (type.isDynamic || type.isObject) {
-          return 'new DynamicCodec()';
+          return 'DynamicCodec()';
         } else if (isJsInterface(lib, type)) {
-          return 'new JsInterfaceCodec<$type>((o) => new $type.created(o))';
+          return 'JsInterfaceCodec<$type>((o) => $type.created(o))';
         } else if (isListType(type)) {
           final typeParam = (type as InterfaceType).typeArguments.first;
-          return 'new JsListCodec<$typeParam>(${getCodec(typeParam)})';
+          return 'JsListCodec<$typeParam>(${getCodec(typeParam)})';
         } else if (isJsEnum(type)) {
           return createEnumCodec(type);
         } else if (type is FunctionType) {
           return createFunctionCodec(type);
         } else if (isMapType(type)) {
           final typeParam = (type as InterfaceType).typeArguments[1];
-          return 'new JsObjectAsMapCodec<$typeParam>(${getCodec(typeParam)})';
+          return 'JsObjectAsMapCodec<$typeParam>(${getCodec(typeParam)})';
         }
         return null;
       });
 
   bool isJsEnum(DartType type) =>
       !type.isDynamic &&
-      type.isSubtypeOf(getType(lib, _LIB_NAME, 'JsEnum').type);
+      type.isSubtypeOf(getType(lib, _libName, 'JsEnum').type);
 
-  String createEnumCodec(DartType type) => 'new BiMapCodec<$type, dynamic>('
-      'new Map<$type, dynamic>.fromIterable($type.values, value: asJs)'
+  String createEnumCodec(DartType type) => 'BiMapCodec<$type, dynamic>('
+      'Map<$type, dynamic>.fromIterable($type.values, value: asJs)'
       ')';
 
   String createFunctionCodec(FunctionType type) {
     final returnCodec = getCodec(type.returnType);
-
-    String parametersDecl = type.parameters
+    const paramPrefix = r'p$';
+    var parametersDecl = type.parameters
         .where((p) => p.isNotOptional)
-        .map((p) => 'p_${p.name}')
+        .map((p) => '$paramPrefix${p.name}')
         .join(', ');
     if (type.parameters.any((p) => p.isOptionalPositional)) {
       if (parametersDecl.isNotEmpty) parametersDecl += ',';
       parametersDecl += '[';
       parametersDecl += type.parameters
           .where((p) => p.isOptionalPositional)
-          .map((p) => 'p_' + p.name)
+          .map((p) => '$paramPrefix${p.name}')
           .join(', ');
       parametersDecl += ']';
     }
     final decode = () {
-      var parameters = type.parameters.map((p) {
+      final parameters = type.parameters.map((p) {
         final codec = getCodec(p.type);
-        return codec != null ? '$codec.encode(p_${p.name})' : 'p_${p.name}';
+        return codec != null
+            ? '$codec.encode($paramPrefix${p.name})'
+            : '$paramPrefix${p.name}';
       }).join(',');
-      var call =
-          'f is JsFunction ? f.apply([$parameters]) : Function.apply(f, [$parameters])';
+      var call = 'f is JsFunction'
+          ' ? f.apply([$parameters])'
+          ' : Function.apply(f, [$parameters])';
       if (returnCodec != null) {
         call = '$returnCodec.decode($call)';
       } else if (type.returnType.isVoid) {
@@ -485,9 +480,11 @@ class JsInterfaceClassGenerator {
       if (returnCodec == null && paramCodecs.every((c) => c == null)) {
         return '(f) => f';
       } else {
-        var parameters = type.parameters.map((p) {
+        final parameters = type.parameters.map((p) {
           final codec = getCodec(p.type);
-          return codec != null ? '$codec.decode(p_${p.name})' : 'p_${p.name}';
+          return codec != null
+              ? '$codec.decode($paramPrefix${p.name})'
+              : '$paramPrefix${p.name}';
         }).join(',');
         var call = 'f($parameters)';
         if (returnCodec != null) {
@@ -500,20 +497,19 @@ class JsInterfaceClassGenerator {
     }();
 
     // TODO(aa) type for Function can be "int -> String" : create typedef
-    return 'new FunctionCodec<Function>/*<$type>*/($encode, $decode,)';
+    return 'FunctionCodec<Function>/*<$type>*/($encode, $decode,)';
   }
 
   String registerCodecIfAbsent(DartType type, String getCodecInitializer()) {
     if (type.isVoid) return null;
-    final typeAsString =
-        type.element.library.toString() + '.' + type.toString();
-    CodecSource codec =
+    final typeAsString = '${type.element.library}.$type';
+    var codec =
         codecs.firstWhere((cs) => cs.type == typeAsString, orElse: () => null);
     if (codec == null) {
       final initializer = getCodecInitializer();
       if (initializer == null) return null;
-      codec = new CodecSource(
-          typeAsString, '$_CODECS_PREFIX${codecs.length}', initializer);
+      codec = CodecSource(
+          typeAsString, '$_codecsPrefix${codecs.length}', initializer);
       codecs.add(codec);
     }
     return codec.variableName;
@@ -532,15 +528,15 @@ class JsInterfaceClassGenerator {
         DynamicTypeImpl.instance
       ]));
 
-  /// return [true] if the type is transferable through dart:js
+  /// return `true` if the type is transferable through dart:js
   /// (see https://api.dartlang.org/docs/channels/stable/latest/dart_js.html)
   bool isTypeTransferable(DartType type) {
-    final transferables = const <String, List<String>>{
-      'dart.js': const ['JsObject'],
-      'dart.core': const ['num', 'bool', 'String', 'DateTime'],
-      'dart.dom.html': const ['Blob', 'Event', 'ImageData', 'Node', 'Window'],
-      'dart.dom.indexed_db': const ['KeyRange'],
-      'dart.typed_data': const ['TypedData'],
+    const transferables = <String, List<String>>{
+      'dart.js': ['JsObject'],
+      'dart.core': ['num', 'bool', 'String', 'DateTime'],
+      'dart.dom.html': ['Blob', 'Event', 'ImageData', 'Node', 'Window'],
+      'dart.dom.indexed_db': ['KeyRange'],
+      'dart.typed_data': ['TypedData'],
     };
     for (final libName in transferables.keys) {
       if (getLib(lib, libName) == null) continue;
@@ -560,11 +556,11 @@ class JsInterfaceClassGenerator {
 }
 
 String computeJsName(ClassElement clazz, ClassElement jsNameClass) {
-  var name = "";
+  var name = '';
 
   final nameOfLib =
       getNameAnnotation(clazz.library.unit.directives.first, jsNameClass);
-  if (nameOfLib != null) name += nameOfLib + '.';
+  if (nameOfLib != null) name += '$nameOfLib.';
 
   final nameOfClass = getNameAnnotation(getNodeOfElement(clazz), jsNameClass);
   if (nameOfClass != null) {
@@ -593,20 +589,20 @@ AnnotatedNode getNodeOfElement(Element e) {
 bool hasJsEnumAnnotation(ClassElement clazz) => clazz
     .computeNode()
     .metadata
-    .where((a) =>
-        a.element.library.name == _LIB_NAME && a.element.name == 'jsEnum')
+    .where(
+        (a) => a.element.library.name == _libName && a.element.name == 'jsEnum')
     .isNotEmpty;
 
 bool isJsInterface(LibraryElement lib, DartType type) =>
     !type.isDynamic &&
-    type.isSubtypeOf(getType(lib, _LIB_NAME, 'JsInterface').type);
+    type.isSubtypeOf(getType(lib, _libName, 'JsInterface').type);
 
 String getNameAnnotation(AnnotatedNode node, ClassElement jsNameClass) {
   final jsNames = getAnnotations(node, jsNameClass);
   if (jsNames.isEmpty) return null;
   final a = jsNames.single;
   if (a.arguments.arguments.length == 1) {
-    var param = a.arguments.arguments.first;
+    final param = a.arguments.arguments.first;
     if (param is StringLiteral) {
       return param.stringValue;
     }
@@ -615,4 +611,4 @@ String getNameAnnotation(AnnotatedNode node, ClassElement jsNameClass) {
 }
 
 String getPath(String path) =>
-    path.split('.').fold('context', (String t, p) => "$t['$p']");
+    path.split('.').fold('context', (t, p) => "$t['$p']");

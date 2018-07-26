@@ -11,35 +11,14 @@ import 'package:js_wrapping/js_wrapping.dart';
 export 'dart:convert' show Codec;
 
 /// Determines a true or false value for a given input.
-typedef bool Predicate<T>(T o);
+typedef Predicate<T> = bool Function(T o);
 
 /// Provides a [T] object from [S].
-typedef T Factory<S, T>(S o);
+typedef Factory<S, T> = T Function(S o);
 
 /// A [Codec] that provides additionnal functions to ensure the encoded/decoded
 /// values are supported.
 class ConditionalCodec<S, T> extends Codec<S, T> {
-  final Converter<S, T> encoder;
-  final Converter<T, S> decoder;
-
-  /// Only use by ChainedCodec to know if the value need to go to the next codec
-  final Predicate<Object> acceptEncodedValue;
-
-  /// Only use by ChainedCodec to know if the value need to go to the next codec
-  final Predicate<Object> acceptDecodedValue;
-
-  ConditionalCodec._(
-    this.encoder,
-    this.decoder,
-    this.acceptEncodedValue,
-    this.acceptDecodedValue,
-  )
-  // : assert(encoder != null),
-  //       assert(decoder != null),
-  //       assert(acceptEncodedValue != null),
-  //       assert(acceptDecodedValue != null)
-  ;
-
   ConditionalCodec(
     Converter<S, T> encoder,
     Converter<T, S> decoder, {
@@ -52,20 +31,42 @@ class ConditionalCodec<S, T> extends Codec<S, T> {
           acceptDecodedValue != null ? acceptDecodedValue : (o) => o is S,
         );
 
+  ConditionalCodec._(
+    this.encoder,
+    this.decoder,
+    this.acceptEncodedValue,
+    this.acceptDecodedValue,
+  ) //: assert(encoder != null),
+  //assert(decoder != null),
+  //assert(acceptEncodedValue != null),
+  //assert(acceptDecodedValue != null)
+  ;
+
   ConditionalCodec.fromFactories(
     Factory<S, T> encode,
     Factory<T, S> decode, {
     Predicate acceptEncodedValue,
     Predicate acceptDecodedValue,
   }) :
-        // assert(encode != null),
-        // assert(decode != null),
+        //assert(encode != null),
+        //assert(decode != null),
         this(
-          new _Converter<S, T>(encode),
-          new _Converter<T, S>(decode),
+          _Converter<S, T>(encode),
+          _Converter<T, S>(decode),
           acceptEncodedValue: acceptEncodedValue,
           acceptDecodedValue: acceptDecodedValue,
         );
+
+  @override
+  final Converter<S, T> encoder;
+  @override
+  final Converter<T, S> decoder;
+
+  /// Only use by ChainedCodec to know if the value need to go to the next codec
+  final Predicate<Object> acceptEncodedValue;
+
+  /// Only use by ChainedCodec to know if the value need to go to the next codec
+  final Predicate<Object> acceptDecodedValue;
 }
 
 class _Converter<S, T> extends Converter<S, T> {
@@ -80,11 +81,7 @@ class _Converter<S, T> extends Converter<S, T> {
 /// A [ConditionalCodec] that accepts only [T] values and does not do any
 /// transformations.
 class IdentityCodec<T> extends ConditionalCodec<T, T> {
-  IdentityCodec()
-      : super.fromFactories(
-          (T o) => o,
-          (T o) => o,
-        );
+  IdentityCodec() : super.fromFactories((o) => o, (o) => o);
 }
 
 /// A [ConditionalCodec] that accepts any values and apply [asJs] for encoding.
@@ -105,7 +102,7 @@ class JsInterfaceCodec<T extends JsInterface>
     Factory<JsObject, T> decode, [
     Predicate acceptEncodedValue,
   ]) : super.fromFactories(
-          (T o) => asJsObject(o),
+          asJsObject,
           decode,
           acceptEncodedValue: acceptEncodedValue,
         );
@@ -115,12 +112,12 @@ class JsInterfaceCodec<T extends JsInterface>
 class JsListCodec<T> extends ConditionalCodec<List<T>, JsArray> {
   JsListCodec(ConditionalCodec<T, dynamic> codec)
       : super.fromFactories(
-          (List<T> o) => o is JsArray
-              ? o as JsArray
+          (o) => o is JsArray
+              ? o
               : o is JsInterface
                   ? asJsObject(o as JsInterface)
-                  : asJsObject(new JsList(codec)..addAll(o)),
-          (o) => new JsList.created(o, codec),
+                  : asJsObject(JsList(codec)..addAll(o)),
+          (o) => JsList.created(o, codec),
         );
 }
 
@@ -128,29 +125,28 @@ class JsListCodec<T> extends ConditionalCodec<List<T>, JsArray> {
 class JsObjectAsMapCodec<T> extends ConditionalCodec<Map<String, T>, JsObject> {
   JsObjectAsMapCodec(ConditionalCodec<T, dynamic> codec)
       : super.fromFactories(
-          (Map<String, T> o) => o is JsObject
-              ? o as JsObject
+          (o) => o is JsObject
+              ? o
               : o is JsInterface
                   ? asJsObject(o as JsInterface)
-                  : asJsObject(new JsObjectAsMap(codec)..addAll(o)),
-          (o) => new JsObjectAsMap.created(o, codec),
+                  : asJsObject(JsObjectAsMap(codec)..addAll(o)),
+          (o) => JsObjectAsMap.created(o, codec),
         );
 }
 
 /// A [ConditionalCodec] used for union types.
 class BiMapCodec<S, T> extends ConditionalCodec<S, T> {
+  BiMapCodec(Map<S, T> map)
+      : this._(
+          map,
+          Map<T, S>.fromIterables(map.values, map.keys),
+        );
   BiMapCodec._(
     Map<S, T> encode,
     Map<T, S> decode,
   ) : super.fromFactories(
-          (S o) => encode[o],
-          (T o) => decode[o],
-        );
-
-  BiMapCodec(Map<S, T> map)
-      : this._(
-          map,
-          new Map<T, S>.fromIterables(map.values, map.keys),
+          (o) => encode[o],
+          (o) => decode[o],
         );
 }
 
@@ -175,8 +171,8 @@ class ChainedCodec extends ConditionalCodec {
   ChainedCodec._(List<ConditionalCodec> _codecs)
       : _codecs = _codecs,
         super(
-          new _ChainedConverter(_codecs, true),
-          new _ChainedConverter(_codecs, false),
+          _ChainedConverter(_codecs, encoder: true),
+          _ChainedConverter(_codecs, encoder: false),
         );
 
   void add(ConditionalCodec codec) {
@@ -188,12 +184,12 @@ class _ChainedConverter extends Converter {
   final List<ConditionalCodec> _codecs;
   final bool encoder;
 
-  _ChainedConverter(this._codecs, this.encoder);
+  _ChainedConverter(this._codecs, {this.encoder});
 
   @override
-  convert(input) {
+  dynamic convert(input) {
     for (final codec in _codecs) {
-      var value;
+      dynamic value;
       if (encoder && codec.acceptDecodedValue(input)) {
         value = codec.encode(input);
       }

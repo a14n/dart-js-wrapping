@@ -9,10 +9,10 @@ part of google_maps.sample.simple;
 @GeneratedFrom(_GMap)
 @JsName('Map')
 class GMap extends JsInterface {
-  GMap.created(JsObject o) : super.created(o);
   GMap(Node mapDiv, [MapOptions opts])
-      : this.created(new JsObject(
+      : this.created(JsObject(
             context['google']['maps']['Map'], [mapDiv, __codec0.encode(opts)]));
+  GMap.created(JsObject o) : super.created(o);
 
   num _getZoom() => asJsObject(this).callMethod('getZoom');
   num get zoom => _getZoom();
@@ -20,10 +20,10 @@ class GMap extends JsInterface {
 
 @GeneratedFrom(_LatLng)
 class LatLng extends JsInterface {
-  LatLng.created(JsObject o) : super.created(o);
   LatLng(num lat, num lng, [bool noWrap])
-      : this.created(new JsObject(
-            context['google']['maps']['LatLng'], [lat, lng, noWrap]));
+      : this.created(
+            JsObject(context['google']['maps']['LatLng'], [lat, lng, noWrap]));
+  LatLng.created(JsObject o) : super.created(o);
 
   bool equals(LatLng other) =>
       asJsObject(this).callMethod('equals', [__codec1.encode(other)]);
@@ -39,20 +39,20 @@ class LatLng extends JsInterface {
 @GeneratedFrom(_MapOptions)
 @anonymous
 class MapOptions extends JsInterface {
+  MapOptions() : this.created(JsObject(context['Object']));
   MapOptions.created(JsObject o) : super.created(o);
-  MapOptions() : this.created(new JsObject(context['Object']));
 
-  void set zoom(int _zoom) {
+  set zoom(int _zoom) {
     asJsObject(this)['zoom'] = _zoom;
   }
 
   int get zoom => asJsObject(this)['zoom'];
-  void set center(LatLng _center) {
+  set center(LatLng _center) {
     asJsObject(this)['center'] = __codec1.encode(_center);
   }
 
   LatLng get center => __codec1.decode(asJsObject(this)['center']);
-  void set mapTypeId(MapTypeId _mapTypeId) {
+  set mapTypeId(MapTypeId _mapTypeId) {
     asJsObject(this)['mapTypeId'] = __codec2.encode(_mapTypeId);
   }
 
@@ -61,18 +61,18 @@ class MapOptions extends JsInterface {
 
 class MapTypeId extends JsEnum {
   static final values = <MapTypeId>[HYBRID, ROADMAP, SATELLITE, TERRAIN];
-  static final HYBRID = new MapTypeId._(
-      'HYBRID', context['google']['maps']['MapTypeId']['HYBRID']);
-  static final ROADMAP = new MapTypeId._(
-      'ROADMAP', context['google']['maps']['MapTypeId']['ROADMAP']);
-  static final SATELLITE = new MapTypeId._(
+  static final HYBRID =
+      MapTypeId._('HYBRID', context['google']['maps']['MapTypeId']['HYBRID']);
+  static final ROADMAP =
+      MapTypeId._('ROADMAP', context['google']['maps']['MapTypeId']['ROADMAP']);
+  static final SATELLITE = MapTypeId._(
       'SATELLITE', context['google']['maps']['MapTypeId']['SATELLITE']);
-  static final TERRAIN = new MapTypeId._(
-      'TERRAIN', context['google']['maps']['MapTypeId']['TERRAIN']);
-
+  static final TERRAIN =
+      MapTypeId._('TERRAIN', context['google']['maps']['MapTypeId']['TERRAIN']);
   final String _name;
   MapTypeId._(this._name, o) : super.created(o);
 
+  @override
   String toString() => 'MapTypeId.$_name';
 
   // dumb code to remove analyzer hint for unused _MapTypeId
@@ -83,7 +83,6 @@ class MapTypeId extends JsEnum {
 @GeneratedFrom(_GEvent)
 class GEvent extends JsInterface {
   GEvent.created(JsObject o) : super.created(o);
-
   MapsEventListener addDomListener(
           dynamic instance, String eventName, Function handler,
           [bool capture]) =>
@@ -129,22 +128,21 @@ class MapsEventListener extends JsInterface {
 }
 
 /// codec for google_maps.sample.simple.MapOptions
-final __codec0 =
-    new JsInterfaceCodec<MapOptions>((o) => new MapOptions.created(o));
+final __codec0 = JsInterfaceCodec<MapOptions>((o) => MapOptions.created(o));
 
 /// codec for google_maps.sample.simple.LatLng
-final __codec1 = new JsInterfaceCodec<LatLng>((o) => new LatLng.created(o));
+final __codec1 = JsInterfaceCodec<LatLng>((o) => LatLng.created(o));
 
 /// codec for google_maps.sample.simple.MapTypeId
-final __codec2 = new BiMapCodec<MapTypeId, dynamic>(
-    new Map<MapTypeId, dynamic>.fromIterable(MapTypeId.values, value: asJs));
+final __codec2 = BiMapCodec<MapTypeId, dynamic>(
+    Map<MapTypeId, dynamic>.fromIterable(MapTypeId.values, value: asJs));
 
 /// codec for dart.core.dynamic
-final __codec3 = new DynamicCodec();
+final __codec3 = DynamicCodec();
 
 /// codec for google_maps.sample.simple.MapsEventListener
-final __codec4 = new JsInterfaceCodec<MapsEventListener>(
-    (o) => new MapsEventListener.created(o));
+final __codec4 =
+    JsInterfaceCodec<MapsEventListener>((o) => MapsEventListener.created(o));
 
 /// codec for dart.core.List<dynamic>
-final __codec5 = new JsListCodec<dynamic>(__codec3);
+final __codec5 = JsListCodec<dynamic>(__codec3);

@@ -7,7 +7,7 @@ library js_wrapping_generator.test.proxy_creator_test;
 import 'package:test/test.dart';
 import 'package:js_wrapping_generator/js_interface_creator.dart';
 
-main() {
+void main() {
   group('JsInterface creation', () {
     test('should accept simple name', () {
       expect(

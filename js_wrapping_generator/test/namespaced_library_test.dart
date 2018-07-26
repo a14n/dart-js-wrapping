@@ -2,7 +2,7 @@
 // source code is governed by a BSD-style license that can be found in the
 // LICENSE file.
 
-@TestOn("browser")
+@TestOn('browser')
 @JsName('a')
 library js_wrapping_generator.test.namespaced_library_test;
 
@@ -22,16 +22,16 @@ abstract class _Class1 implements JsInterface {
   factory _Class1() => null;
 }
 
-main() {
+void main() {
   test('a.Class0 should be instantiable', () {
-    final o = new Class0();
+    final o = Class0();
     final jsO = asJsObject(o);
     expect(jsO, const TypeMatcher<js.JsObject>());
     expect(js.context.callMethod('isClass0', [jsO]), true);
   });
 
   test('a.b.Class1 should be instantiable', () {
-    final o = new Class1();
+    final o = Class1();
     final jsO = asJsObject(o);
     expect(jsO, const TypeMatcher<js.JsObject>());
     expect(js.context.callMethod('isClass1', [jsO]), true);

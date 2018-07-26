@@ -15,7 +15,7 @@ import 'package:source_gen/source_gen.dart';
 abstract class IncrementalGenerator extends Generator {
   final int maxIterations;
 
-  const IncrementalGenerator({this.maxIterations: 1000});
+  const IncrementalGenerator({this.maxIterations = 1000});
 
   Future<String> generateForLibraryElement(
       LibraryReader library, BuildStep buildStep);
@@ -30,18 +30,17 @@ abstract class IncrementalGenerator extends Generator {
     // back up the initial content of the part to restore at the end
     String genContent, initialContent;
     try {
-      initialContent = element.context.getContents(generatedPart.source).data;
+      final initialContent = element.context.getContents(generatedPart.source).data;
       genContent = initialContent;
-    } on StateError {
+    } on StateError { // ignore: avoid_catching_errors
       genContent = '';
     }
 
     // generate content several times until 2 consecutive contents are equals
-    int iterationsLeft = maxIterations;
-    while (true) {
+    var iterationsLeft = maxIterations;
+    while (true) { // ignore: literal_only_boolean_expressions
       if (iterationsLeft-- < 0)
-        throw new StateError(
-            'No stable content after $maxIterations generations');
+        throw StateError('No stable content after $maxIterations generations');
 
       final nextGenContent =
           await generateForLibraryElement(library, buildStep);
@@ -53,14 +52,13 @@ abstract class IncrementalGenerator extends Generator {
 
       // next increment : add current genContent to initial content
       element.context.applyChanges(
-          new ChangeSet()..changedContent(generatedPart.source, genContent));
+          ChangeSet()..changedContent(generatedPart.source, genContent));
     }
 
     // reset part to its initial content
     element.context.applyChanges(initialContent == null
-        ? (new ChangeSet()..removedSource(generatedPart.source))
-        : (new ChangeSet()
-          ..changedContent(generatedPart.source, initialContent)));
+        ? (ChangeSet()..removedSource(generatedPart.source))
+        : (ChangeSet()..changedContent(generatedPart.source, initialContent)));
 
     return genContent;
   }
@@ -76,6 +74,6 @@ abstract class IncrementalGenerator extends Generator {
   /// Returns the file name of the generated part
   String _getGeneratedPartName(LibraryElement lib) {
     final name = lib.source.shortName;
-    return name.substring(0, name.length - '.dart'.length) + '.g.dart';
+    return '${name.substring(0, name.length - '.dart'.length)}.g.dart';
   }
 }

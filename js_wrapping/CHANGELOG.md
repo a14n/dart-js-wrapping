@@ -1,3 +1,7 @@
+# v0.5.0 (2018-07-27)
+
+- migration to Dart 2.
+
 # v0.4.9 (2018-07-06)
 
 - Bump dependencies.

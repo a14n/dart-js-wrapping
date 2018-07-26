@@ -8,13 +8,13 @@ part of js_wrapping_generator.test.types_handling_test;
 
 class Color extends JsEnum {
   static final values = <Color>[RED, GREEN, BLUE];
-  static final RED = new Color._('RED', context['Color']['RED']);
-  static final GREEN = new Color._('GREEN', context['Color']['GREEN']);
-  static final BLUE = new Color._('BLUE', context['Color']['BLUE']);
-
+  static final RED = Color._('RED', context['Color']['RED']);
+  static final GREEN = Color._('GREEN', context['Color']['GREEN']);
+  static final BLUE = Color._('BLUE', context['Color']['BLUE']);
   final String _name;
   Color._(this._name, o) : super.created(o);
 
+  @override
   String toString() => 'Color.$_name';
 
   // dumb code to remove analyzer hint for unused _Color
@@ -24,20 +24,20 @@ class Color extends JsEnum {
 
 @GeneratedFrom(_A)
 class A extends JsInterface {
+  A() : this.created(JsObject(context['A']));
   A.created(JsObject o) : super.created(o);
-  A() : this.created(new JsObject(context['A']));
 
-  void set b(B _b) {
+  set b(B _b) {
     asJsObject(this)['b'] = __codec0.encode(_b);
   }
 
   B get b => __codec0.decode(asJsObject(this)['b']);
-  void set bs(List<B> _bs) {
+  set bs(List<B> _bs) {
     asJsObject(this)['bs'] = __codec1.encode(_bs);
   }
 
   List<B> get bs => __codec1.decode(asJsObject(this)['bs']);
-  void set li(List<int> _li) {
+  set li(List<int> _li) {
     asJsObject(this)['li'] = __codec2.encode(_li);
   }
 
@@ -57,7 +57,7 @@ class A extends JsInterface {
   BisFunc getBisFunc() =>
       __codec5.decode(asJsObject(this).callMethod('getBisFunc'));
 
-  void set simpleFunc(SimpleFunc _simpleFunc) {
+  set simpleFunc(SimpleFunc _simpleFunc) {
     asJsObject(this)['simpleFunc'] = __codec3.encode(_simpleFunc);
   }
 
@@ -70,49 +70,50 @@ class A extends JsInterface {
 
 @GeneratedFrom(_B)
 class B extends JsInterface {
+  B(String v) : this.created(JsObject(context['B'], [v]));
   B.created(JsObject o) : super.created(o);
-  B(String v) : this.created(new JsObject(context['B'], [v]));
 
+  @override
   String toString() => asJsObject(this).callMethod('toString');
 }
 
 /// codec for js_wrapping_generator.test.types_handling_test.B
-final __codec0 = new JsInterfaceCodec<B>((o) => new B.created(o));
+final __codec0 = JsInterfaceCodec<B>((o) => B.created(o));
 
 /// codec for dart.core.List<B>
-final __codec1 = new JsListCodec<B>(__codec0);
+final __codec1 = JsListCodec<B>(__codec0);
 
 /// codec for dart.core.List<int>
-final __codec2 = new JsListCodec<int>(null);
+final __codec2 = JsListCodec<int>(null);
 
 /// codec for js_wrapping_generator.test.types_handling_test.(int) → String
-final __codec3 = new FunctionCodec<Function> /*<(int) → String>*/(
+final __codec3 = FunctionCodec<Function> /*<(int) → String>*/(
   (f) => f,
-  (f) => (p_i) => f is JsFunction ? f.apply([p_i]) : Function.apply(f, [p_i]),
+  (f) => (p$i) => f is JsFunction ? f.apply([p$i]) : Function.apply(f, [p$i]),
 );
 
 /// codec for js_wrapping_generator.test.types_handling_test.Color
-final __codec4 = new BiMapCodec<Color, dynamic>(
-    new Map<Color, dynamic>.fromIterable(Color.values, value: asJs));
+final __codec4 = BiMapCodec<Color, dynamic>(
+    Map<Color, dynamic>.fromIterable(Color.values, value: asJs));
 
 /// codec for js_wrapping_generator.test.types_handling_test.(B) → B
-final __codec5 = new FunctionCodec<Function> /*<(B) → B>*/(
-  (f) => (p_b) => __codec0.encode(f(__codec0.decode(p_b))),
-  (f) => (p_b) => __codec0.decode(f is JsFunction
-      ? f.apply([__codec0.encode(p_b)])
-      : Function.apply(f, [__codec0.encode(p_b)])),
+final __codec5 = FunctionCodec<Function> /*<(B) → B>*/(
+  (f) => (p$b) => __codec0.encode(f(__codec0.decode(p$b))),
+  (f) => (p$b) => __codec0.decode(f is JsFunction
+      ? f.apply([__codec0.encode(p$b)])
+      : Function.apply(f, [__codec0.encode(p$b)])),
 );
 
 /// codec for js_wrapping_generator.test.types_handling_test.(B, [int]) → String
-final __codec6 = new FunctionCodec<Function> /*<(B, [int]) → String>*/(
-  (f) => (p_s, [p_i]) => f(__codec0.decode(p_s), p_i),
-  (f) => (p_s, [p_i]) => f is JsFunction
-      ? f.apply([__codec0.encode(p_s), p_i])
-      : Function.apply(f, [__codec0.encode(p_s), p_i]),
+final __codec6 = FunctionCodec<Function> /*<(B, [int]) → String>*/(
+  (f) => (p$s, [p$i]) => f(__codec0.decode(p$s), p$i),
+  (f) => (p$s, [p$i]) => f is JsFunction
+      ? f.apply([__codec0.encode(p$s), p$i])
+      : Function.apply(f, [__codec0.encode(p$s), p$i]),
 );
 
 /// codec for js_wrapping_generator.test.types_handling_test.() → void
-final __codec7 = new FunctionCodec<Function> /*<() → void>*/(
+final __codec7 = FunctionCodec<Function> /*<() → void>*/(
   (f) => f,
   (f) => () {
         f is JsFunction ? f.apply([]) : Function.apply(f, []);

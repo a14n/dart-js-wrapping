@@ -6,7 +6,7 @@ library js_wrapping.util.state;
 
 import 'package:js_wrapping/js_wrapping.dart';
 
-final _STATE = new Expando<Map<Symbol, dynamic>>();
+final _state = Expando<Map<Symbol, dynamic>>();
 
 /// Returns the dart state associated with a [JsObject] and all its
 /// [JsInterface]s.
@@ -17,11 +17,6 @@ final _STATE = new Expando<Map<Symbol, dynamic>>();
 ///
 /// It takes [JsInterface] or [JsObject] as parameter.
 Map<Symbol, dynamic> getState(/*JsInterface|JsObject*/ o) {
-  if (o is JsInterface) o = asJsObject(o as JsInterface);
-  Map<Symbol, dynamic> state = _STATE[o];
-  if (state == null) {
-    state = <Symbol, dynamic>{};
-    _STATE[o] = state;
-  }
-  return state;
+  final object = o is JsInterface ? asJsObject(o) : o;
+  return _state[object] ??= <Symbol, dynamic>{};
 }

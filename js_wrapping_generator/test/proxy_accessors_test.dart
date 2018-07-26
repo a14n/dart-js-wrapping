@@ -2,10 +2,10 @@
 // source code is governed by a BSD-style license that can be found in the
 // LICENSE file.
 
-@TestOn("browser")
-library js_wrapping_generator.test.proxy_accessors_test;
+// ignore_for_file: avoid_setters_without_getters
 
-import 'dart:mirrors';
+@TestOn('browser')
+library js_wrapping_generator.test.proxy_accessors_test;
 
 import 'package:js_wrapping/js_wrapping.dart';
 import 'package:test/test.dart';
@@ -99,41 +99,36 @@ abstract class _ClassWithRenamedSetter implements JsInterface {
   set iBis(int i);
 }
 
-main() {
+void main() {
   test('int fields are supported', () {
-    final o = new Class0();
+    final o = Class0();
     expect(o.i, 1);
   });
 
   test('final fields should generate getter but not setter', () {
-    final clazz = reflectClass(ClassFinalField);
-    expect(clazz.declarations.keys, contains(#i));
-    expect(clazz.declarations.keys, isNot(contains(const Symbol('i='))));
+    final o = ClassFinalField();
+    expect(o.i, 1);
+    expect(() => (o as dynamic).i = 1, throwsNoSuchMethodError);
   });
 
   test('fields (not final) should generate getter and setter', () {
-    final clazz = reflectClass(ClassNotFinalField);
-    expect(clazz.declarations.keys, contains(#i));
-    expect(clazz.declarations.keys, contains(const Symbol('i=')));
+    final o = ClassNotFinalField()..i = 1;
+    expect(o.i, 1);
   });
 
   test('private field should be mapped to public name', () {
-    final clazz = reflectClass(ClassPrivateField);
-    expect(clazz.declarations.keys, isNot(contains(#i)));
-    expect(clazz.declarations.keys, isNot(contains(const Symbol('i='))));
-
-    final o = new ClassPrivateField();
+    final o = ClassPrivateField();
+    expect(() => (o as dynamic).i, throwsNoSuchMethodError);
+    expect(() => (o as dynamic).i = 1, throwsNoSuchMethodError);
     expect(o._i, 1);
     o._i = 2;
     expect(asJsObject(o)['i'], 2);
   });
 
   test('a field should call with the name provided by JsName', () {
-    final clazz = reflectClass(ClassRenamedField);
-    expect(clazz.declarations.keys, isNot(contains(#i)));
-    expect(clazz.declarations.keys, isNot(contains(const Symbol('i='))));
-
-    final o = new ClassRenamedField();
+    final o = ClassRenamedField();
+    expect(() => (o as dynamic).i, throwsNoSuchMethodError);
+    expect(() => (o as dynamic).i = 1, throwsNoSuchMethodError);
     expect(o.iBis, 1);
     o.iBis = 2;
     expect(asJsObject(o)['i'], 2);
@@ -141,54 +136,43 @@ main() {
   });
 
   test('a private field should call with the name provided by JsName', () {
-    final clazz = reflectClass(ClassRenamedPrivateField);
-    expect(clazz.declarations.keys, isNot(contains(#i)));
-    expect(clazz.declarations.keys, isNot(contains(const Symbol('i='))));
-
-    final o = new ClassRenamedPrivateField();
+    final o = ClassRenamedPrivateField();
+    expect(() => (o as dynamic).i, throwsNoSuchMethodError);
+    expect(() => (o as dynamic).i = 1, throwsNoSuchMethodError);
     expect(o._iBis, 1);
     o._iBis = 2;
     expect(asJsObject(o)['i'], 2);
   });
 
   test('ClassWithGetter should have getter but not setter', () {
-    final clazz = reflectClass(ClassWithGetter);
-    expect(clazz.declarations.keys, contains(#i));
-    expect(clazz.declarations.keys, isNot(contains(const Symbol('i='))));
-
-    final o = new ClassWithGetter();
+    final o = ClassWithGetter();
     expect(o.i, 1);
+    expect(() => (o as dynamic).i = 1, throwsNoSuchMethodError);
   });
 
   test('ClassWithSetter should have setter but not getter', () {
-    final clazz = reflectClass(ClassWithSetter);
-    expect(clazz.declarations.keys, isNot(contains(#i)));
-    expect(clazz.declarations.keys, contains(const Symbol('i=')));
-
-    final o = new ClassWithSetter();
-    o.i = 2;
+    final o = ClassWithSetter()..i = 2;
+    expect(() => (o as dynamic).i, throwsNoSuchMethodError);
     expect(asJsObject(o)['i'], 2);
   });
 
   test('private getter should be mapped to public name', () {
-    final o = new ClassWithPrivateGetter();
+    final o = ClassWithPrivateGetter();
     expect(o._i, 1);
   });
 
   test('private setter should be mapped to public name', () {
-    final o = new ClassWithPrivateSetter();
-    o._i = 2;
+    final o = ClassWithPrivateSetter().._i = 2;
     expect(asJsObject(o)['i'], 2);
   });
 
   test('private getter should call with the name provided by JsName', () {
-    final o = new ClassWithRenamedGetter();
+    final o = ClassWithRenamedGetter();
     expect(o.iBis, 1);
   });
 
   test('private setter should call with the name provided by JsName', () {
-    final o = new ClassWithRenamedSetter();
-    o.iBis = 2;
+    final o = ClassWithRenamedSetter()..iBis = 2;
     expect(asJsObject(o)['i'], 2);
   });
 }

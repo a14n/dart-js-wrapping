@@ -27,18 +27,17 @@ class JsObjectAsMap<V> extends JsInterface with MapMixin<String, V> {
 
   /// Creates an instance backed by a new JavaScript object whose prototype is
   /// Object.
-  JsObjectAsMap(Codec<V, dynamic> codec)
-      : this.created(new JsObject(_obj), codec);
+  JsObjectAsMap(Codec<V, dynamic> codec) : this.created(JsObject(_obj), codec);
 
   /// Creates an instance backed by the JavaScript object [o].
   JsObjectAsMap.created(JsObject o, Codec<V, dynamic> codec)
       : _o = o,
-        _codec = codec ?? new IdentityCodec(),
+        _codec = codec ?? IdentityCodec(),
         super.created(o);
 
   void _checkKey(String key) {
     if (key == '__proto__') {
-      throw new ArgumentError("'__proto__' is disallowed as a key");
+      throw ArgumentError("'__proto__' is disallowed as a key");
     }
   }
 
@@ -79,9 +78,5 @@ class JsObjectAsMap<V> extends JsInterface with MapMixin<String, V> {
   }
 
   @override
-  void clear() {
-    for (var key in keys) {
-      _o.deleteProperty(key);
-    }
-  }
+  void clear() => keys.forEach(_o.deleteProperty);
 }

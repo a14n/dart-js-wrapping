@@ -41,11 +41,11 @@ abstract class JsEnum extends JsRef {
 T asJsObject<T extends JsObject>(JsRef<JsObject> o) => o._value as T;
 
 /// Returns the underlying js value corresponding to [o] if [o] is a [JsRef]
-/// (usually [JsEnumBase] or [JsInterface]). Otherwise it returns [o].
-asJs(o) => o is JsRef ? o._value : o;
+/// (usually [jsEnum] or [JsInterface]). Otherwise it returns [o].
+dynamic asJs(o) => o is JsRef ? o._value : o;
 
 /// A metadata annotation that marks an enum as a set of values.
-const jsEnum = const _JsEnum();
+const jsEnum = _JsEnum();
 
 class _JsEnum {
   const _JsEnum();
@@ -62,7 +62,7 @@ class JsName {
 
 /// A metadata annotation used to indicate that the Js object is a anonymous js
 /// object. That is it is created with `new Object()`.
-const anonymous = const _Anonymous();
+const anonymous = _Anonymous();
 
 class _Anonymous {
   const _Anonymous();
