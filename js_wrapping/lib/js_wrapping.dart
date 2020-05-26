@@ -6,73 +6,23 @@
 /// JavaScript objects.
 library js_wrapping;
 
-import 'dart:js';
-
-export 'dart:js';
-
-export 'adapter/js_list.dart';
-export 'adapter/js_map.dart';
-export 'util/codec.dart';
-
-/// The base class of Dart interfaces for JavaScript objects.
-abstract class JsInterface extends JsRef<JsObject> {
-  JsInterface.created(JsObject o) : super.created(o);
-}
-
-/// The base class of Dart interfaces for JavaScript objects.
-abstract class JsRef<T> {
-  final T _value;
-
-  JsRef.created(this._value);
-
-  @override
-  int get hashCode => _value.hashCode;
-  @override
-  bool operator ==(other) =>
-      identical(this, other) || other is JsRef && _value == other._value;
-}
-
-/// The base class of Dart interfaces for JavaScript objects.
-abstract class JsEnum extends JsRef {
-  JsEnum.created(o) : super.created(o);
-}
-
-/// Returns the underlying [JsObject] corresponding to the non nullable [o].
-T asJsObject<T extends JsObject>(JsRef<JsObject> o) => o._value as T;
-
-/// Returns the underlying js value corresponding to [o] if [o] is a [JsRef]
-/// (usually [jsEnum] or [JsInterface]). Otherwise it returns [o].
-dynamic asJs(o) => o is JsRef ? o._value : o;
-
-/// A metadata annotation that marks an enum as a set of values.
-const jsEnum = _JsEnum();
-
-class _JsEnum {
-  const _JsEnum();
-}
+export 'package:js/js.dart';
+export 'package:js/js_util.dart';
 
 /// A metadata annotation that allows to customize the name used for method call
 /// or attribute access on the javascript side.
 ///
 /// You can use it on libraries, classes, members.
 class JsName {
+  const JsName([this.name]);
   final String name;
-  const JsName(this.name);
 }
-
-/// A metadata annotation used to indicate that the Js object is a anonymous js
-/// object. That is it is created with `new Object()`.
-const anonymous = _Anonymous();
-
-class _Anonymous {
-  const _Anonymous();
-}
-
-/// A placeholder for generation of factory contructors and static members.
-const $js = null;
 
 /// This class should not be directly used. It allows to silent the analyzer.
 class GeneratedFrom {
-  final Type type;
   const GeneratedFrom(this.type);
+  final Type type;
 }
+
+/// A placeholder for generation of factory contructors and static members.
+const $js = Object();

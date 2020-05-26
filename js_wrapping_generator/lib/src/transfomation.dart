@@ -4,66 +4,30 @@
 
 library js_wrapping_generator.util;
 
-import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 
-LibraryElement getLib(LibraryElement libElement, String name) =>
-    libElement.importedLibraries
-        .firstWhere((l) => l.name == name, orElse: () => null);
-
-ClassElement getType(
-    LibraryElement libElement, String libName, String className) {
-  final lib = getLib(libElement, libName);
-  //print('---- aa:$libElement\n$libName\n$className');
-  if (lib == null) return null;
-  return lib.getType(className);
+String getSourceCode(Element element) {
+  final node = getNode(element);
+  return element.source.contents.data.substring(node.offset, node.end);
 }
 
-bool isAnnotationOfType(
-    ElementAnnotation annotation, ClassElement annotationClass) {
-  final metaElement = annotation.element;
-  dynamic exp;
-  DartType type;
-  if (metaElement is PropertyAccessorElement) {
-    exp = metaElement.variable;
-    type = exp.evaluationResult.value.type as DartType;
-  } else if (metaElement is ConstructorElement) {
-    exp = metaElement;
-    type = metaElement.enclosingElement.type;
-  } else {
-    throw UnimplementedError('Unsupported annotation: $annotation');
-  }
-  if (exp == annotationClass) return true;
-  return type.isSubtypeOf(annotationClass.type);
-}
-
-Iterable<Annotation> getAnnotations(
-    AnnotatedNode node, ClassElement clazz) sync* {
-  if (node == null || node.metadata == null) return;
-  for (final a in node.metadata) {
-    final e = a.element;
-    if (e is ConstructorElement && e.type.returnType == clazz.type) {
-      yield a;
-    }
-  }
-}
-
-String getSourceCode(Element element) => element.source.contents.data
-    .substring(element.computeNode().offset, element.computeNode().end);
+AstNode getNode(Element element) => element.session
+    .getParsedLibraryByElement(element.library)
+    .getElementDeclaration(element)
+    .node;
 
 class SourceTransformation {
-  int begin;
-  int end;
-  final String content;
-
   SourceTransformation(this.begin, this.end, this.content);
   SourceTransformation.removal(this.begin, this.end) : content = '';
   SourceTransformation.insertion(int index, this.content)
       : begin = index,
         end = index;
+
+  int begin;
+  int end;
+  final String content;
 
   void shift(int value) {
     begin += value;
@@ -91,7 +55,7 @@ class Transformer {
 
   String applyOn(Element element) {
     var code = getSourceCode(element);
-    final initialPadding = -element.computeNode().offset;
+    final initialPadding = -getNode(element).offset;
     for (final transformation in _transformations) {
       transformation.shift(initialPadding);
     }

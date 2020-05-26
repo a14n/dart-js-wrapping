@@ -1,3 +1,7 @@
+# v0.6.0 (2018-07-27)
+
+- migration from `dart:js` to `package:js`.
+
 # v0.5.0 (2018-07-27)
 
 - migration to Dart 2.
