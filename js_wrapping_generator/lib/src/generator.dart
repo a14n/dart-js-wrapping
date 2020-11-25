@@ -159,35 +159,45 @@ $content
         continue;
       }
       final node = getNode(method) as MethodDeclaration;
-      final returnType = method.returnType;
-      final isCoreListWithTypeParameter =
-          _isCoreListWithTypeParameter(returnType);
+
       if (node.body is! EmptyFunctionBody) {
         extensionContent.writeln(
             method.source.contents.data.substring(node.offset, node.end));
-      } else if (method.isOperator) {
-      } else if (isCoreListWithTypeParameter || method.isPrivate) {
+        continue;
+      }
+
+      if (method.isOperator) {
+        continue;
+      }
+
+      if (_isCoreListWithTypeParameter(method.returnType) ||
+          method.isPrivate ||
+          method.parameters.any((p) => p.type is FunctionType)) {
         final name = method.name;
         final publicName = method.isPrivate ? name.substring(1) : name;
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
-        final args = method.parameters.map((e) => e.name).join(',');
-        final cast = isCoreListWithTypeParameter
+        final args = method.parameters
+            .map((e) =>
+                e.type is FunctionType ? 'allowInterop(${e.name})' : e.name)
+            .join(',');
+        final cast = _isCoreListWithTypeParameter(method.returnType)
             ? '?.cast<${_getTypeParameterOfList(method.source, node.returnType)}>()'
             : '';
         extensionContent
           ..writeln(getDoc(method) ?? '')
           ..writeln(signature)
           ..writeln("=> callMethod(this, '$publicName', [$args])$cast;");
-      } else {
-        final signature = method.source.contents.data.substring(
-            node.firstTokenAfterCommentAndMetadata.offset, node.body.end);
-        classContent.writeln(getDoc(method) ?? '');
-        if (!method.isExternal) {
-          classContent.write('external ');
-        }
-        classContent.writeln(signature);
+        continue;
       }
+
+      final signature = method.source.contents.data.substring(
+          node.firstTokenAfterCommentAndMetadata.offset, node.body.end);
+      classContent.writeln(getDoc(method) ?? '');
+      if (!method.isExternal) {
+        classContent.write('external ');
+      }
+      classContent.writeln(signature);
     }
 
     final classNode = getNode(clazzTemplate) as ClassDeclaration;
