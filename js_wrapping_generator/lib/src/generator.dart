@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:build/build.dart';
 import 'package:js_wrapping_generator/src/transfomation.dart';
 import 'package:source_gen/source_gen.dart';
@@ -71,20 +72,28 @@ $content
         continue;
       }
       final node = getNode(field) as VariableDeclaration;
+      final dartType = field.type;
+      final isCoreListWithTypeParameter =
+          _isCoreListWithTypeParameter(dartType);
       final type = field.source.contents.data.substring(
           (node.parent as VariableDeclarationList).type.offset,
           (node.parent as VariableDeclarationList).type.end);
       final jsNameMetadata = getJsName(field);
-      if (field.initializer != null) {
-      } else if (field.type is FunctionType || jsNameMetadata != null) {
+      if (field.hasInitializer) {
+      } else if (dartType is FunctionType ||
+          jsNameMetadata != null ||
+          isCoreListWithTypeParameter) {
         final nameDart = field.name;
         final nameJs = jsNameMetadata ?? field.name;
+        final cast = isCoreListWithTypeParameter
+            ? '.cast<${_getTypeParameterOfList(field.source, (node.parent as VariableDeclarationList).type)}>()'
+            : '';
         extensionContent
           ..writeln(getDoc(field) ?? '')
-          ..writeln("$type get $nameDart => getProperty(this, '$nameJs');")
+          ..writeln("$type get $nameDart => getProperty(this, '$nameJs')$cast;")
           ..writeln(getDoc(field) ?? '')
           ..writeln('set $nameDart($type value)'
-              "{setProperty(this, '$nameJs', ${field.type is FunctionType ? 'allowInterop(value)' : 'value'});}");
+              "{setProperty(this, '$nameJs', ${dartType is FunctionType ? 'allowInterop(value)' : 'value'});}");
       } else {
         classContent
           ..writeln(getDoc(field) ?? '')
@@ -100,19 +109,25 @@ $content
       }
       final node = getNode(method) as MethodDeclaration;
       final jsNameMetadata = getJsName(method);
+      final returnType = method.returnType;
+      final isCoreListWithTypeParameter =
+          _isCoreListWithTypeParameter(returnType);
       if (node.body is! EmptyFunctionBody) {
         extensionContent.writeln(
             method.source.contents.data.substring(node.offset, node.end));
       } else if (method.isOperator) {
-      } else if (jsNameMetadata != null) {
+      } else if (isCoreListWithTypeParameter || jsNameMetadata != null) {
         final nameJs = jsNameMetadata;
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
         final args = method.parameters.map((e) => e.name).join(',');
+        final cast = isCoreListWithTypeParameter
+            ? '.cast<${_getTypeParameterOfList(method.source, node.returnType)}>()'
+            : '';
         extensionContent
           ..writeln(getDoc(method) ?? '')
           ..writeln(signature)
-          ..writeln("=> callMethod(this, '$nameJs', [$args]);");
+          ..writeln("=> callMethod(this, '$nameJs', [$args])$cast;");
       } else {
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.end);
@@ -129,20 +144,26 @@ $content
         continue;
       }
       final node = getNode(method) as MethodDeclaration;
+      final returnType = method.returnType;
+      final isCoreListWithTypeParameter =
+          _isCoreListWithTypeParameter(returnType);
       if (node.body is! EmptyFunctionBody) {
         extensionContent.writeln(
             method.source.contents.data.substring(node.offset, node.end));
       } else if (method.isOperator) {
-      } else if (method.isPrivate) {
+      } else if (isCoreListWithTypeParameter || method.isPrivate) {
         final name = method.name;
-        final publicName = name.substring(1);
+        final publicName = method.isPrivate ? name.substring(1) : name;
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
         final args = method.parameters.map((e) => e.name).join(',');
+        final cast = isCoreListWithTypeParameter
+            ? '.cast<${_getTypeParameterOfList(method.source, node.returnType)}>()'
+            : '';
         extensionContent
           ..writeln(getDoc(method) ?? '')
           ..writeln(signature)
-          ..writeln("=> callMethod(this, '$publicName', [$args]);");
+          ..writeln("=> callMethod(this, '$publicName', [$args])$cast;");
       } else {
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.end);
@@ -180,6 +201,17 @@ $extensionContent
     }
     //print(result);
     return result;
+  }
+
+  bool _isCoreListWithTypeParameter(DartType dartType) =>
+      dartType is InterfaceType &&
+      dartType.element.library.name == 'dart.core' &&
+      dartType.element.name == 'List' &&
+      dartType.typeArguments.isNotEmpty;
+
+  String _getTypeParameterOfList(Source source, TypeAnnotation type) {
+    return source.contents.data
+        .substring(type.offset + 'List<'.length, type.end - '>'.length);
   }
 }
 
