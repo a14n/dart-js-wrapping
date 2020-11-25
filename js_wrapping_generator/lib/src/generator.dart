@@ -72,12 +72,12 @@ $content
         continue;
       }
       final node = getNode(field) as VariableDeclaration;
+      final type = (node.parent as VariableDeclarationList).type;
       final dartType = field.type;
       final isCoreListWithTypeParameter =
           _isCoreListWithTypeParameter(dartType);
-      final type = field.source.contents.data.substring(
-          (node.parent as VariableDeclarationList).type.offset,
-          (node.parent as VariableDeclarationList).type.end);
+      final typeAsString =
+          field.source.contents.data.substring(type.offset, type.end);
       final jsNameMetadata = getJsName(field);
       if (field.hasInitializer) {
       } else if (dartType is FunctionType ||
@@ -86,20 +86,21 @@ $content
         final nameDart = field.name;
         final nameJs = jsNameMetadata ?? field.name;
         final cast = isCoreListWithTypeParameter
-            ? '.cast<${_getTypeParameterOfList(field.source, (node.parent as VariableDeclarationList).type)}>()'
+            ? '.cast<${_getTypeParameterOfList(field.source, type)}>()'
             : '';
         extensionContent
           ..writeln(getDoc(field) ?? '')
-          ..writeln("$type get $nameDart => getProperty(this, '$nameJs')$cast;")
+          ..writeln(
+              "$typeAsString get $nameDart => getProperty(this, '$nameJs')$cast;")
           ..writeln(getDoc(field) ?? '')
-          ..writeln('set $nameDart($type value)'
+          ..writeln('set $nameDart($typeAsString value)'
               "{setProperty(this, '$nameJs', ${dartType is FunctionType ? 'allowInterop(value)' : 'value'});}");
       } else {
         classContent
           ..writeln(getDoc(field) ?? '')
-          ..writeln('external $type get ${field.name};')
+          ..writeln('external $typeAsString get ${field.name};')
           ..writeln(getDoc(field) ?? '')
-          ..writeln('external set ${field.name}($type value);');
+          ..writeln('external set ${field.name}($typeAsString value);');
       }
     }
 
@@ -109,25 +110,39 @@ $content
       }
       final node = getNode(method) as MethodDeclaration;
       final jsNameMetadata = getJsName(method);
-      final returnType = method.returnType;
-      final isCoreListWithTypeParameter =
-          _isCoreListWithTypeParameter(returnType);
       if (node.body is! EmptyFunctionBody) {
         extensionContent.writeln(
             method.source.contents.data.substring(node.offset, node.end));
       } else if (method.isOperator) {
-      } else if (isCoreListWithTypeParameter || jsNameMetadata != null) {
-        final nameJs = jsNameMetadata;
+      } else if (method.isSetter &&
+          (jsNameMetadata != null ||
+              method.parameters.first.type is FunctionType)) {
+        // name of setter end with an "=" sign
+        final nameJs =
+            jsNameMetadata ?? method.name.substring(0, method.name.length - 1);
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
-        final args = method.parameters.map((e) => e.name).join(',');
-        final cast = isCoreListWithTypeParameter
+        final param = method.parameters.first;
+        final paramValue = param.type is FunctionType
+            ? 'allowInterop(${param.name})'
+            : param.name;
+        extensionContent
+          ..writeln(getDoc(method) ?? '')
+          ..writeln(signature)
+          ..writeln("{setProperty(this, '$nameJs', $paramValue);}");
+      } else if (method.isGetter &&
+          (_isCoreListWithTypeParameter(method.returnType) ||
+              jsNameMetadata != null)) {
+        final nameJs = jsNameMetadata ?? method.name;
+        final signature = method.source.contents.data.substring(
+            node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
+        final cast = _isCoreListWithTypeParameter(method.returnType)
             ? '.cast<${_getTypeParameterOfList(method.source, node.returnType)}>()'
             : '';
         extensionContent
           ..writeln(getDoc(method) ?? '')
           ..writeln(signature)
-          ..writeln("=> callMethod(this, '$nameJs', [$args])$cast;");
+          ..writeln("=> getProperty(this, '$nameJs')$cast;");
       } else {
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.end);
