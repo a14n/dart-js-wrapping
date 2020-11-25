@@ -86,7 +86,7 @@ $content
         final nameDart = field.name;
         final nameJs = jsNameMetadata ?? field.name;
         final cast = isCoreListWithTypeParameter
-            ? '.cast<${_getTypeParameterOfList(field.source, type)}>()'
+            ? '?.cast<${_getTypeParameterOfList(field.source, type)}>()'
             : '';
         extensionContent
           ..writeln(getDoc(field) ?? '')
@@ -137,7 +137,7 @@ $content
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
         final cast = _isCoreListWithTypeParameter(method.returnType)
-            ? '.cast<${_getTypeParameterOfList(method.source, node.returnType)}>()'
+            ? '?.cast<${_getTypeParameterOfList(method.source, node.returnType)}>()'
             : '';
         extensionContent
           ..writeln(getDoc(method) ?? '')
@@ -173,7 +173,7 @@ $content
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
         final args = method.parameters.map((e) => e.name).join(',');
         final cast = isCoreListWithTypeParameter
-            ? '.cast<${_getTypeParameterOfList(method.source, node.returnType)}>()'
+            ? '?.cast<${_getTypeParameterOfList(method.source, node.returnType)}>()'
             : '';
         extensionContent
           ..writeln(getDoc(method) ?? '')
