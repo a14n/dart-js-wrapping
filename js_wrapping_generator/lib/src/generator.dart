@@ -172,7 +172,8 @@ $content
 
       if (_isCoreListWithTypeParameter(method.returnType) ||
           method.isPrivate ||
-          method.parameters.any((p) => p.type is FunctionType)) {
+          method.parameters.any((p) => p.type is FunctionType) ||
+          method.returnType.isDartAsyncFuture) {
         final name = method.name;
         final publicName = method.isPrivate ? name.substring(1) : name;
         final signature = method.source.contents.data.substring(
@@ -184,11 +185,15 @@ $content
         final cast = _isCoreListWithTypeParameter(method.returnType)
             ? '?.cast<${_getTypeParameterOfList(method.source, node.returnType)}>()'
             : '';
-        final content = "callMethod(this, '$publicName', [$args])$cast;";
+        final content = "callMethod(this, '$publicName', [$args])$cast";
         extensionContent
           ..writeln(getDoc(method) ?? '')
           ..writeln(signature)
-          ..writeln(method.returnType.isVoid ? '{ $content }' : ' => $content');
+          ..writeln(method.returnType.isVoid
+              ? '{ $content; }'
+              : method.returnType.isDartAsyncFuture
+                  ? ' => promiseToFuture($content);'
+                  : ' => $content;');
         continue;
       }
 
