@@ -184,10 +184,11 @@ $content
         final cast = _isCoreListWithTypeParameter(method.returnType)
             ? '?.cast<${_getTypeParameterOfList(method.source, node.returnType)}>()'
             : '';
+        final content = "callMethod(this, '$publicName', [$args])$cast;";
         extensionContent
           ..writeln(getDoc(method) ?? '')
           ..writeln(signature)
-          ..writeln("=> callMethod(this, '$publicName', [$args])$cast;");
+          ..writeln(method.returnType.isVoid ? '{ $content }' : ' => $content');
         continue;
       }
 
