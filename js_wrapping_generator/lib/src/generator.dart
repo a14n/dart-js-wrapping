@@ -76,8 +76,8 @@ $content
       final dartType = field.type;
       final isCoreListWithTypeParameter =
           _isCoreListWithTypeParameter(dartType);
-      final typeAsString =
-          field.source.contents.data.substring(type.offset, type.end);
+      final typeAsString = field.source.contents.data
+          .substring(type.offset, type.endToken.next.offset);
       final jsNameMetadata = getJsName(field);
       if (field.hasInitializer) {
       } else if (dartType is FunctionType ||
