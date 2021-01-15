@@ -5,13 +5,11 @@ targets:
         generate_for:
           include:
           - example/**
-          - test/**
 
 builders:
   js_wrapping_generator:
     import: "package:js_wrapping_generator/builder.dart"
     builder_factories: ["jsWrappingBuilder"]
-    build_extensions: {".dart": [".js_wrapping_generator.g.part"]}
+    build_extensions: {".dart": [".js.g.dart"]}
     auto_apply: dependents
-    build_to: cache
-    applies_builders: ["source_gen|combining_builder"]
+    build_to: source

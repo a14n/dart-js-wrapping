@@ -13,13 +13,42 @@ import 'package:source_gen/source_gen.dart';
 
 class JsWrappingGenerator extends Generator {
   @override
-  String generate(LibraryReader library, BuildStep buildStep) {
-    final templates = library.allElements
-        .whereType<ClassElement>()
-        .where((clazz) => clazz.isPrivate)
-        .where(hasJsNameAnnotation)
-        .toList();
-    return templates.map(generateForTemplate).join('\n');
+  Future<String> generate(LibraryReader library, BuildStep buildStep) async {
+    final transformer = Transformer();
+    final definingCompilationUnitContent = library.element.source.contents.data;
+
+    // remove  parts
+    // BUG : getNode fail when the definingCompilationUnit don't have elements
+    // final libraryNode = getNode(library.element.definingCompilationUnit).root
+    //     as CompilationUnit;
+    // libraryNode.directives
+    //     .whereType<PartDirective>()
+    //     .forEach(transformer.removeNode);
+    RegExp(r'^part .*;$', multiLine: true)
+        .allMatches(definingCompilationUnitContent)
+        .forEach((e) {
+      transformer.removeBetween(e.start, e.end);
+    });
+
+    final partsContent = <String>[];
+    for (var element
+        in library.allElements.where((element) => !element.isSynthetic)) {
+      final node = getNode(element);
+      if (element.thisOrAncestorOfType<CompilationUnitElement>() ==
+          library.element.definingCompilationUnit) {
+        if (element is ClassElement && hasJsNameAnnotation(element)) {
+          transformer.replace(
+              node.offset, node.end, generateForTemplate(element));
+        }
+      } else {
+        partsContent.add(element is ClassElement && hasJsNameAnnotation(element)
+            ? generateForTemplate(element)
+            : getSourceCode(element));
+      }
+    }
+
+    return transformer.applyOn(definingCompilationUnitContent) +
+        partsContent.join('\n');
   }
 
   String generateForTemplate(ClassElement clazzTemplate) => clazzTemplate.isEnum
@@ -27,25 +56,22 @@ class JsWrappingGenerator extends Generator {
       : generateForClass(clazzTemplate);
 
   String generateForEnum(ClassElement clazzTemplate) {
-    final newName = getPublicClassName(clazzTemplate);
     final doc = getDoc(clazzTemplate) ?? '';
     final jsName = getJsName(clazzTemplate);
     final content = clazzTemplate.accessors
         .where((e) => e.returnType == clazzTemplate.thisType)
-        .map((e) => 'external static $newName get ${e.name};')
+        .map((e) => 'external static ${clazzTemplate.name} get ${e.name};')
         .join('\n');
     return '''
 $doc
-@GeneratedFrom(${clazzTemplate.name})
 @JS(${jsName != null ? "'$jsName'" : ""})
-class $newName {
+class ${clazzTemplate.name} {
 $content
 }
 ''';
   }
 
   String generateForClass(ClassElement clazzTemplate) {
-    final newName = getPublicClassName(clazzTemplate);
     final jsName = getJsName(clazzTemplate);
 
     final isAnonymous = hasAnonymousAnnotation(clazzTemplate);
@@ -64,7 +90,7 @@ $content
         ..writeln(getDoc(constructor) ?? '')
         ..write('external ')
         ..write(isAnonymous ? 'factory ' : '')
-        ..writeln('$newName$signature;');
+        ..writeln('${clazzTemplate.name}$signature;');
     }
 
     for (final field in clazzTemplate.fields) {
@@ -174,8 +200,7 @@ $content
           method.isPrivate ||
           method.parameters.any((p) => p.type is FunctionType) ||
           method.returnType.isDartAsyncFuture) {
-        final name = method.name;
-        final publicName = method.isPrivate ? name.substring(1) : name;
+        final name = getJsName(method) ?? method.name;
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
         final args = method.parameters
@@ -185,7 +210,7 @@ $content
         final cast = _isCoreListWithTypeParameter(method.returnType)
             ? '?.cast<${_getTypeParameterOfList(method.source, node.returnType)}>()'
             : '';
-        final content = "callMethod(this, '$publicName', [$args])$cast";
+        final content = "callMethod(this, '$name', [$args])$cast";
         extensionContent
           ..writeln(getDoc(method) ?? '')
           ..writeln(signature)
@@ -208,11 +233,10 @@ $content
 
     final classNode = getNode(clazzTemplate) as ClassDeclaration;
     final classDeclaration = clazzTemplate.source.contents.data
-        .substring(classNode.name.offset + 1, classNode.leftBracket.offset);
+        .substring(classNode.name.offset, classNode.leftBracket.offset);
 
     var result = '''
 $doc
-@GeneratedFrom(${clazzTemplate.name})
 @JS(${jsName != null ? "'$jsName'" : ""})
 ${isAnonymous ? '@anonymous' : ''}
 class $classDeclaration {
@@ -224,8 +248,7 @@ $classContent
           ? ''
           : '<${clazzTemplate.typeParameters.map((e) => e.name).join(',')}>';
       result += '''
-@GeneratedFrom(${clazzTemplate.name})
-extension $newName\$Ext$typeParameters on $newName$typeParameters {
+extension ${clazzTemplate.name}\$Ext$typeParameters on ${clazzTemplate.name}$typeParameters {
 $extensionContent
 }
 ''';
@@ -255,8 +278,6 @@ String getDoc(Element element) {
     return null;
   }
 }
-
-String getPublicClassName(ClassElement clazz) => clazz.displayName.substring(1);
 
 Iterable<DartObject> getAnnotations(
   LibraryElement library,

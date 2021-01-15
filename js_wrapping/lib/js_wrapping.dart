@@ -18,11 +18,5 @@ class JsName {
   final String name;
 }
 
-/// This class should not be directly used. It allows to silent the analyzer.
-class GeneratedFrom {
-  const GeneratedFrom(this.type);
-  final Type type;
-}
-
 /// A placeholder for generation of factory contructors and static members.
 const $js = Object();

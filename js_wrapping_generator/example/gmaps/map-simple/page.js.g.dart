@@ -1,3 +1,9 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+// **************************************************************************
+// JsWrappingGenerator
+// **************************************************************************
+
 // Copyright (c) 2015, Alexandre Ardhuin. All rights reserved. Use of this
 // source code is governed by a BSD-style license that can be found in the
 // LICENSE file.
@@ -9,46 +15,61 @@ import 'dart:html';
 
 import 'package:js_wrapping/js_wrapping.dart';
 
-@JsName('Map')
-abstract class GMap {
-  factory GMap(Node mapDiv, [MapOptions opts]) => $js;
+@JS('Map')
+class GMap {
+  external GMap(Node mapDiv, [MapOptions opts]);
+}
 
-  @JsName('getZoom')
-  num _getZoom();
+extension GMap$Ext on GMap {
   num get zoom => _getZoom();
+
+  num _getZoom() => callMethod(this, '_getZoom', []);
 }
 
-@JsName()
-abstract class LatLng {
-  factory LatLng(num lat, num lng, [bool noWrap]) => $js;
+@JS()
+class LatLng {
+  external LatLng(num lat, num lng, [bool noWrap]);
 
-  bool equals(LatLng other);
+  external bool equals(LatLng other);
+
+  external String toString();
+
+  external String toUrlValue([num precision]);
+}
+
+extension LatLng$Ext on LatLng {
   num get lat => _lat();
-  @JsName('lat')
-  num _lat();
   num get lng => _lng();
-  @JsName('lng')
-  num _lng();
-  String toString();
-  String toUrlValue([num precision]);
+
+  num _lat() => callMethod(this, '_lat', []);
+
+  num _lng() => callMethod(this, '_lng', []);
 }
 
-@JsName()
+@JS()
 @anonymous
-abstract class MapOptions {
-  factory MapOptions() => $js;
+class MapOptions {
+  external factory MapOptions();
 
-  int zoom;
-  LatLng center;
-  MapTypeId mapTypeId;
+  external int get zoom;
+
+  external set zoom(int value);
+
+  external LatLng get center;
+
+  external set center(LatLng value);
+
+  external MapTypeId get mapTypeId;
+
+  external set mapTypeId(MapTypeId value);
 }
 
-@JsName('MapTypeId')
-enum MapTypeId {
-  HYBRID,
-  ROADMAP,
-  SATELLITE,
-  TERRAIN,
+@JS('MapTypeId')
+class MapTypeId {
+  external static MapTypeId get HYBRID;
+  external static MapTypeId get ROADMAP;
+  external static MapTypeId get SATELLITE;
+  external static MapTypeId get TERRAIN;
 }
 
 @JS('google.maps.event')
@@ -86,12 +107,14 @@ class Event {
           _Event$namespace, 'trigger', [instance, eventName, ...?eventArgs]);
 }
 
-@JsName()
+@JS()
 @anonymous
-abstract class MapsEventListener {
-  factory MapsEventListener() => $js;
-  void remove();
+class MapsEventListener {
+  external factory MapsEventListener();
+
+  external void remove();
 }
+
 void main() {
   final mapOptions = MapOptions()
     ..zoom = 8

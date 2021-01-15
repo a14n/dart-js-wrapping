@@ -53,7 +53,7 @@ class Transformer {
   void replace(int begin, int end, String content) =>
       _transformations.add(SourceTransformation(begin, end, content));
 
-  String applyOn(Element element) {
+  String applyOnElement(Element element) {
     var code = getSourceCode(element);
     final initialPadding = -getNode(element).offset;
     for (final transformation in _transformations) {
@@ -72,5 +72,24 @@ class Transformer {
       }
     }
     return code;
+  }
+  String applyOn(String code, {int padding = 0}) {
+    var result = code;
+    for (final transformation in _transformations) {
+      transformation.shift(padding);
+    }
+    for (var i = 0; i < _transformations.length; i++) {
+      final t = _transformations[i];
+      result = result.substring(0, t.begin) + t.content + result.substring(t.end);
+      for (final transformation in _transformations.skip(i + 1)) {
+        if (transformation.end <= t.begin) continue;
+        if (t.end <= transformation.begin) {
+          transformation.shift(t.content.length - (t.end - t.begin));
+          continue;
+        }
+        throw StateError('Colision in transformations');
+      }
+    }
+    return result;
   }
 }
