@@ -23,7 +23,7 @@ class GMap {
 extension GMap$Ext on GMap {
   num get zoom => _getZoom();
 
-  num _getZoom() => callMethod(this, '_getZoom', []);
+  num _getZoom() => callMethod(this, 'getZoom', []);
 }
 
 @JS()
@@ -41,9 +41,9 @@ extension LatLng$Ext on LatLng {
   num get lat => _lat();
   num get lng => _lng();
 
-  num _lat() => callMethod(this, '_lat', []);
+  num _lat() => callMethod(this, 'lat', []);
 
-  num _lng() => callMethod(this, '_lng', []);
+  num _lng() => callMethod(this, 'lng', []);
 }
 
 @JS()
