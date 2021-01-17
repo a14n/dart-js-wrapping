@@ -233,6 +233,70 @@ extension A$Ext on A {
 ''',
     );
   });
+
+  test('return List', () async {
+    await testGeneration(
+      r'''
+@JsName()
+class A {
+  List<A> m();
+}
+''',
+      r'''
+@JS()
+class A {}
+
+extension A$Ext on A {
+  List<A> m() => callMethod(this, 'm', [])?.cast<A>();
+}
+''',
+    );
+  });
+
+  test('accepting functions as parameter', () async {
+    await testGeneration(
+      r'''
+@JsName()
+class A {
+  void m1(Function f);
+  void m2(void Function() f);
+}
+''',
+      r'''
+@JS()
+class A {}
+
+extension A$Ext on A {
+  void m1(Function f) {
+    callMethod(this, 'm1', [allowInterop(f)]);
+  }
+
+  void m2(void Function() f) {
+    callMethod(this, 'm2', [allowInterop(f)]);
+  }
+}
+''',
+    );
+  });
+
+  test('return Future', () async {
+    await testGeneration(
+      r'''
+@JsName()
+class A {
+  Future m();
+}
+''',
+      r'''
+@JS()
+class A {}
+
+extension A$Ext on A {
+  Future m() => promiseToFuture(callMethod(this, 'm', []));
+}
+''',
+    );
+  });
 }
 
 Future<void> testGeneration(String input, String output) async {

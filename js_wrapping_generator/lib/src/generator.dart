@@ -107,6 +107,7 @@ $content
       final jsNameMetadata = getJsName(field);
       if (field.hasInitializer) {
       } else if (dartType is FunctionType ||
+          dartType.isDartCoreFunction ||
           jsNameMetadata != null ||
           isCoreListWithTypeParameter) {
         final nameDart = field.name;
@@ -120,7 +121,7 @@ $content
               "$typeAsString get $nameDart => getProperty(this, '$nameJs')$cast;")
           ..writeln(getDoc(field) ?? '')
           ..writeln('set $nameDart($typeAsString value)'
-              "{setProperty(this, '$nameJs', ${dartType is FunctionType ? 'allowInterop(value)' : 'value'});}");
+              "{setProperty(this, '$nameJs', ${dartType is FunctionType || dartType.isDartCoreFunction ? 'allowInterop(value)' : 'value'});}");
       } else {
         classContent
           ..writeln(getDoc(field) ?? '')
@@ -142,16 +143,18 @@ $content
       } else if (method.isOperator) {
       } else if (method.isSetter &&
           (jsNameMetadata != null ||
-              method.parameters.first.type is FunctionType)) {
+              method.parameters.first.type is FunctionType ||
+              method.parameters.first.type.isDartCoreFunction)) {
         // name of setter end with an "=" sign
         final nameJs =
             jsNameMetadata ?? method.name.substring(0, method.name.length - 1);
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
         final param = method.parameters.first;
-        final paramValue = param.type is FunctionType
-            ? 'allowInterop(${param.name})'
-            : param.name;
+        final paramValue =
+            param.type is FunctionType || param.type.isDartCoreFunction
+                ? 'allowInterop(${param.name})'
+                : param.name;
         extensionContent
           ..writeln(getDoc(method) ?? '')
           ..writeln(signature)
@@ -198,14 +201,16 @@ $content
 
       if (_isCoreListWithTypeParameter(method.returnType) ||
           method.isPrivate ||
-          method.parameters.any((p) => p.type is FunctionType) ||
+          method.parameters.any(
+              (p) => p.type is FunctionType || p.type.isDartCoreFunction) ||
           method.returnType.isDartAsyncFuture) {
         final name = getJsName(method) ?? method.name;
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
         final args = method.parameters
-            .map((e) =>
-                e.type is FunctionType ? 'allowInterop(${e.name})' : e.name)
+            .map((e) => e.type is FunctionType || e.type.isDartCoreFunction
+                ? 'allowInterop(${e.name})'
+                : e.name)
             .join(',');
         final cast = _isCoreListWithTypeParameter(method.returnType)
             ? '?.cast<${_getTypeParameterOfList(method.source, node.returnType)}>()'
