@@ -1,5 +1,5 @@
 name: js_wrapping_generator
-version: 0.5.0
+version: 0.6.0
 description: >
   With that package you will be able to easilly generate wrapper for JS library
   in Dart.
@@ -7,7 +7,7 @@ homepage: https://github.com/a14n/dart-js-wrapping
 environment:
   sdk: '>=2.6.0 <3.0.0'
 dependencies:
-  js_wrapping: 0.5.0
+  js_wrapping: 0.6.0
   source_gen: ^0.9.8
 dev_dependencies:
   build_test:
