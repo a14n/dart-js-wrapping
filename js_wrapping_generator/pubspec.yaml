@@ -7,6 +7,8 @@ homepage: https://github.com/a14n/dart-js-wrapping
 environment:
   sdk: '>=2.6.0 <3.0.0'
 dependencies:
+  analyzer:
+  build:
   js_wrapping: 0.6.0
   source_gen: ^0.9.8
 dev_dependencies:
