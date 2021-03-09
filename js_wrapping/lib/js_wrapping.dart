@@ -15,8 +15,8 @@ export 'package:js/js_util.dart';
 /// You can use it on libraries, classes, members.
 class JsName {
   const JsName([this.name]);
-  final String name;
+  final String? name;
 }
 
 /// A placeholder for generation of factory contructors and static members.
-const $js = Object();
+T $js<T>() => const Object() as T;

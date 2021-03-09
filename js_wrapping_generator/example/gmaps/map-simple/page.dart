@@ -11,36 +11,36 @@ import 'package:js_wrapping/js_wrapping.dart';
 
 @JsName('Map')
 abstract class GMap {
-  factory GMap(Node mapDiv, [MapOptions opts]) => $js;
+  factory GMap(Node? mapDiv, [MapOptions? opts]) => $js();
 
   @JsName('getZoom')
-  num _getZoom();
-  num get zoom => _getZoom();
+  num? _getZoom();
+  num? get zoom => _getZoom();
 }
 
 @JsName()
 abstract class LatLng {
-  factory LatLng(num lat, num lng, [bool noWrap]) => $js;
+  factory LatLng(num? lat, num? lng, [bool? noWrap]) => $js();
 
-  bool equals(LatLng other);
-  num get lat => _lat();
+  bool? equals(LatLng other);
+  num? get lat => _lat();
   @JsName('lat')
-  num _lat();
-  num get lng => _lng();
+  num? _lat();
+  num? get lng => _lng();
   @JsName('lng')
-  num _lng();
+  num? _lng();
   String toString();
-  String toUrlValue([num precision]);
+  String? toUrlValue([num precision]);
 }
 
 @JsName()
 @anonymous
 abstract class MapOptions {
-  factory MapOptions() => $js;
+  factory MapOptions() => $js();
 
-  int zoom;
-  LatLng center;
-  MapTypeId mapTypeId;
+  int? zoom;
+  LatLng? center;
+  MapTypeId? mapTypeId;
 }
 
 @JsName('MapTypeId')
@@ -51,28 +51,28 @@ enum MapTypeId {
   TERRAIN,
 }
 
-@JS('google.maps.event')
+@JS('event')
 external Object get _Event$namespace;
 
 class Event {
   static MapsEventListener addDomListener(
           Object instance, String eventName, Function handler,
-          [bool capture]) =>
+          [bool? capture]) =>
       callMethod(_Event$namespace, 'addDomListener',
-          [instance, eventName, handler, capture]);
+          [instance, eventName, allowInterop(handler), capture]);
   static MapsEventListener addDomListenerOnce(
           Object instance, String eventName, Function handler,
-          [bool capture]) =>
+          [bool? capture]) =>
       callMethod(_Event$namespace, 'addDomListenerOnce',
-          [instance, eventName, handler, capture]);
+          [instance, eventName, allowInterop(handler), capture]);
   static MapsEventListener addListener(
           Object instance, String eventName, Function handler) =>
-      callMethod(
-          _Event$namespace, 'addListener', [instance, eventName, handler]);
+      callMethod(_Event$namespace, 'addListener',
+          [instance, eventName, allowInterop(handler)]);
   static MapsEventListener addListenerOnce(
           Object instance, String eventName, Function handler) =>
-      callMethod(
-          _Event$namespace, 'addListenerOnce', [instance, eventName, handler]);
+      callMethod(_Event$namespace, 'addListenerOnce',
+          [instance, eventName, allowInterop(handler)]);
   static void clearInstanceListeners(Object instance) =>
       callMethod(_Event$namespace, 'clearInstanceListeners', [instance]);
   static void clearListeners(Object instance, String eventName) =>
@@ -81,7 +81,7 @@ class Event {
       callMethod(_Event$namespace, 'removeListener', [listener]);
 
   static void trigger(
-          Object instance, String eventName, List<Object> eventArgs) =>
+          Object instance, String eventName, List<Object?>? eventArgs) =>
       callMethod(
           _Event$namespace, 'trigger', [instance, eventName, ...?eventArgs]);
 }
@@ -89,9 +89,10 @@ class Event {
 @JsName()
 @anonymous
 abstract class MapsEventListener {
-  factory MapsEventListener() => $js;
+  factory MapsEventListener() => $js();
   void remove();
 }
+
 void main() {
   final mapOptions = MapOptions()
     ..zoom = 8

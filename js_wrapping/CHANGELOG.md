@@ -1,3 +1,7 @@
+# v0.7.0 (2021-03-09)
+
+- migrate to null-safety
+
 # v0.6.0 (2018-07-27)
 
 - migration from `dart:js` to `package:js`.

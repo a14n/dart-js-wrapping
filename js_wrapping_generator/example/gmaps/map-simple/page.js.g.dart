@@ -17,33 +17,33 @@ import 'package:js_wrapping/js_wrapping.dart';
 
 @JS('Map')
 class GMap {
-  external GMap(Node mapDiv, [MapOptions opts]);
+  external GMap(Node? mapDiv, [MapOptions? opts]);
 }
 
 extension GMap$Ext on GMap {
-  num get zoom => _getZoom();
+  num? get zoom => _getZoom();
 
-  num _getZoom() => callMethod(this, 'getZoom', []);
+  num? _getZoom() => callMethod(this, 'getZoom', []);
 }
 
 @JS()
 class LatLng {
-  external LatLng(num lat, num lng, [bool noWrap]);
+  external LatLng(num? lat, num? lng, [bool? noWrap]);
 
-  external bool equals(LatLng other);
+  external bool? equals(LatLng other);
 
   external String toString();
 
-  external String toUrlValue([num precision]);
+  external String? toUrlValue([num precision]);
 }
 
 extension LatLng$Ext on LatLng {
-  num get lat => _lat();
-  num get lng => _lng();
+  num? get lat => _lat();
+  num? get lng => _lng();
 
-  num _lat() => callMethod(this, 'lat', []);
+  num? _lat() => callMethod(this, 'lat', []);
 
-  num _lng() => callMethod(this, 'lng', []);
+  num? _lng() => callMethod(this, 'lng', []);
 }
 
 @JS()
@@ -51,17 +51,17 @@ extension LatLng$Ext on LatLng {
 class MapOptions {
   external factory MapOptions();
 
-  external int get zoom;
+  external int? get zoom;
 
-  external set zoom(int value);
+  external set zoom(int? value);
 
-  external LatLng get center;
+  external LatLng? get center;
 
-  external set center(LatLng value);
+  external set center(LatLng? value);
 
-  external MapTypeId get mapTypeId;
+  external MapTypeId? get mapTypeId;
 
-  external set mapTypeId(MapTypeId value);
+  external set mapTypeId(MapTypeId? value);
 }
 
 @JS('MapTypeId')
@@ -72,28 +72,28 @@ class MapTypeId {
   external static MapTypeId get TERRAIN;
 }
 
-@JS('google.maps.event')
+@JS('event')
 external Object get _Event$namespace;
 
 class Event {
   static MapsEventListener addDomListener(
           Object instance, String eventName, Function handler,
-          [bool capture]) =>
+          [bool? capture]) =>
       callMethod(_Event$namespace, 'addDomListener',
-          [instance, eventName, handler, capture]);
+          [instance, eventName, allowInterop(handler), capture]);
   static MapsEventListener addDomListenerOnce(
           Object instance, String eventName, Function handler,
-          [bool capture]) =>
+          [bool? capture]) =>
       callMethod(_Event$namespace, 'addDomListenerOnce',
-          [instance, eventName, handler, capture]);
+          [instance, eventName, allowInterop(handler), capture]);
   static MapsEventListener addListener(
           Object instance, String eventName, Function handler) =>
-      callMethod(
-          _Event$namespace, 'addListener', [instance, eventName, handler]);
+      callMethod(_Event$namespace, 'addListener',
+          [instance, eventName, allowInterop(handler)]);
   static MapsEventListener addListenerOnce(
           Object instance, String eventName, Function handler) =>
-      callMethod(
-          _Event$namespace, 'addListenerOnce', [instance, eventName, handler]);
+      callMethod(_Event$namespace, 'addListenerOnce',
+          [instance, eventName, allowInterop(handler)]);
   static void clearInstanceListeners(Object instance) =>
       callMethod(_Event$namespace, 'clearInstanceListeners', [instance]);
   static void clearListeners(Object instance, String eventName) =>
@@ -102,7 +102,7 @@ class Event {
       callMethod(_Event$namespace, 'removeListener', [listener]);
 
   static void trigger(
-          Object instance, String eventName, List<Object> eventArgs) =>
+          Object instance, String eventName, List<Object?>? eventArgs) =>
       callMethod(
           _Event$namespace, 'trigger', [instance, eventName, ...?eventArgs]);
 }

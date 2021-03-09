@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:build/build.dart';
+import 'package:collection/collection.dart';
 import 'package:js_wrapping_generator/src/transfomation.dart';
 import 'package:source_gen/source_gen.dart';
 
@@ -102,8 +103,8 @@ $content
       final dartType = field.type;
       final isCoreListWithTypeParameter =
           _isCoreListWithTypeParameter(dartType);
-      final typeAsString = field.source.contents.data
-          .substring(type.offset, type.endToken.next.offset);
+      final typeAsString = field.source!.contents.data
+          .substring(type!.offset, type.endToken.next!.offset);
       final jsNameMetadata = getJsName(field);
       if (field.hasInitializer) {
       } else if (dartType is FunctionType ||
@@ -113,7 +114,7 @@ $content
         final nameDart = field.name;
         final nameJs = jsNameMetadata ?? field.name;
         final cast = isCoreListWithTypeParameter
-            ? '?.cast<${_getTypeParameterOfList(field.source, type)}>()'
+            ? '?.cast<${_getTypeParameterOfList(field.source!, type)}>()'
             : '';
         extensionContent
           ..writeln(getDoc(field) ?? '')
@@ -121,7 +122,7 @@ $content
               "$typeAsString get $nameDart => getProperty(this, '$nameJs')$cast;")
           ..writeln(getDoc(field) ?? '')
           ..writeln('set $nameDart($typeAsString value)'
-              "{setProperty(this, '$nameJs', ${dartType is FunctionType || dartType.isDartCoreFunction ? 'allowInterop(value)' : 'value'});}");
+              "{setProperty(this, '$nameJs', ${dartType is FunctionType || dartType.isDartCoreFunction ? clazzTemplate.library.typeSystem.isNullable(dartType) ? 'value == null ? null : allowInterop(value)' : 'allowInterop(value)' : 'value'});}");
       } else {
         classContent
           ..writeln(getDoc(field) ?? '')
@@ -151,10 +152,12 @@ $content
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
         final param = method.parameters.first;
-        final paramValue =
-            param.type is FunctionType || param.type.isDartCoreFunction
-                ? 'allowInterop(${param.name})'
-                : param.name;
+        final paramValue = param.type is FunctionType ||
+                param.type.isDartCoreFunction
+            ? clazzTemplate.library.typeSystem.isNullable(param.type)
+                ? '${param.name} == null ? null : allowInterop(${param.name})'
+                : 'allowInterop(${param.name})'
+            : param.name;
         extensionContent
           ..writeln(getDoc(method) ?? '')
           ..writeln(signature)
@@ -166,7 +169,7 @@ $content
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
         final cast = _isCoreListWithTypeParameter(method.returnType)
-            ? '?.cast<${_getTypeParameterOfList(method.source, node.returnType)}>()'
+            ? '?.cast<${_getTypeParameterOfList(method.source, node.returnType!)}>()'
             : '';
         extensionContent
           ..writeln(getDoc(method) ?? '')
@@ -209,11 +212,13 @@ $content
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
         final args = method.parameters
             .map((e) => e.type is FunctionType || e.type.isDartCoreFunction
-                ? 'allowInterop(${e.name})'
+                ? clazzTemplate.library.typeSystem.isNullable(e.type)
+                    ? '${e.name} == null ? null : allowInterop(${e.name})'
+                    : 'allowInterop(${e.name})'
                 : e.name)
             .join(',');
         final cast = _isCoreListWithTypeParameter(method.returnType)
-            ? '?.cast<${_getTypeParameterOfList(method.source, node.returnType)}>()'
+            ? '?.cast<${_getTypeParameterOfList(method.source, node.returnType!)}>()'
             : '';
         final content = "callMethod(this, '$name', [$args])$cast";
         extensionContent
@@ -269,19 +274,21 @@ $extensionContent
       dartType.typeArguments.isNotEmpty;
 
   String _getTypeParameterOfList(Source source, TypeAnnotation type) {
-    return source.contents.data
-        .substring(type.offset + 'List<'.length, type.end - '>'.length);
+    return source.contents.data.substring(type.offset + 'List<'.length,
+        type.end - (type.question == null ? 0 : 1) - '>'.length);
   }
 }
 
-String getDoc(Element element) {
+String? getDoc(Element element) {
   final node = getNode(element);
-  if (node is AnnotatedNode && node.documentationComment != null) {
-    return element.source.contents.data.substring(
-        node.documentationComment.offset, node.documentationComment.end);
-  } else {
-    return null;
+  if (node is AnnotatedNode) {
+    final documentationComment = node.documentationComment;
+    if (documentationComment != null) {
+      return element.source!.contents.data
+          .substring(documentationComment.offset, documentationComment.end);
+    }
   }
+  return null;
 }
 
 Iterable<DartObject> getAnnotations(
@@ -290,14 +297,13 @@ Iterable<DartObject> getAnnotations(
   String libraryName,
   String className,
 ) =>
-    metadata.map((a) => a.computeConstantValue()).where((e) =>
-        e != null &&
+    metadata.map((a) => a.computeConstantValue()).whereNotNull().where((e) =>
         library.typeSystem.isAssignableTo(
-            e.type, getType(library, libraryName, className).thisType));
+            e.type!, getType(library, libraryName, className)!.thisType));
 
 bool hasAnonymousAnnotation(ClassElement clazz) => clazz.metadata
-    .where(
-        (a) => a.element.library.name == 'js' && a.element.name == 'anonymous')
+    .where((a) =>
+        a.element!.library!.name == 'js' && a.element!.name == 'anonymous')
     .isNotEmpty;
 
 // getAnnotations(clazz.library, clazz.metadata, 'js', '_Anonymous')
@@ -310,16 +316,15 @@ Iterable<DartObject> getJsNameAnnotations(
 bool hasJsNameAnnotation(ClassElement clazz) =>
     getJsNameAnnotations(clazz.library, clazz.metadata).isNotEmpty;
 
-String getJsName(Element element) =>
-    getJsNameAnnotations(element.library, element.metadata)
-        .firstWhere((e) => true, orElse: () => null)
+String? getJsName(Element element) =>
+    getJsNameAnnotations(element.library!, element.metadata)
+        .firstOrNull
         ?.getField('name')
         ?.toStringValue();
 
-ClassElement getType(
+ClassElement? getType(
     LibraryElement libElement, String libName, String className) {
-  final lib = libElement.importedLibraries
-      .firstWhere((l) => l.name == libName, orElse: () => null);
-  if (lib == null) return null;
-  return lib.getType(className);
+  final lib =
+      libElement.importedLibraries.firstWhereOrNull((l) => l.name == libName);
+  return lib?.getType(className);
 }

@@ -10,12 +10,12 @@ import 'package:analyzer/dart/element/element.dart';
 
 String getSourceCode(Element element) {
   final node = getNode(element);
-  return element.source.contents.data.substring(node.offset, node.end);
+  return element.source!.contents.data.substring(node.offset, node.end);
 }
 
-AstNode getNode(Element element) => element.session
-    .getParsedLibraryByElement(element.library)
-    .getElementDeclaration(element)
+AstNode getNode(Element element) => element.session!
+    .getParsedLibraryByElement(element.library!)
+    .getElementDeclaration(element)!
     .node;
 
 class SourceTransformation {
@@ -73,6 +73,7 @@ class Transformer {
     }
     return code;
   }
+
   String applyOn(String code, {int padding = 0}) {
     var result = code;
     for (final transformation in _transformations) {
@@ -80,7 +81,8 @@ class Transformer {
     }
     for (var i = 0; i < _transformations.length; i++) {
       final t = _transformations[i];
-      result = result.substring(0, t.begin) + t.content + result.substring(t.end);
+      result =
+          result.substring(0, t.begin) + t.content + result.substring(t.end);
       for (final transformation in _transformations.skip(i + 1)) {
         if (transformation.end <= t.begin) continue;
         if (t.end <= transformation.begin) {
