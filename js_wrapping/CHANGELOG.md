@@ -1,3 +1,7 @@
+# v0.7.1 (2021-08-10)
+
+- Bind functions for Function fields
+
 # v0.7.0 (2021-03-09)
 
 - migrate to null-safety
