@@ -297,6 +297,29 @@ extension A$Ext on A {
 ''',
     );
   });
+
+  test('field with Function', () async {
+    await testGeneration(
+      r'''
+@JsName()
+class A {
+  int Function() a;
+}
+''',
+      r'''
+@JS()
+class A {}
+
+extension A$Ext on A {
+  int Function() get a => callMethod(getProperty(this, 'a'), 'bind', [this]);
+
+  set a(int Function() value) {
+    setProperty(this, 'a', allowInterop(value));
+  }
+}
+''',
+    );
+  });
 }
 
 Future<void> testGeneration(String input, String output) async {

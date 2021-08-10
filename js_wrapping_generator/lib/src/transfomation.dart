@@ -4,6 +4,7 @@
 
 library js_wrapping_generator.util;
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,10 +14,11 @@ String getSourceCode(Element element) {
   return element.source!.contents.data.substring(node.offset, node.end);
 }
 
-AstNode getNode(Element element) => element.session!
-    .getParsedLibraryByElement(element.library!)
-    .getElementDeclaration(element)!
-    .node;
+AstNode getNode(Element element) =>
+    (element.session!.getParsedLibraryByElement2(element.library!)
+            as ParsedLibraryResult)
+        .getElementDeclaration(element)!
+        .node;
 
 class SourceTransformation {
   SourceTransformation(this.begin, this.end, this.content);

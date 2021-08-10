@@ -118,8 +118,9 @@ $content
             : '';
         extensionContent
           ..writeln(getDoc(field) ?? '')
-          ..writeln(
-              "$typeAsString get $nameDart => getProperty(this, '$nameJs')$cast;")
+          ..writeln(dartType is FunctionType || dartType.isDartCoreFunction
+              ? "$typeAsString get $nameDart => callMethod(getProperty(this, '$nameJs'), 'bind', [this]);"
+              : "$typeAsString get $nameDart => getProperty(this, '$nameJs')$cast;")
           ..writeln(getDoc(field) ?? '')
           ..writeln('set $nameDart($typeAsString value)'
               "{setProperty(this, '$nameJs', ${dartType is FunctionType || dartType.isDartCoreFunction ? clazzTemplate.library.typeSystem.isNullable(dartType) ? 'value == null ? null : allowInterop(value)' : 'allowInterop(value)' : 'value'});}");
