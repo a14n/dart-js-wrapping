@@ -1,3 +1,7 @@
+# v0.7.2 (2021-08-12)
+
+- Bind functions for Function returned by getters.
+
 # v0.7.1 (2021-08-10)
 
 - Bind functions for Function fields

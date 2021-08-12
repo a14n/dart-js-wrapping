@@ -1,5 +1,5 @@
 name: js_wrapping
-version: 0.7.1
+version: 0.7.2
 description: That package contains elements to easilly wrap JS library in Dart.
 homepage: https://github.com/a14n/dart-js-wrapping
 environment:
