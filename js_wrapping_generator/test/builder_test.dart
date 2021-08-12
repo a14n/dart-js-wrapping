@@ -320,6 +320,46 @@ extension A$Ext on A {
 ''',
     );
   });
+
+  test('getter with Function', () async {
+    await testGeneration(
+      r'''
+@JsName()
+class A {
+  int Function() get a;
+}
+''',
+      r'''
+@JS()
+class A {}
+
+extension A$Ext on A {
+  int Function() get a => callMethod(getProperty(this, 'a'), 'bind', [this]);
+}
+''',
+    );
+  });
+
+  test('setter with Function', () async {
+    await testGeneration(
+      r'''
+@JsName()
+class A {
+  set a(int Function() v);
+}
+''',
+      r'''
+@JS()
+class A {}
+
+extension A$Ext on A {
+  set a(int Function() v) {
+    setProperty(this, 'a', allowInterop(v));
+  }
+}
+''',
+    );
+  });
 }
 
 Future<void> testGeneration(String input, String output) async {

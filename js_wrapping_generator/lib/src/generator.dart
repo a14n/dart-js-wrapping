@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:build/build.dart';
 import 'package:collection/collection.dart';
@@ -73,6 +74,8 @@ $content
   }
 
   String generateForClass(ClassElement clazzTemplate) {
+    final typeSystem = clazzTemplate.library.typeSystem;
+    final source = clazzTemplate.source;
     final jsName = getJsName(clazzTemplate);
 
     final isAnonymous = hasAnonymousAnnotation(clazzTemplate);
@@ -101,29 +104,30 @@ $content
       final node = getNode(field) as VariableDeclaration;
       final type = (node.parent as VariableDeclarationList).type;
       final dartType = field.type;
-      final isCoreListWithTypeParameter =
-          _isCoreListWithTypeParameter(dartType);
       final typeAsString = field.source!.contents.data
           .substring(type!.offset, type.endToken.next!.offset);
       final jsNameMetadata = getJsName(field);
       if (field.hasInitializer) {
-      } else if (dartType is FunctionType ||
-          dartType.isDartCoreFunction ||
-          jsNameMetadata != null ||
-          isCoreListWithTypeParameter) {
+      } else if (jsNameMetadata != null ||
+          _isCoreListWithTypeParameter(dartType) ||
+          _isFunctionType(dartType)) {
         final nameDart = field.name;
         final nameJs = jsNameMetadata ?? field.name;
-        final cast = isCoreListWithTypeParameter
-            ? '?.cast<${_getTypeParameterOfList(field.source!, type)}>()'
-            : '';
+        final getterContent = _convertReturnValue(
+          dartType,
+          "getProperty(this, '$nameJs')",
+          source,
+          type,
+          bindThisToFunction: true,
+        );
+        const paramName = 'value';
+        final setterParam = _convertParam(dartType, typeSystem, paramName);
         extensionContent
           ..writeln(getDoc(field) ?? '')
-          ..writeln(dartType is FunctionType || dartType.isDartCoreFunction
-              ? "$typeAsString get $nameDart => callMethod(getProperty(this, '$nameJs'), 'bind', [this]);"
-              : "$typeAsString get $nameDart => getProperty(this, '$nameJs')$cast;")
+          ..writeln('$typeAsString get $nameDart => $getterContent;')
           ..writeln(getDoc(field) ?? '')
-          ..writeln('set $nameDart($typeAsString value)'
-              "{setProperty(this, '$nameJs', ${dartType is FunctionType || dartType.isDartCoreFunction ? clazzTemplate.library.typeSystem.isNullable(dartType) ? 'value == null ? null : allowInterop(value)' : 'allowInterop(value)' : 'value'});}");
+          ..writeln('set $nameDart($typeAsString $paramName)'
+              "{setProperty(this, '$nameJs', $setterParam);}");
       } else {
         classContent
           ..writeln(getDoc(field) ?? '')
@@ -153,29 +157,28 @@ $content
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
         final param = method.parameters.first;
-        final paramValue = param.type is FunctionType ||
-                param.type.isDartCoreFunction
-            ? clazzTemplate.library.typeSystem.isNullable(param.type)
-                ? '${param.name} == null ? null : allowInterop(${param.name})'
-                : 'allowInterop(${param.name})'
-            : param.name;
+        final paramValue = _convertParam(param.type, typeSystem, param.name);
         extensionContent
           ..writeln(getDoc(method) ?? '')
           ..writeln(signature)
           ..writeln("{setProperty(this, '$nameJs', $paramValue);}");
       } else if (method.isGetter &&
-          (_isCoreListWithTypeParameter(method.returnType) ||
-              jsNameMetadata != null)) {
+          (jsNameMetadata != null ||
+              _isCoreListWithTypeParameter(method.returnType) ||
+              _isFunctionType(method.returnType))) {
         final nameJs = jsNameMetadata ?? method.name;
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
-        final cast = _isCoreListWithTypeParameter(method.returnType)
-            ? '?.cast<${_getTypeParameterOfList(method.source, node.returnType!)}>()'
-            : '';
+        final getterContent = _convertReturnValue(
+          method.returnType,
+          "getProperty(this, '$nameJs')",
+          source,
+          node.returnType,
+          bindThisToFunction: true,
+        );
         extensionContent
           ..writeln(getDoc(method) ?? '')
-          ..writeln(signature)
-          ..writeln("=> getProperty(this, '$nameJs')$cast;");
+          ..writeln('$signature => $getterContent;');
       } else {
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.end);
@@ -203,33 +206,28 @@ $content
         continue;
       }
 
-      if (_isCoreListWithTypeParameter(method.returnType) ||
-          method.isPrivate ||
-          method.parameters.any(
-              (p) => p.type is FunctionType || p.type.isDartCoreFunction) ||
+      if (method.isPrivate ||
+          method.parameters.any((p) => _isFunctionType(p.type)) ||
+          _isCoreListWithTypeParameter(method.returnType) ||
           method.returnType.isDartAsyncFuture) {
         final name = getJsName(method) ?? method.name;
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
         final args = method.parameters
-            .map((e) => e.type is FunctionType || e.type.isDartCoreFunction
-                ? clazzTemplate.library.typeSystem.isNullable(e.type)
-                    ? '${e.name} == null ? null : allowInterop(${e.name})'
-                    : 'allowInterop(${e.name})'
-                : e.name)
+            .map((e) => _convertParam(e.type, typeSystem, e.name))
             .join(',');
-        final cast = _isCoreListWithTypeParameter(method.returnType)
-            ? '?.cast<${_getTypeParameterOfList(method.source, node.returnType!)}>()'
-            : '';
-        final content = "callMethod(this, '$name', [$args])$cast";
+        final content = _convertReturnValue(
+          method.returnType,
+          "callMethod(this, '$name', [$args])",
+          source,
+          node.returnType,
+          bindThisToFunction: false,
+        );
         extensionContent
           ..writeln(getDoc(method) ?? '')
           ..writeln(signature)
-          ..writeln(method.returnType.isVoid
-              ? '{ $content; }'
-              : method.returnType.isDartAsyncFuture
-                  ? ' => promiseToFuture($content);'
-                  : ' => $content;');
+          ..writeln(
+              method.returnType.isVoid ? '{ $content; }' : ' => $content;');
         continue;
       }
 
@@ -268,16 +266,44 @@ $extensionContent
     return result;
   }
 
+  String _convertReturnValue(
+    DartType dartType,
+    String initialValue,
+    Source source,
+    TypeAnnotation? type, {
+    required bool bindThisToFunction,
+  }) =>
+      _isCoreListWithTypeParameter(dartType)
+          ? '$initialValue?.cast<${_getTypeParameterOfList(source, type!)}>()'
+          : bindThisToFunction && _isFunctionType(dartType)
+              ? "callMethod($initialValue, 'bind', [this])"
+              : dartType.isDartAsyncFuture
+                  ? 'promiseToFuture($initialValue)'
+                  : initialValue;
+
+  String _convertParam(
+    DartType dartType,
+    TypeSystem typeSystem,
+    String paramName,
+  ) =>
+      _isFunctionType(dartType)
+          ? typeSystem.isNullable(dartType)
+              ? '$paramName == null ? null : allowInterop($paramName)'
+              : 'allowInterop($paramName)'
+          : paramName;
+
   bool _isCoreListWithTypeParameter(DartType dartType) =>
       dartType is InterfaceType &&
       dartType.element.library.name == 'dart.core' &&
       dartType.element.name == 'List' &&
       dartType.typeArguments.isNotEmpty;
 
-  String _getTypeParameterOfList(Source source, TypeAnnotation type) {
-    return source.contents.data.substring(type.offset + 'List<'.length,
-        type.end - (type.question == null ? 0 : 1) - '>'.length);
-  }
+  bool _isFunctionType(DartType dartType) =>
+      dartType is FunctionType || dartType.isDartCoreFunction;
+
+  String _getTypeParameterOfList(Source source, TypeAnnotation type) =>
+      source.contents.data.substring(type.offset + 'List<'.length,
+          type.end - (type.question == null ? 0 : 1) - '>'.length);
 }
 
 String? getDoc(Element element) {
