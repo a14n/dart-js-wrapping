@@ -1,3 +1,7 @@
+# v0.7.3 (2021-08-30)
+
+- handle enum to avoid cast issue in closures.
+
 # v0.7.2 (2021-08-12)
 
 - Bind functions for Function returned by getters.
