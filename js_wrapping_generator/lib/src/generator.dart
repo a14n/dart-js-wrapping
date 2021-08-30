@@ -60,16 +60,26 @@ class JsWrappingGenerator extends Generator {
   String generateForEnum(ClassElement clazzTemplate) {
     final doc = getDoc(clazzTemplate) ?? '';
     final jsName = getJsName(clazzTemplate);
-    final content = clazzTemplate.accessors
+    final values = clazzTemplate.accessors
         .where((e) => e.returnType == clazzTemplate.thisType)
-        .map((e) => 'external static ${clazzTemplate.name} get ${e.name};')
+        .map((e) => e.name);
+    final getters = values
+        .map((e) => 'external static ${clazzTemplate.name} get $e;')
         .join('\n');
+    final castMethod = [
+      '${clazzTemplate.name}? ${clazzTemplate.name}\$cast(value) {',
+      ...values.map((e) =>
+          '  if (value == ${clazzTemplate.name}.$e) return ${clazzTemplate.name}.$e;'),
+      '  return null;',
+      '}',
+    ].join('\n');
     return '''
 $doc
 @JS(${jsName != null ? "'$jsName'" : ""})
 class ${clazzTemplate.name} {
-$content
+$getters
 }
+$castMethod
 ''';
   }
 
@@ -285,12 +295,34 @@ $extensionContent
     DartType dartType,
     TypeSystem typeSystem,
     String paramName,
-  ) =>
-      _isFunctionType(dartType)
-          ? typeSystem.isNullable(dartType)
-              ? '$paramName == null ? null : allowInterop($paramName)'
-              : 'allowInterop($paramName)'
-          : paramName;
+  ) {
+    if (_isFunctionType(dartType)) {
+      var function = paramName;
+      bool isEnum(Element? element) =>
+          element is ClassElement && element.isEnum;
+      if (dartType is FunctionType &&
+          dartType.parameters.map((e) => e.type.element).any(isEnum)) {
+        final declarationParams = <String>[];
+        final callParams = <String>[];
+        for (var i = 0; i < dartType.parameters.length; i++) {
+          final param = dartType.parameters[i];
+          declarationParams.add('p$i');
+          callParams.add(isEnum(param.type.element)
+              ? '${param.type.element!.name}\$cast(p$i)'
+              : 'p$i');
+        }
+        function =
+            '(${declarationParams.join(',')}) => $paramName(${callParams.join(',')})';
+      }
+      if (typeSystem.isNullable(dartType)) {
+        return '$paramName == null ? null : allowInterop($function)';
+      } else {
+        return 'allowInterop($function)';
+      }
+    } else {
+      return paramName;
+    }
+  }
 
   bool _isCoreListWithTypeParameter(DartType dartType) =>
       dartType is InterfaceType &&
