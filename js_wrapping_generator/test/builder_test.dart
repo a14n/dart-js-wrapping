@@ -360,11 +360,36 @@ extension A$Ext on A {
 ''',
     );
   });
+
+  test('simple enum', () async {
+    await testGeneration(
+      r'''
+@JsName()
+enum MyEnum {
+  a,
+  b,
+}
+''',
+      r'''
+@JS()
+class MyEnum {
+  external static MyEnum get a;
+  external static MyEnum get b;
+}
+
+MyEnum? MyEnum$cast(value) {
+  if (value == MyEnum.a) return MyEnum.a;
+  if (value == MyEnum.b) return MyEnum.b;
+  return null;
+}
+''',
+    );
+  });
 }
 
 Future<void> testGeneration(String input, String output) async {
   final srcs = {
-    'js|lib/js.dart':'''
+    'js|lib/js.dart': '''
 library js;
 export 'dart:js' show allowInterop, allowInteropCaptureThis;
 class JS {

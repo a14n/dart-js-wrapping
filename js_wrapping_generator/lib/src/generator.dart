@@ -35,10 +35,10 @@ class JsWrappingGenerator extends Generator {
     final partsContent = <String>[];
     for (var element
         in library.allElements.where((element) => !element.isSynthetic)) {
-      final node = getNode(element);
       if (element.thisOrAncestorOfType<CompilationUnitElement>() ==
           library.element.definingCompilationUnit) {
         if (element is ClassElement && hasJsNameAnnotation(element)) {
+          final node = getNode(element);
           transformer.replace(
               node.offset, node.end, generateForTemplate(element));
         }
@@ -119,19 +119,20 @@ $castMethod
       final jsNameMetadata = getJsName(field);
       if (field.hasInitializer) {
       } else if (jsNameMetadata != null ||
-          _isCoreListWithTypeParameter(dartType) ||
-          _isFunctionType(dartType)) {
+          _needReturnTypeConversion(dartType, false)) {
         final nameDart = field.name;
         final nameJs = jsNameMetadata ?? field.name;
         final getterContent = _convertReturnValue(
           dartType,
+          false,
           "getProperty(this, '$nameJs')",
           source,
           type,
           bindThisToFunction: true,
         );
         const paramName = 'value';
-        final setterParam = _convertParam(dartType, typeSystem, paramName);
+        final setterParam =
+            _convertParam(dartType, typeSystem, paramName, source);
         extensionContent
           ..writeln(getDoc(field) ?? '')
           ..writeln('$typeAsString get $nameDart => $getterContent;')
@@ -167,20 +168,25 @@ $castMethod
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
         final param = method.parameters.first;
-        final paramValue = _convertParam(param.type, typeSystem, param.name);
+        final paramValue = _convertParam(
+          param.type,
+          typeSystem,
+          param.name,
+          source,
+        );
         extensionContent
           ..writeln(getDoc(method) ?? '')
           ..writeln(signature)
           ..writeln("{setProperty(this, '$nameJs', $paramValue);}");
       } else if (method.isGetter &&
           (jsNameMetadata != null ||
-              _isCoreListWithTypeParameter(method.returnType) ||
-              _isFunctionType(method.returnType))) {
+              _needReturnTypeConversion(method.returnType, false))) {
         final nameJs = jsNameMetadata ?? method.name;
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
         final getterContent = _convertReturnValue(
           method.returnType,
+          false,
           "getProperty(this, '$nameJs')",
           source,
           node.returnType,
@@ -218,16 +224,21 @@ $castMethod
 
       if (method.isPrivate ||
           method.parameters.any((p) => _isFunctionType(p.type)) ||
-          _isCoreListWithTypeParameter(method.returnType) ||
-          method.returnType.isDartAsyncFuture) {
+          _needReturnTypeConversion(method.returnType, false)) {
         final name = getJsName(method) ?? method.name;
         final signature = method.source.contents.data.substring(
             node.firstTokenAfterCommentAndMetadata.offset, node.body.offset);
         final args = method.parameters
-            .map((e) => _convertParam(e.type, typeSystem, e.name))
+            .map((v) => _convertParam(
+                  v.type,
+                  typeSystem,
+                  v.name,
+                  source,
+                ))
             .join(',');
         final content = _convertReturnValue(
           method.returnType,
+          false,
           "callMethod(this, '$name', [$args])",
           source,
           node.returnType,
@@ -278,41 +289,64 @@ $extensionContent
 
   String _convertReturnValue(
     DartType dartType,
+    bool handleEnums,
     String initialValue,
     Source source,
     TypeAnnotation? type, {
     required bool bindThisToFunction,
   }) =>
       _isCoreListWithTypeParameter(dartType)
-          ? '$initialValue?.cast<${_getTypeParameterOfList(source, type!)}>()'
+          ? '$initialValue?.cast<${_getTypeParameterOfList(source, type, dartType)}>()'
           : bindThisToFunction && _isFunctionType(dartType)
               ? "callMethod($initialValue, 'bind', [this])"
               : dartType.isDartAsyncFuture
                   ? 'promiseToFuture($initialValue)'
-                  : initialValue;
+                  : handleEnums && isEnum(dartType)
+                      ? '${dartType.getDisplayString(withNullability: false)}\$cast($initialValue)'
+                      : initialValue;
+
+  bool _needReturnTypeConversion(DartType dartType, bool handleEnums) =>
+      _isCoreListWithTypeParameter(dartType) ||
+      _isFunctionType(dartType) ||
+      dartType.isDartAsyncFuture ||
+      handleEnums && isEnum(dartType);
+
+  bool isEnum(DartType dartType) {
+    final element = dartType.element;
+    return element is ClassElement && element.isEnum;
+  }
 
   String _convertParam(
     DartType dartType,
     TypeSystem typeSystem,
     String paramName,
+    Source source,
   ) {
     if (_isFunctionType(dartType)) {
       var function = paramName;
-      bool isEnum(Element? element) =>
-          element is ClassElement && element.isEnum;
-      if (dartType is FunctionType &&
-          dartType.parameters.map((e) => e.type.element).any(isEnum)) {
+      if (dartType is FunctionType) {
+        var hasParamChange = false;
         final declarationParams = <String>[];
         final callParams = <String>[];
         for (var i = 0; i < dartType.parameters.length; i++) {
           final param = dartType.parameters[i];
-          declarationParams.add('p$i');
-          callParams.add(isEnum(param.type.element)
-              ? '${param.type.element!.name}\$cast(p$i)'
-              : 'p$i');
+          final p = 'p$i';
+          declarationParams.add(p);
+          final callParam = _convertReturnValue(
+            param.type,
+            true, // required by webdev to avoid type error
+            p,
+            source,
+            null,
+            bindThisToFunction: false,
+          );
+          callParams.add(callParam);
+          hasParamChange |= callParam != p;
         }
-        function =
-            '(${declarationParams.join(',')}) => $paramName(${callParams.join(',')})';
+        if (hasParamChange) {
+          function =
+              '(${declarationParams.join(',')}) => $paramName(${callParams.join(',')})';
+        }
       }
       if (typeSystem.isNullable(dartType)) {
         return '$paramName == null ? null : allowInterop($function)';
@@ -333,9 +367,17 @@ $extensionContent
   bool _isFunctionType(DartType dartType) =>
       dartType is FunctionType || dartType.isDartCoreFunction;
 
-  String _getTypeParameterOfList(Source source, TypeAnnotation type) =>
-      source.contents.data.substring(type.offset + 'List<'.length,
+  String _getTypeParameterOfList(
+    Source source,
+    TypeAnnotation? type,
+    DartType dartType,
+  ) {
+    if (type != null) {
+      return source.contents.data.substring(type.offset + 'List<'.length,
           type.end - (type.question == null ? 0 : 1) - '>'.length);
+    }
+    return (dartType as ParameterizedType).typeArguments.first.toString();
+  }
 }
 
 String? getDoc(Element element) {
