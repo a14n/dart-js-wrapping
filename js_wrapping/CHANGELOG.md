@@ -1,3 +1,7 @@
+# v0.7.4 (2022-01-13)
+
+- handle list cast in closures.
+
 # v0.7.3 (2021-08-30)
 
 - handle enum to avoid cast issue in closures.
